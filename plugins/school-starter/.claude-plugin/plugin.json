@@ -1,0 +1,9 @@
+{
+  "name": "school-starter",
+  "description": "ぱるぷんてスクール受講生向けスターターキット。セキュリティルール・開発ルール・作業完了通知音・Codex反復レビューをワンインストールで提供。",
+  "version": "1.0.0",
+  "author": {
+    "name": "菊池健司（ちーけん）",
+    "email": "kli@k-lifeinnovation.com"
+  }
+}
