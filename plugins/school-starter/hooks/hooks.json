@@ -1,12 +1,22 @@
 {
-  "description": "作業完了時に通知音を鳴らす（macOS）",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const cmd=i.tool_input?.command||'';const seps=(cmd.match(/&&|\\\\|\\\\||;/g)||[]).length;if(seps>=10){console.error('[Hook] BLOCKED: サブコマンド連結が多すぎます（'+seps+'個）。セキュリティ保護のためブロックしました。');process.exit(1)}console.log(d)})\""
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || true"
+            "command": "afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || powershell.exe -c \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\\chimes.wav').PlaySync()\" 2>/dev/null || paplay /usr/share/sounds/freedesktop/stereo/complete.oga 2>/dev/null || true"
           }
         ]
       }
