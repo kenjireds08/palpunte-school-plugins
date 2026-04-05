@@ -11,6 +11,17 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "(tool == \"Edit\" || tool == \"Write\") && tool_input.file_path matches \"\\\\.(ts|tsx|js|jsx|py|sh|json|yaml|yml|css|scss|html|vue|svelte|go|rs|rb|kt|java)$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js --hook"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
