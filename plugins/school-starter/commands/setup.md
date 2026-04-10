@@ -50,6 +50,29 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 初回: 新規作成
 更新時: 最新版で上書き
 
+### 1-4b. ドキュメント管理ガイド（~/.claude/docs/）
+
+`${CLAUDE_PLUGIN_ROOT}/references/docs/` 配下の以下のファイルを `~/.claude/docs/` に配置:
+
+| ファイル | テンプレート元 | 役割 | 上書きルール |
+|---------|-------------|------|------------|
+| `~/.claude/docs/documentation.md` | `references/docs/documentation.md` | ドキュメント管理ルール | 毎回上書き |
+| `~/.claude/docs/project-status-template.md` | `references/docs/project-status-template.md` | STATUS雛形 | 毎回上書き |
+| `~/.claude/docs/task-backlog-template.md` | `references/docs/task-backlog-template.md` | バックログ雛形 | 毎回上書き |
+| `~/.claude/docs/error-solutions.md` | `references/docs/error-solutions-template.md` | エラー蓄積ログ | **初回のみ作成（追記型）** |
+| `~/.claude/docs/skill-health.md` | `references/docs/skill-health-template.md` | スキル健全性ログ | **初回のみ作成（追記型）** |
+
+error-solutions.md と skill-health.md は追記型のため、既に存在する場合は上書きしない（ユーザーの記録を保護）。
+
+結果レポートのグローバル設定セクションに以下の行を追加:
+```
+- docs/documentation.md: 作成 / 更新 / 最新
+- docs/project-status-template.md: 作成 / 更新 / 最新
+- docs/task-backlog-template.md: 作成 / 更新 / 最新
+- docs/error-solutions.md: 作成 / 既存（スキップ）
+- docs/skill-health.md: 作成 / 既存（スキップ）
+```
+
 ### 1-5. グローバルCLAUDE.md（~/.claude/CLAUDE.md）
 
 `~/.claude/CLAUDE.md` が存在するか確認。

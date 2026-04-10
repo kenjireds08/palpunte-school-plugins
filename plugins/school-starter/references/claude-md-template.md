@@ -42,6 +42,17 @@
 - テストコマンド・検証ルールは `~/.claude/rules/development.md` を参照
 - 実装完了後は検証コマンドを実行し、エラーがなくなるまで修正すること
 
+## ドキュメント管理
+- **詳細ルール**: `~/.claude/docs/documentation.md` を参照
+- **CLAUDE.md**: 静的な基本設計情報（技術スタック、概要）
+- **000_PROJECT_STATUS.md**: 動的な進捗情報（200行以内に保つ）
+- **エラー蓄積**: エラーを2回以上試行して解決したら `~/.claude/docs/error-solutions.md` に自動追記（確認不要）
+
+## プロジェクト作成時（必須）
+1. **CLAUDE.md作成**（最優先）
+2. **docs/000_PROJECT_STATUS.md作成** → テンプレート: `~/.claude/docs/project-status-template.md`
+3. **`.claudeignore`作成**（`.env*`, `*.pem`, `*.key`, `credentials/` を記載）
+
 ## 便利なコマンド
 - `/interview` — 要件ヒアリング → 仕様書を自動生成
 - `/school-starter:check` — セキュリティ・品質の一括チェック
