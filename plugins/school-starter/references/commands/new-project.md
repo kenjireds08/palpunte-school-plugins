@@ -12,23 +12,22 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 ## Step 1: 環境チェック（軽量）
 
-以下のコマンドで Codex CLI と GWS CLI が入っているか確認:
+以下のコマンドで Codex CLI が入っているか確認:
 
 ```bash
 which codex || echo "Codex CLI: 未インストール"
-which gws || echo "GWS CLI: 未インストール"
 ```
 
-未インストールのものがあれば警告を表示:
+未インストールの場合は警告を表示:
 
 ```
-⚠ 必要なCLIツールが不足しています:
-  - {不足しているもの}
+⚠ Codex CLI が見つかりません。
 
 以下のコマンドで再セットアップしてください:
   /school-starter:setup
 
-このまま続けることもできますが、後のフェーズで使えない機能があります。
+Codex CLI は要件定義・DB設計・実装計画の第三者レビューに使います。
+このまま続けることもできますが、第三者レビュー機能はスキップされます。
 ```
 
 ユーザーに「続けますか？」と AskUserQuestion で確認。

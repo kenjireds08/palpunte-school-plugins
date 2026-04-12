@@ -223,73 +223,31 @@ options:
 
 「今すぐインストール」を選んだ場合、`Bash` で `npm install -g @openai/codex` を実行し、その後 `codex login` の手順をユーザーに案内する。
 
-### 1-10. ガイドドキュメントの配布（~/.claude/docs/）
+### 1-10. Google Docs マークダウン設定の案内
 
-**重要**: 1-11 (GWS CLI セットアップ伴走) よりも先にこのステップを実行する。
-GWS セットアップ時にユーザーへ参照させるドキュメントを、その時点で配布済みにしておくため。
+GWS CLI を使わなくても、見積もり書（mdファイル）を Google Docs にきれいに貼り付けられる。
+スクール生に以下を案内する:
 
-`${CLAUDE_PLUGIN_ROOT}/references/docs/google-workspace-cli.md` を読み込んで `~/.claude/docs/google-workspace-cli.md` に配置。
+```
+📝 Google Docs のマークダウン設定（1回だけやればOK）
 
-これにより、スクール生は後からいつでも GWS CLI の使い方を参照できる。
+スクール生の見積もり書は docs/006_estimate.md にmdで作成し、
+Google Docs に貼り付けて納品します。
+そのために、Google Docs 側で1回だけ設定が必要です:
 
-初回: 新規作成
-更新時: 最新版で上書き
+1. https://docs.google.com/ で新規ドキュメントを開く
+2. ツール → 設定
+3. 「全般」タブの「マークダウンを有効にする」にチェック
+4. OK
 
-### 1-11. GWS CLI のセットアップ伴走（必須）
+これで以降、右クリック → 「マークダウンから貼り付け」が使えます。
+（普通の Cmd+V だとマークダウン記法のままになるので注意）
 
-GWS CLI は見積書のGoogleドキュメント化、スプレッドシート操作、Drive操作などに使う。全案件で必須レベルで使う。
-
-`which gws` で確認:
-
-- **インストール済み** → 認証状態を `gws auth status` で確認
-  - 認証済み → 「GWS CLI: 利用可能」と報告
-  - 未認証 → 認証手順へ
-- **未インストール** → インストール手順へ
-
-#### インストール手順
-```bash
-npm install -g @googleworkspace/cli
-gws --version
+詳しい使い方は /new-project の流れで Claude Code が案内します。
 ```
 
-#### GCP プロジェクト準備の案内
-```
-🔧 Google Cloud Platform の準備が必要です
-
-詳細手順は ~/.claude/docs/google-workspace-cli.md を参照してください
-（1-10 で配布済み）。
-
-ざっくり手順:
-1. https://console.cloud.google.com/ にアクセス
-2. プロジェクト作成（例: gws-cli-自分の名前）
-3. 以下のAPIを有効化:
-   - Google Drive API
-   - Google Sheets API
-   - Google Docs API
-4. OAuth認証情報を作成（デスクトップアプリ）
-5. JSON をダウンロード
-```
-
-#### 認証
-```bash
-gws auth login --client-secret ./ダウンロードしたファイル.json
-```
-
-ブラウザが開いて Google アカウントでログイン → 完了。
-
-ユーザーに `AskUserQuestion` で確認:
-```
-question: GWS CLI のセットアップ方法
-options:
-  - label: "今すぐ全部やる（推奨）"
-    description: インストール・GCP設定・認証まで伴走する
-  - label: "インストールだけ今やる"
-    description: GCP設定と認証は後で自分でやる
-  - label: "後で自分で全部やる"
-    description: ~/.claude/docs/google-workspace-cli.md を見ながら自分でやる
-```
-
-選択に応じて伴走する。「今すぐ全部やる」の場合、各ステップで `Bash` を実行しながら確認していく（GCP のブラウザ作業はユーザー任せ）。
+この設定はユーザー側のGoogleアカウント設定なので、Claude Code側では何も配置しない。
+案内のみを表示する。
 
 ---
 
@@ -316,7 +274,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.6.0）
+## セットアップ結果（v1.6.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -326,13 +284,12 @@ credentials/
 - skills/interview: 作成 / 更新 / 最新
 - commands/clear-prep: 作成 / 更新 / 最新
 - commands/new-project: 作成 / 更新 / 最新
-- docs/google-workspace-cli.md: 作成 / 更新 / 最新
 - CLAUDE.md: 作成 / 既存（スキップ）
 - denyリスト: 設定済み / N項目追加
 - sandbox: 有効 / 無効（Codex優先） / 要設定
 - Codexレビュープラグイン: 利用可能 / 未導入（オプション）
 - Codex CLI: 利用可能 / インストール済み / スキップ
-- GWS CLI: 利用可能 / インストール済み / スキップ
+- Google Docs マークダウン設定: 案内表示済み
 
 ### プロジェクト設定
 - .claudeignore: 作成済み / 既存

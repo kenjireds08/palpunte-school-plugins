@@ -49,10 +49,31 @@ Phase A3: 見積もりドラフト
   → docs/006_estimate.md にmdで作成
   → 完了したら次へ提案
 
-Phase A4: Google Docs化
-  → 「クライアント提示用にGoogle Docsに変換しますか？」と提案
-  → gws CLI で Google Docs 作成
-  → 共有URLを表示
+Phase A4: Google Docs化（コピペ方式）
+  → 「クライアント提示用に Google Docs にしましょう。手順を案内します」と伝える
+  → 以下の3ステップを表示:
+
+      📝 Google Docs への貼り付け手順
+
+      【初回のみ：マークダウン設定を有効化】
+      1. https://docs.google.com/ で新規ドキュメントを作成
+      2. メニューバーから ツール → 設定
+      3. 「全般」タブの「マークダウンを有効にする」にチェック
+      4. OK を押す
+      ※ この設定は1回やれば次回以降不要です
+
+      【見積もりmdをGoogle Docsに貼り付け】
+      1. docs/006_estimate.md をエディタで開いて全選択 → コピー（Cmd+A → Cmd+C）
+      2. Google Docs のドキュメント本文を右クリック
+      3. メニューから「マークダウンから貼り付け」を選択
+      4. 見出し・太字・箇条書きが自動でフォーマットされます
+
+      ⚠ 普通の Cmd+V や「貼り付け」だとマークダウン記法のままになります。
+        必ず「マークダウンから貼り付け」を使ってください。
+
+      【完了したら】
+      Google Docs 右上の「共有」ボタンからリンクを取得して
+      クライアントに送ってください。
 
 Phase A5: 商談・受注
   → 「商談頑張ってください！受注できたら教えてください」
@@ -138,7 +159,7 @@ last_updated: YYYY-MM-DD
 | consultation | phase_a1 | completed | 「モックアップを作りますか？」を提案。OKなら `current_phase: phase_a2, phase_status: in_progress` に更新 |
 | consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続 |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
-| consultation | phase_a3 | completed | 「Google Docs に変換しますか？（gws CLI 使用）」を提案 |
+| consultation | phase_a3 | completed | 「Google Docs に貼り付ける手順を案内します（マークダウンから貼り付け方式）」を提案 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
 | order_won | phase_b1 | in_progress | 議事録・資料の収集継続 |
 | order_won | phase_b1 | completed | 「要件定義を詰めていきましょう。詳細をヒアリングします」 |
