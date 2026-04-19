@@ -1,7 +1,7 @@
 ---
 name: interview
 argument-hint: [--light | --full] [作りたい機能や要件の概要]
-description: 実装前にユーザーをインタビューし、仕様書を自動生成。「要件を聞いて」「仕様を詰めて」「インタビューして」「ヒアリングして」で発動。--lightはモックアップ・見積もり用の軽量モード、--full（デフォルト）は本実装用の詳細モード。
+description: 【通常は /interview-light か /interview-full を使う】要件定義インタビュー本体スキル。引数なしで状況自動判定（spec-lightがあれば--full補完、なければ--light/--fullを確認）。「インタビューして」「要件を聞いて」「仕様を詰めて」「ヒアリングして」等の自然言語呼び出しでも発動。上級者向け。
 allowed-tools: AskUserQuestion, Write, Read, Glob, Grep, Bash
 ---
 
