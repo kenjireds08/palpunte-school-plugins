@@ -39,8 +39,16 @@ Phase A1: ヒアリング
   → docs/003_client_request.md にクライアント情報・要望を記録
   → 完了したら次へ提案
 
+Phase A1.5: 要件の軽量定義（interview --light）
+  → 「モックアップを精度高く作るために、interviewスキルで要件をざっくり固めますか？」と提案
+  → ユーザーがOKなら `/interview --light` を案内
+  → docs/spec-light-[機能名].md が生成される
+  → 完了したら次へ提案
+  → スキップも可（小規模・スピード重視の案件向け）
+
 Phase A2: モックアップ作成
   → 「モックアップを作りますか？」と提案
+  → docs/spec-light-*.md があれば、それを読み込んで作成
   → mockups/pattern-a/ にHTMLで作成（複数案も可）
   → 完了したら次へ提案
 
@@ -90,9 +98,13 @@ Phase B1: 資料収集
   → あれば docs/002_meeting_notes.md に整理
   → 議事録の文字起こしも一緒に貼り付けてもらう
 
-Phase B2: 要件定義の作り込み
-  → Claude が詳細ヒアリング（機能要件・非機能要件・制約）
-  → docs/001_requirements.md に番号付きで記録
+Phase B2: 要件定義の作り込み（interview --full）
+  → 「`/interview --full` で要件定義を詰めましょう」と提案
+  → docs/spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリング
+  → 商談での追加要望・制約も組み込む
+  → 9観点でヒアリング: ユーザー体験 / データ / 技術 / エッジケース / 優先順位 / コスト / 法令 / LLMリスク / 性能
+  → docs/spec-[機能名].md に出力（実装前提セクション含む）
+  → 既存の docs/001_requirements.md にも要件サマリを番号付きで記録
   → ユーザーが「これで固まった」と言うまで壁打ちを繰り返す
 
 Phase B3: DB設計
@@ -137,7 +149,7 @@ Phase B8: 実装開始準備完了
 ```markdown
 ---
 mode: undecided | order_won | consultation | personal
-current_phase: phase_0 | phase_a1 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7 | phase_b8
+current_phase: phase_0 | phase_a1 | phase_a15 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7 | phase_b8
 phase_status: in_progress | completed
 last_updated: YYYY-MM-DD
 ---
@@ -156,13 +168,15 @@ last_updated: YYYY-MM-DD
 |------|--------------|------------|--------------|
 | undecided | phase_0 | * | 「案件の状態を教えてください（受注確定 / 相談段階 / 個人）」を AskUserQuestion で確認 → ステータス更新 |
 | consultation | phase_a1 | in_progress | クライアント情報・要望のヒアリング継続。完了したら `phase_status: completed` に更新して提案 |
-| consultation | phase_a1 | completed | 「モックアップを作りますか？」を提案。OKなら `current_phase: phase_a2, phase_status: in_progress` に更新 |
-| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続 |
+| consultation | phase_a1 | completed | 「`/interview --light` で要件をざっくり固めますか？モックアップの精度が上がります（スピード重視ならスキップしてphase_a2へ）」を提案 |
+| consultation | phase_a15 | in_progress | `/interview --light` 実行中。docs/spec-light-*.md の生成を待つ |
+| consultation | phase_a15 | completed | 「モックアップを作りますか？docs/spec-light-*.md を読み込んで作成します」を提案。OKなら `current_phase: phase_a2` に更新 |
+| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（spec-light-*.md があれば参照） |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
 | consultation | phase_a3 | completed | 「Google Docs に貼り付ける手順を案内します（マークダウンから貼り付け方式）」を提案 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
 | order_won | phase_b1 | in_progress | 議事録・資料の収集継続 |
-| order_won | phase_b1 | completed | 「要件定義を詰めていきましょう。詳細をヒアリングします」 |
+| order_won | phase_b1 | completed | 「`/interview --full` で要件定義を詰めましょう（spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリングします）」 |
 | order_won | phase_b2 | completed | 「DB設計を提案します」 |
 | order_won | phase_b3 | completed | 「Codex CLI で要件定義とDB設計を第三者レビューしますか？強く推奨します」 |
 | order_won | phase_b4 | completed | 「プロジェクトステータスをフェーズ別チェックリスト形式で作成します」 |
