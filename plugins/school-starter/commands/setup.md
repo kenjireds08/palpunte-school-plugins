@@ -60,6 +60,21 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 初回: 新規作成
 更新時: 最新版で上書き
 
+### 1-4c. interview-light / interview-full コマンド（~/.claude/commands/）
+
+以下の2ファイルを `~/.claude/commands/` に配置（`/interview` を打ったときにサジェスト候補として2つの選択肢が表示されるようにする）:
+
+| ファイル | テンプレート元 | 役割 |
+|---------|-------------|------|
+| `~/.claude/commands/interview-light.md` | `${CLAUDE_PLUGIN_ROOT}/references/commands/interview-light.md` | 受注前・モックアップ用の軽量ヒアリング（5問完結） |
+| `~/.claude/commands/interview-full.md` | `${CLAUDE_PLUGIN_ROOT}/references/commands/interview-full.md` | 受注後・本実装用の詳細ヒアリング（9観点） |
+
+これらのコマンドは内部で `~/.claude/skills/interview/` のスキルを呼び出すラッパー。
+スキル本体は `1-3` で配置済み。
+
+初回: 新規作成
+更新時: 最新版で上書き
+
 ### 1-4b. ドキュメント管理ガイド（~/.claude/docs/）
 
 `${CLAUDE_PLUGIN_ROOT}/references/docs/` 配下の以下のファイルを `~/.claude/docs/` に配置:
