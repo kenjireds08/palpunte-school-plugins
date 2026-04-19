@@ -57,6 +57,11 @@
 - GitHubにpush → Vercel自動デプロイ
 - Vercel CLIは使用しない（安全性重視）
 
+## git ルール
+- `git push --force` は禁止（main/masterはツールレベルでdeny済み、その他ブランチも非推奨）
+- 代わりに `git push --force-with-lease` を使う（同僚のコミットが上書きされる事故を予防）
+- コミット前に `git status` で意図したファイルだけステージされているか確認
+
 ## セキュリティ
 - **詳細ルール**: `~/.claude/rules/env-security.md` を参照
 - .envファイルはコミットしない
