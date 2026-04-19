@@ -1,7 +1,7 @@
 {
   "name": "school-starter",
   "description": "ぱるぷんてスクール受講生向けスターターキット。セキュリティルール・開発ルール・作業完了通知音・Codex反復レビュー・新規プロジェクト初期化（/new-project）・要件定義インタビュー（interview --light/--full）をワンインストールで提供。",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "author": {
     "name": "菊池健司（ちーけん）",
     "email": "kli@k-lifeinnovation.com"
