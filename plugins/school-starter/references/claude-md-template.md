@@ -88,10 +88,21 @@
 - **.envの値をチャットに表示しない**（存在確認のみOK）
 
 ### Supabase RLS（必須チェック）
-- **納品前に必ずRLS設定を確認**する
-- 全テーブルで `ENABLE ROW LEVEL SECURITY` が有効か
-- 適切なポリシーが設定されているか
-- `service_role` キーがクライアントコードに露出していないか
+
+IMPORTANT: 納品前に以下をすべて確認する。1つでも抜けると本番で事故る:
+
+- [ ] 全テーブルで `ENABLE ROW LEVEL SECURITY` が有効
+- [ ] `anon` / `authenticated` 両ロールのポリシーが適切に分かれている
+- [ ] `service_role` キーがクライアントコード（`NEXT_PUBLIC_*` やブラウザから見える場所）に露出していない
+- [ ] UPDATE ポリシーに SELECT ポリシーも併記（UPDATE だけだと RETURNING が効かず「謎のバグ」になる）
+- [ ] Views は `SECURITY INVOKER` を明示指定（デフォルト definer だと RLS バイパスで権限昇格）
+- [ ] ロール判定は `raw_app_meta_data` を使う（`raw_user_meta_data` はユーザー自身が書き換え可能で権限昇格の穴になる）
+- [ ] Storage bucket で `upsert: true` + `public` の組み合わせがない（他人のファイル上書きリスク）
+- [ ] Edge Functions で `service_role` を使う場合、呼び出し側の認可を自前で実装している
+- [ ] Next.js の `'use client'` コンポーネントに `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_*` 以外の機密が漏れていない
+- [ ] `middleware.ts` の `matcher` の除外パターンが広すぎないか（認可バイパスの穴になる）
+
+YOU MUST: 納品前に `@agent-security-auditor このプロジェクトのRLSポリシーとNext.js認証まわりをOWASP観点でレビューして、重要度付きで指摘して` を実行する（第7回・第10回で使う）。
 
 ## テスト・検証
 - テストコマンド・検証ルールは `~/.claude/rules/development.md` を参照

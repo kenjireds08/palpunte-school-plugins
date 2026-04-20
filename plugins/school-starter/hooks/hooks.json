@@ -2,18 +2,18 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "tool == \"Bash\"",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const cmd=i.tool_input?.command||'';const seps=(cmd.match(/&&|\\\\|\\\\||;/g)||[]).length;if(seps>=10){console.error('[Hook] BLOCKED: サブコマンド連結が多すぎます（'+seps+'個）。セキュリティ保護のためブロックしました。');process.exit(1)}console.log(d)})\""
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "(tool == \"Edit\" || tool == \"Write\") && tool_input.file_path matches \"\\\\.(ts|tsx|js|jsx|py|sh|json|yaml|yml|css|scss|html|vue|svelte|go|rs|rb|kt|java)$\"",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "palpunte-school-plugins",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "ぱるぷんてスクール上級コース用プラグイン。セキュリティ・開発ルール・ドキュメント管理・通知音・2段階コードレビュー・要件定義4フェーズインタビュー（技術者向け+クライアント向け2段階出力）・新規プロジェクト初期化をワンインストールで提供",
   "owner": {
     "name": "菊池健司（ちーけん）",
@@ -11,7 +11,7 @@
     {
       "name": "school-starter",
       "description": "スクール受講生向けスターターキット（セキュリティ・開発ルール・通知音・2段階コードレビュー・要件定義4フェーズインタビュー・新規プロジェクト初期化）",
-      "version": "1.13.0",
+      "version": "1.13.1",
       "author": {
         "name": "菊池健司（ちーけん）",
         "email": "kli@k-lifeinnovation.com"
