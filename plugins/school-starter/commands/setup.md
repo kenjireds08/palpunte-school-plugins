@@ -297,6 +297,18 @@ options:
 
 **補足**: `claude-plugins-official` と `claude-code-plugins` の2つのマーケットに同名プラグインがあるが、**`claude-plugins-official` 版を推奨**（Anthropic 公式マーケット）。
 
+### 1-10-a. Plan Mode 出力先の設定（plansDirectory）
+
+`~/.claude/settings.json` の `plansDirectory` 設定を確認する。
+
+この設定がないと、Plan Mode で作った計画書が `~/.claude/plans/` にグローバル保存されてしまい、リポジトリごとに混ざって見づらくなる。`./plans` に設定するとプロジェクトルート配下の `plans/` に出力されるため、リポジトリごとに計画書を管理できる。
+
+- **`plansDirectory` がない** → 既存設定を保持したまま `"plansDirectory": "./plans"` を追記。「plansDirectory: 設定済み（./plans）」と報告
+- **既に設定済み** → 値がユーザーのカスタム設定（例: `"./docs/plans"`）の場合はそのまま尊重。「plansDirectory: 既存設定を保持（<値>）」と報告
+- **`"./plans"` で既設定** → 「plansDirectory: 最新」と報告
+
+`~/.claude/settings.json` の他の既存設定（`permissions`, `hooks`, `enabledPlugins`, `language`, `sandbox` 等）は絶対に消さないこと。`plansDirectory` キーだけを追記する。
+
 ### 1-10. Google Docs マークダウン設定の案内
 
 GWS CLI を使わなくても、見積もり書（mdファイル）を Google Docs にきれいに貼り付けられる。
@@ -348,7 +360,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.6.3）
+## セットアップ結果（v1.10.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -363,6 +375,7 @@ credentials/
 - sandbox: 有効（推奨）/ 無効（有効化を案内）
 - Codex CLI（独立レビュー用）: 利用可能 / インストール済み / スキップ
 - feature-dev プラグイン（内部レビュー用・必須）: 利用可能 / インストール済み / スキップ
+- plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
 - Google Docs マークダウン設定: 案内表示済み
 
 ### プロジェクト設定
