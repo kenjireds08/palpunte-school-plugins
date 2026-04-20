@@ -297,6 +297,23 @@ options:
 
 **補足**: `claude-plugins-official` と `claude-code-plugins` の2つのマーケットに同名プラグインがあるが、**`claude-plugins-official` 版を推奨**（Anthropic 公式マーケット）。
 
+### 1-9-a. セキュリティ監査エージェント（security-auditor）の配置
+
+`${CLAUDE_PLUGIN_ROOT}/references/agents/security-auditor.md` を `~/.claude/agents/security-auditor.md` に配置する。
+
+このエージェントは OWASP Top 10 / 認証・認可 / JWT / CORS / CSP / 暗号化 / Supabase RLS ポリシー妥当性などを専門とするセキュリティ監査官。**第7回（認証・セキュリティ）と第10回（納品前レビュー）で明示的に呼び出して使う**。
+
+- **初回**: 新規作成
+- **更新時**: 最新版で上書き（ユーザーが手動で書き換えている場合も、プラグイン側の最新を優先。カスタマイズが必要なら別名で保存してもらう方針）
+
+受講生は `~/.claude/agents/security-auditor.md` が配置されると、以下のような明示呼び出しで利用できる:
+
+```
+@security-auditor このフォルダの認証周りをレビューして、OWASP Top 10 観点でリスクがあれば指摘して
+```
+
+または `Agent` ツールに `subagent_type: "security-auditor"` を指定することでも発動する。
+
 ### 1-10-a. Plan Mode 出力先の設定（plansDirectory）
 
 `~/.claude/settings.json` の `plansDirectory` 設定を確認する。
@@ -360,7 +377,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.11.0）
+## セットアップ結果（v1.12.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -375,6 +392,7 @@ credentials/
 - sandbox: 有効（推奨）/ 無効（有効化を案内）
 - Codex CLI（独立レビュー用）: 利用可能 / インストール済み / スキップ
 - feature-dev プラグイン（内部レビュー用・必須）: 利用可能 / インストール済み / スキップ
+- agents/security-auditor.md（セキュリティ監査用・第7回/第10回で使用）: 作成 / 更新 / 最新
 - plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
 - Google Docs マークダウン設定: 案内表示済み
 
