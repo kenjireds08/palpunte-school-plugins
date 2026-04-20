@@ -45,9 +45,13 @@
 
 | スキル | 説明 |
 |--------|------|
-| codex-review | Codex反復コードレビュー（最大10回自動ループ） |
+| review | 2段階コードレビュー。`feature-dev:code-reviewer` サブエージェントで内部レビュー → 必要な修正ループ → 最後に「作業サマリー（Codex独立レビュー用）」を必ず出力 |
+| interview | 要件ヒアリング → 仕様書自動生成（setupで配置されるグローバルスキル） |
+| project-flow | アプリ開発フェーズ進行ガイド |
 
-**注意**: codex-reviewを使うには別途 Codex プラグイン（`/plugin install codex@openai-codex`）が必要です。OpenAIの無料アカウントでも現在は利用可能（期間限定）。
+**review スキルの前提**: `feature-dev` プラグインが必要です（`/plugin install feature-dev@claude-plugins-official`）。セットアップ時に自動で伴走します。
+
+**Codex との連携**: `review` スキルが出力する「作業サマリー」を **Codex CLI（別ターミナル）または ChatGPT 別タブにコピペ**して独立レビューを受ける運用です。コピペ方式なので **sandbox 有効のまま** Codex 独立レビューが使えます。
 
 ## Hooks
 
