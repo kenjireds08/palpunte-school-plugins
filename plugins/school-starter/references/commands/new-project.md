@@ -313,7 +313,23 @@ Claude Code がフェーズ進行のたびに自動更新します。
 - 希望納期:
 ```
 
-### 4-3. .env の案内（重要）
+### 4-3. `.claude/rules/` の配置（案件特化ルール置き場）
+
+**案件固有のビジネスロジック・コーディング規約を置く場所**を用意する。グローバル（`~/.claude/rules/`）とは分離。最初は README だけ配置し、受講生が必要になったときに `.md` ファイルを追加する運用。
+
+1. `.claude/rules/` ディレクトリを作成
+2. `${CLAUDE_PLUGIN_ROOT}/references/docs/project-rules-readme.md` を Read し、`.claude/rules/README.md` として Write
+
+README には以下が含まれる:
+- `.claude/rules/` の用途（案件特化ルール置き場）
+- `paths:` フロントマターの書き方（Context 消費を節約しながら特定ファイルに絞れる）
+- ファイル名の目安（booking-rules.md / client-style.md / compliance.md 等）
+- 優先度（`.claude/rules/` > `~/.claude/rules/` > プラグイン配布ルール）
+- 公式リファレンスへのリンク
+
+この README は**受講生が後から読んで自分でルールを書き出す際のガイド**として機能する。最初は `.md` ルールファイルは配置しない（上級機能なので必要になるまで空のまま）。
+
+### 4-4. .env の案内（重要）
 
 Claude Code は `.env*` ファイルを作成できないため、以下を表示:
 
