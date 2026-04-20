@@ -309,7 +309,7 @@ options:
 受講生は `~/.claude/agents/security-auditor.md` が配置されると、以下のような明示呼び出しで利用できる:
 
 ```
-@security-auditor このフォルダの認証周りをレビューして、OWASP Top 10 観点でリスクがあれば指摘して
+@agent-security-auditor このフォルダの認証周りをレビューして、OWASP Top 10 観点でリスクがあれば指摘して
 ```
 
 または `Agent` ツールに `subagent_type: "security-auditor"` を指定することでも発動する。
@@ -377,7 +377,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.12.0）
+## セットアップ結果（v1.12.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新

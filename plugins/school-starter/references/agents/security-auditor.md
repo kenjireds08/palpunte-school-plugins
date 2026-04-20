@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: セキュリティ脆弱性レビュー、認証実装、OWASP準拠確認を担当。JWT、OAuth2、CORS、CSP、暗号化に対応。セキュリティレビュー、認証フロー、脆弱性修正において積極的に活用。
+description: Use proactively after implementing authentication, RLS policies, or any security-sensitive feature. セキュリティ脆弱性レビュー、認証実装、OWASP準拠確認、Supabase RLS ポリシー妥当性を担当。JWT、OAuth2、CORS、CSP、暗号化、入力検証に対応。セキュリティレビュー、認証フロー、脆弱性修正において積極的に活用。
 model: opus
 ---
 
