@@ -9,14 +9,23 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 ---
 
-## 🔴 IMPORTANT: setup 完走まで他作業をしない
+## 🔴 IMPORTANT: インストールから setup 完走までの保護状態（時系列・正確版）
 
-受講生に明示すること: `/plugin install` 直後〜`/school-starter:setup` 完走までの間は、`~/.claude/settings.json` の deny リストがまだ適用されていない無防備な状態。この間に他のプロンプトを投げると、サプライチェーン汚染されたプラグインやプロンプトインジェクション付きの外部コンテンツから保護されない。
+受講生に正確に伝えること。プラグインの防御層は install と setup で**段階的に有効化される**:
+
+| 防御層 | `/plugin install` 直後 | `/school-starter:setup` 完走後 |
+|--------|----------------------|-------------------------------|
+| Hook 3種（連結/危険パターン/不可視Unicode） | ✅ **即有効**（hooks.json は install 時点で読み込まれる） | ✅ 有効のまま |
+| グローバル rules（~/.claude/rules/ 4種） | ❌ 未配布 | ✅ 配布完了 |
+| settings.json deny リスト（~/.ssh/** / curl 等） | ❌ 未配布 | ✅ 配布完了 |
+| security-auditor サブエージェント / interview スキル等 | ❌ 未配布 | ✅ 配布完了 |
+
+つまり **install 直後は Hook による「危険コマンド即ブロック」「不可視 Unicode 検出」は効くが、機密ファイルの deny リスト（SSH キー・.env 等）と rules は未配布**。この中間状態で新規リポジトリの解析指示・外部プラグインのインストール・未知の CLAUDE.md 読み込み等を投げると、Hook では止めきれない経路（Read tool で秘密ファイルを読む等）が通る。
 
 したがって、受講生への案内で以下を明示する:
 
 1. `/plugin install school-starter@kenjireds08/palpunte-school-plugins` を実行
-2. **他の作業を挟まず即座に** `/school-starter:setup` を実行
+2. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
 3. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
 4. setup 後に `/school-starter:check` を1回走らせて、deny リスト・Hook・rules が全部配置されたことを確認
 
@@ -460,7 +469,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.15.0）
+## セットアップ結果（v1.15.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新

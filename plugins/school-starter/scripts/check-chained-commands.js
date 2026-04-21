@@ -47,6 +47,22 @@ const DANGER_PATTERNS = [
   /\bperl\s+-e\s+.*(system|exec|eval)\s*\(/i,      // perl -e 'system(...)' / 'exec(...)' / 'eval(...)'
   /\bnode\s+-e\s+.*(require\s*\(\s*['"]child_process|exec\s*\()/i, // node -e 'require("child_process")...'
   /\bprintf\s+.*\|\s*(sh|bash|zsh)/i,              // printf ... | sh (base64 回避の亜種)
+
+  // 秘密ファイル exfiltration 複合パターン（v1.15.1）
+  // 鍵・env・認証情報を読み取り → パイプで外部送信系コマンドへ、の流れを検出
+  // 連結カウントでは捕まらない短い攻撃（例: cat ~/.ssh/id_rsa | base64 | curl ...）を塞ぐ
+  /\b(cat|head|tail|less|more|tac|xxd|base64|strings)\s+[^|;&]*(~\/\.ssh|~\/\.aws|~\/\.gnupg|~\/\.azure|~\/\.kube|~\/\.docker|~\/\.supabase|~\/\.config\/gcloud|~\/\.config\/gh|~\/\.git-credentials|~\/\.netrc|~\/\.npmrc|~\/\.pgpass|~\/\.my\.cnf|~\/\.zsh_history|~\/\.bash_history|~\/\.python_history|~\/\.node_repl_history|id_rsa|id_ed25519|id_ecdsa|\.pem|\.p12|\.pfx|\.env|credentials|service-account|serviceAccountKey|firebase-adminsdk|access-token|\.gnupg|Keychains)[^|;&]*\|[^|;&]*\b(curl|wget|nc\b|ncat|socat|http|https-proxy|fetch|upload)/i,
+
+  // 秘密ファイル → base64/xxd で変換 → さらにパイプ（難読化して外部送信する亜種）
+  /\b(base64|xxd|openssl\s+enc|openssl\s+base64|gzip|zstd|bzip2)\s+[^|;&]*(~\/\.ssh|~\/\.aws|~\/\.gnupg|id_rsa|id_ed25519|\.pem|\.key|\.env|credentials|access-token|service-account|serviceAccountKey)[^|;&]*\|/i,
+
+  // 痕跡消去パターン（history -c と HISTFILE 無効化の組み合わせ・順序問わず）
+  /\bhistory\s+-c\b.*\b(unset\s+HISTFILE|export\s+HISTFILE=)/i,
+  /\b(unset\s+HISTFILE|export\s+HISTFILE=\/dev\/null|HISTFILE=\/dev\/null)\b.*\bhistory\s+-c\b/i,
+
+  // rm -rf の事故防止（deny リストが素通った場合の最終防衛・ホームや root を一括削除する亜種）
+  /\brm\s+(-rf|-fr|-r\s+-f|-f\s+-r)\s+\$HOME(\s|$|\/)/i,
+  /\brm\s+(-rf|-fr)\s+\/\s*$/,
 ];
 
 let data = '';
