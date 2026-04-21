@@ -35,6 +35,78 @@ Hook はツール実行前後やセッション開始時など特定タイミン
 
 詳しくは Anthropic 公式 https://code.claude.com/docs/ja/hooks を参照（school-starter の `hooks/hooks.json` と `scripts/*.js` も読み参考にできる）。
 
+## Settings / Permissions の使いこなし（受講生向け最低限）
+
+Claude Code の「どのツールを何のときに使わせるか」は `~/.claude/settings.json`（ユーザー設定）や `.claude/settings.json`（プロジェクト設定）で制御する。`/school-starter:setup` で基本セットは配置済みだが、受講生自身で**確認・編集する最低限の知識**をまとめておく。
+
+### `/permissions` — 有効な権限ルールを可視化する
+
+入力欄に `/permissions` と打つと、**現在有効な allow / ask / deny ルールを一覧表示**してくれる。各ルールがどの settings.json ファイルから来ているかも表示されるため、「deny を追加したはずなのに効いていない」状況のデバッグに最速。以下のケースでまず打つ:
+
+- deny リストが本当に効いているか確認したい
+- 自分で編集した allow / deny が有効になっているか確認したい
+- 引き継ぎリポジトリで「なぜか特定コマンドが弾かれる / 通る」原因を探したい
+
+### `/status` — 設定ソース（スコープ）を確認する
+
+入力欄に `/status` と打つと、どのスコープ（User / Project / Local / Managed）の settings.json が読み込まれているか、各ファイルのパス付きで表示される。`/permissions` と組み合わせて「どのファイルを編集すれば効くのか」が一発でわかる。設定ファイルに JSON エラーがあれば問題も報告してくれる。
+
+### `$schema` — VS Code で settings.json 編集を事故らせない
+
+`settings.json` の先頭に以下を入れておくと、VS Code や Cursor で編集するときに **オートコンプリートとインライン検証**が効く。タイプミスや存在しないキー指定を即座に気づけるので、手動編集事故の予防になる:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": { ... }
+}
+```
+
+`/school-starter:setup` で自動的に追加される。自分で作ったプロジェクト設定ファイル（`.claude/settings.json`）にも入れておくと便利。
+
+### 権限モード4種の使い分け（受講生が触るのはこれだけ）
+
+Shift+Tab でサイクル切り替え。現在のモードはステータスバーに表示される。
+
+| モード | 挙動 | 使うタイミング |
+|--------|------|--------------|
+| `default` | 各ツールの最初の使用時にプロンプト。**デフォルト・推奨** | 機密作業・初めてのフォルダ・日常の開発 |
+| `acceptEdits` | ファイル編集と `mkdir`/`touch`/`mv`/`cp` を自動承認（Bash コマンド承認は残る） | 「レビュー中で細かい編集が連続する」フェーズ。テンプレ反映・軽い修正ループ |
+| `plan` | Claude はファイル分析のみ可能。変更は一切しない | 「まず計画を見せて」というとき。`/plan <prompt>` でプロンプト単位でも使える |
+| `bypassPermissions` | ほぼ全てのプロンプトをスキップ（保護ディレクトリ除く） | **Docker/VM 等の隔離環境のみ**。ローカルでは使わない |
+
+**`auto` / `dontAsk` モードは受講生は基本使わない**:
+- `auto` は Team / Enterprise / API プラン限定かつ Sonnet 4.6 / Opus 4.6 限定（個人 Pro / Max プランでは利用不可）
+- `dontAsk` は CI パイプライン向けの非対話モード。受講生の日常開発では使用場面なし
+
+### `disableBypassPermissionsMode` — 誤発射防止
+
+`/school-starter:setup` で `~/.claude/settings.json` の `permissions.disableBypassPermissionsMode` を `"disable"` にセットしている。これにより `claude --dangerously-skip-permissions` で起動したり、Shift+Tab で `bypassPermissions` に切り替えたりしても**拒否される**。
+
+YouTube / ブログで「`--dangerously-skip-permissions` で快適」という情報を見ても、そのまま使わない。**使いたい場面があれば、なぜ必要かを考えた上で自分の settings.json から `disableBypassPermissionsMode` を外す**（= 自覚的に防御を解除する）。
+
+### 権限ルール構文の最低限リファレンス
+
+自分で `permissions.deny` に追加したくなったときのために:
+
+```
+Tool                 → そのツールの全使用にマッチ（例: Bash, Read, WebFetch）
+Tool(specifier)      → 特定の使用にマッチ
+Bash(npm run build)  → 正確一致
+Bash(npm run *)      → 「npm run 」で始まる（末尾スペース付き *）
+Bash(npm run*)       → 「npm run」で始まる（単語境界なし・lsof も npm-run も全部マッチ）
+Read(./.env)         → カレントディレクトリの .env
+Read(./.env.*)       → .env.local, .env.production 等
+Read(~/.ssh/**)      → ホームの .ssh 配下を再帰的に
+WebFetch(domain:example.com) → example.com へのフェッチ
+mcp__server__TOOL    → MCP ツール個別指定
+Agent(AgentName)     → サブエージェント個別指定
+```
+
+**注意**: `Read(./.env)` deny は **Claude の Read tool** でしか効かない。`Bash(cat .env)` は別経路で通る（対策は sandbox ON）。詳しくは `~/.claude/rules/env-security.md` の「deny リストの限界」セクション参照。
+
+公式ドキュメント: https://code.claude.com/docs/ja/permissions / https://code.claude.com/docs/ja/permission-modes / https://code.claude.com/docs/ja/settings
+
 ## 開発ルール
 - **詳細ルール**: `~/.claude/rules/development.md` を参照
 - 開発原則、コード実装前の確認、セキュリティ、テストコマンド、検証ルール
