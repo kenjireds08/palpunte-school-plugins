@@ -16,12 +16,19 @@ const THRESHOLD_SEP = 10;
 
 // 危険な即ブロック対象パターン（連結数に関係なくブロック）
 const DANGER_PATTERNS = [
-  /curl\s+[^\s|]+\s*\|\s*(sh|bash|zsh)\b/i,      // curl ... | sh
-  /wget\s+[^\s|]+\s*\|\s*(sh|bash|zsh)\b/i,      // wget ... | sh
-  /\|\s*(sh|bash|zsh)\s*$/i,                      // ... | sh (行末)
-  /\bbase64\s+(-d|--decode)\b.*\|\s*(sh|bash)/i,  // base64 -d | sh
-  /\beval\s*\$\(curl\b/i,                         // eval $(curl ...)
-  />\s*\/dev\/tcp\//i,                            // > /dev/tcp/
+  /curl\s+[^\s|]+\s*\|\s*(sh|bash|zsh)\b/i,       // curl ... | sh
+  /wget\s+[^\s|]+\s*\|\s*(sh|bash|zsh)\b/i,       // wget ... | sh
+  /\|\s*(sh|bash|zsh)\s*$/i,                       // ... | sh (行末)
+  /\bbase64\s+(-d|--decode)\b.*\|\s*(sh|bash)/i,   // base64 -d | sh
+  /\beval\s*\$\(\s*(curl|wget|fetch)\b/i,          // eval $(curl/wget/fetch ...)
+  /\beval\s+.*base64\s+(-d|--decode)\b/i,          // eval ... base64 -d ...（難読化経由）
+  />\s*\/dev\/tcp\//i,                             // > /dev/tcp/ (TCP書き込み)
+  />\s*\/dev\/udp\//i,                             // > /dev/udp/ (UDP書き込み)
+  /\bxxd\s+-r\b.*\|\s*(sh|bash|zsh)/i,             // xxd -r | sh（16進復号経由）
+  /\bpython3?\s+-c\s+.*(exec|eval)\s*\(/i,         // python -c 'exec(...)' / 'eval(...)'
+  /\bperl\s+-e\s+.*(system|exec|eval)\s*\(/i,      // perl -e 'system(...)' / 'exec(...)' / 'eval(...)'
+  /\bnode\s+-e\s+.*(require\s*\(\s*['"]child_process|exec\s*\()/i, // node -e 'require("child_process")...'
+  /\bprintf\s+.*\|\s*(sh|bash|zsh)/i,              // printf ... | sh (base64 回避の亜種)
 ];
 
 let data = '';
