@@ -21,6 +21,20 @@
 - **自作スキルの `SKILL.md` は 500 行以下が公式推奨**: 詳細なリファレンス・長いスクリプト・テンプレート出力例は `references/`（参考資料）/ `scripts/`（実行ツール）/ `assets/`（テンプレート画像）に分割し、`SKILL.md` から参照させる。`SKILL.md` に何でも詰め込むとスキルの効力が下がる
 - **自作スキルの `description` は 250 文字以内**: 公式が 250 文字でキャップする（コンテキスト節約のため）。**主要なユースケース・トリガーフレーズを冒頭に**書く（例: 「コードレビューして」「レビューお願い」など、ユーザーが自然に言うキーワード）。これがスキル自動発動の鍵
 
+## 自作 Hook の基本（受講生向け・最低限知識）
+
+Hook はツール実行前後やセッション開始時など特定タイミングで自動実行されるシェルコマンド・HTTPエンドポイント。受講生が独自の自動化を仕込みたくなったときの最低限知識。
+
+- **配置場所 6 種類**: `~/.claude/settings.json`（マシン全プロジェクト共通）/ `.claude/settings.json`（プロジェクト固有・Git 共有可）/ `.claude/settings.local.json`（プロジェクト固有・gitignored）/ 管理ポリシー設定（組織全体）/ プラグインの `hooks/hooks.json`（プラグイン有効時）/ スキル・サブエージェントのフロントマター
+- **主要イベント**: `SessionStart`（開始時）/ `UserPromptSubmit`（受講生発話）/ `PreToolUse`（ツール実行前・ブロック可）/ `PostToolUse`（ツール実行後）/ `PreCompact`（/compact 実行前）/ `Stop`（応答完了時）/ `SessionEnd`（終了時）
+- **マッチャーパターン**: `"Bash"`（完全一致）/ `"Edit|Write"`（パイプ区切り）/ `"mcp__.*"`（正規表現で MCP 全部）/ 省略 or `"*"` で全マッチ
+- **`if` フィールドで絞り込み**: `if: "Bash(rm -rf *)"` のように権限ルール構文で更にフィルタ可能（例: rm -rf を含む Bash のみ反応）
+- **exit code 2 で blocking**: コマンド Hook で実行を止めたいとき、stderr に理由を出して `exit 2` で返す。exit 1 は non-blocking なので使用禁止
+- **JSON 出力で構造化決定**: `{hookSpecificOutput: {hookEventName: "...", additionalContext: "...", permissionDecision: "deny"}}` のように JSON を stdout に書くと AI 側のコンテキストに inject できる
+- **Hook はセキュリティの「最後の保険」**: 多層防御の 1 つに過ぎない。CLAUDE.md ルール・rules・サブエージェント・受講生の目視確認とセットで成り立つ。Hook 単体に頼り切らない
+
+詳しくは Anthropic 公式 https://code.claude.com/docs/ja/hooks を参照（school-starter の `hooks/hooks.json` と `scripts/*.js` も読み参考にできる）。
+
 ## 開発ルール
 - **詳細ルール**: `~/.claude/rules/development.md` を参照
 - 開発原則、コード実装前の確認、セキュリティ、テストコマンド、検証ルール
