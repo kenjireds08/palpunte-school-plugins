@@ -110,6 +110,26 @@ if (process.argv.includes('--hook')) {
         process.exit(0);
       }
 
+      // v1.16.0 追加: ファイルパス（ファイル名含む）自体の不可視Unicode検出
+      // 正規のファイル名に似せて不可視文字で偽装する GlassWorm 類似攻撃を防ぐ
+      const pathFindings = [];
+      for (const pattern of INVISIBLE_PATTERNS) {
+        pattern.range.lastIndex = 0;
+        const matches = filePath.match(pattern.range);
+        if (matches && matches.length > 0) {
+          pathFindings.push({ type: pattern.name, count: matches.length });
+        }
+      }
+      if (pathFindings.length > 0) {
+        console.error(`⚠️ GlassWorm検出: ファイルパス自体に不可視Unicode文字が含まれています`);
+        console.error(`  パス: ${JSON.stringify(filePath)}`);
+        for (const f of pathFindings) {
+          console.error(`  ${f.type} x${f.count}`);
+        }
+        console.error('このファイルパスは偽装されている可能性があります（正規ファイル名に似せた不可視文字版）。');
+        process.exit(2); // blocking
+      }
+
       const ext = path.extname(filePath);
       if (!TARGET_EXTENSIONS.has(ext)) {
         process.exit(0);
