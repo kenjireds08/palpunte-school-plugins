@@ -14,6 +14,24 @@
 
 const THRESHOLD_SEP = 10;
 
+// Hook が危険パターンを検出したときに鳴らす警告音（Stop Hook の通常完了音と区別するため）
+// 非同期・detached で鳴らして exit をブロックしない
+function playAlertSound() {
+  try {
+    const { spawn } = require('child_process');
+    const cmd =
+      'afplay /System/Library/Sounds/Basso.aiff 2>/dev/null || ' +
+      'powershell.exe -c "[console]::beep(400,500)" 2>/dev/null || ' +
+      'paplay /usr/share/sounds/freedesktop/stereo/dialog-warning.oga 2>/dev/null || ' +
+      'pw-play /usr/share/sounds/freedesktop/stereo/dialog-warning.oga 2>/dev/null || ' +
+      'printf "\\a\\a\\a"';
+    const child = spawn('sh', ['-c', cmd], { detached: true, stdio: 'ignore' });
+    child.unref();
+  } catch (e) {
+    // 音の再生に失敗しても Hook のブロック動作は継続する
+  }
+}
+
 // 危険な即ブロック対象パターン（連結数に関係なくブロック）
 const DANGER_PATTERNS = [
   /curl\s+[^\s|]+\s*\|\s*(sh|bash|zsh)\b/i,       // curl ... | sh
@@ -45,6 +63,7 @@ process.stdin.on('end', () => {
           `[Hook] BLOCKED: 危険なコマンドパターンを検出しました (${pattern}). ` +
             `curl/wget を直接シェルにパイプする実行は拒否します。`
         );
+        playAlertSound();
         process.exit(2); // blocking
       }
     }
@@ -57,6 +76,7 @@ process.stdin.on('end', () => {
           `プロンプトインジェクション対策のためブロックしました。` +
           `分割して実行してください。`
       );
+      playAlertSound();
       process.exit(2); // blocking
     }
 

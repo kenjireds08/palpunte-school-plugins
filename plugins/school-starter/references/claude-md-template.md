@@ -91,16 +91,18 @@
 
 IMPORTANT: 納品前に以下をすべて確認する。1つでも抜けると本番で事故る:
 
-- [ ] 全テーブルで `ENABLE ROW LEVEL SECURITY` が有効
-- [ ] `anon` / `authenticated` 両ロールのポリシーが適切に分かれている
-- [ ] `service_role` キーがクライアントコード（`NEXT_PUBLIC_*` やブラウザから見える場所）に露出していない
-- [ ] UPDATE ポリシーに SELECT ポリシーも併記（UPDATE だけだと RETURNING が効かず「謎のバグ」になる）
-- [ ] Views は `SECURITY INVOKER` を明示指定（デフォルト definer だと RLS バイパスで権限昇格）
-- [ ] ロール判定は `raw_app_meta_data` を使う（`raw_user_meta_data` はユーザー自身が書き換え可能で権限昇格の穴になる）
-- [ ] Storage bucket で `upsert: true` + `public` の組み合わせがない（他人のファイル上書きリスク）
-- [ ] Edge Functions で `service_role` を使う場合、呼び出し側の認可を自前で実装している
-- [ ] Next.js の `'use client'` コンポーネントに `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_*` 以外の機密が漏れていない
-- [ ] `middleware.ts` の `matcher` の除外パターンが広すぎないか（認可バイパスの穴になる）
+- [ ] 全テーブルで `ENABLE ROW LEVEL SECURITY` が有効 — **OWASP A01: Broken Access Control**
+- [ ] `anon` / `authenticated` 両ロールのポリシーが適切に分かれている — **OWASP A01: Broken Access Control**
+- [ ] `service_role` キーがクライアントコード（`NEXT_PUBLIC_*` やブラウザから見える場所）に露出していない — **OWASP A02: Cryptographic Failures / A07: Identification and Authentication Failures**
+- [ ] UPDATE ポリシーに SELECT ポリシーも併記（UPDATE だけだと RETURNING が効かず「謎のバグ」になる） — **OWASP A01: Broken Access Control**
+- [ ] Views は `SECURITY INVOKER` を明示指定（デフォルト definer だと RLS バイパスで権限昇格） — **OWASP A01: Broken Access Control / A04: Insecure Design**
+- [ ] ロール判定は `raw_app_meta_data` を使う（`raw_user_meta_data` はユーザー自身が書き換え可能で権限昇格の穴になる） — **OWASP A01: Broken Access Control / A04: Insecure Design**
+- [ ] Storage bucket で `upsert: true` + `public` の組み合わせがない（他人のファイル上書きリスク） — **OWASP A01: Broken Access Control**
+- [ ] Edge Functions で `service_role` を使う場合、呼び出し側の認可を自前で実装している — **OWASP A01: Broken Access Control / A07: Identification and Authentication Failures**
+- [ ] Next.js の `'use client'` コンポーネントに `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_*` 以外の機密が漏れていない — **OWASP A02: Cryptographic Failures**
+- [ ] `middleware.ts` の `matcher` の除外パターンが広すぎないか（認可バイパスの穴になる） — **OWASP A01: Broken Access Control / A07: Identification and Authentication Failures**
+
+※ 上記 10 項目は主に OWASP Top 10 2021 のうち **A01 (Broken Access Control)** / **A02 (Cryptographic Failures)** / **A04 (Insecure Design)** / **A07 (Identification and Authentication Failures)** をカバー。`@agent-security-auditor` は A03 (Injection) / A05 (Security Misconfiguration) / A08 (Software and Data Integrity Failures) / A10 (SSRF) も見る。
 
 YOU MUST: 納品前に `@agent-security-auditor このプロジェクトのRLSポリシーとNext.js認証まわりをOWASP観点でレビューして、重要度付きで指摘して` を実行する（第7回・第10回で使う）。
 
