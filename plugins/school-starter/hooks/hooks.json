@@ -34,7 +34,16 @@
     ],
     "SessionStart": [
       {
-        "matcher": "startup|clear",
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js"
+          }
+        ]
+      },
+      {
+        "matcher": "clear",
         "hooks": [
           {
             "type": "command",
