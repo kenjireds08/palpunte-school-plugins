@@ -15,7 +15,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 | 防御層 | `/plugin install` 直後 | `/school-starter:setup` 完走後 |
 |--------|----------------------|-------------------------------|
-| Hook 3種（連結/危険パターン/不可視Unicode） | ✅ **即有効**（hooks.json は install 時点で読み込まれる） | ✅ 有効のまま |
+| Hook 4種（連結 / 危険パターン / 不可視Unicode / .md作成制御） | ✅ **即有効**（hooks.json は install 時点で読み込まれる） | ✅ 有効のまま |
 | グローバル rules（~/.claude/rules/ 4種） | ❌ 未配布 | ✅ 配布完了 |
 | settings.json deny リスト（~/.ssh/** / curl 等） | ❌ 未配布 | ✅ 配布完了 |
 | security-auditor サブエージェント / interview スキル等 | ❌ 未配布 | ✅ 配布完了 |
@@ -632,7 +632,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.1.0）
+## セットアップ結果（v1.2.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
