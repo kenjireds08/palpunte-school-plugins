@@ -126,9 +126,13 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 | `~/.claude/docs/error-solutions.md` | `references/docs/error-solutions-template.md` | エラー蓄積ログ | **初回のみ作成（追記型）** |
 | `~/.claude/docs/skill-health.md` | `references/docs/skill-health-template.md` | スキル健全性ログ | **初回のみ作成（追記型）** |
 | `~/.claude/docs/weekly-checklist.md` | `references/docs/weekly-checklist.md` | 週次チェックリスト（Boris推奨4項目） | 毎回上書き |
+| `~/.claude/docs/design-md-template.md` | `references/docs/design-md-template.md` | DESIGN.md カタログ + 軽量テンプレート（awesome-design-md-jp 24サービス + jp-ui-contracts 5プロファイル + 実運用Tips） | 毎回上書き |
+| `~/.claude/docs/ui-prohibited-patterns.md` | `references/docs/ui-prohibited-patterns.md` | AIっぽさ排除のUI禁止パターンチェックリスト | 毎回上書き |
 
 error-solutions.md と skill-health.md は追記型のため、既に存在する場合は上書きしない（ユーザーの記録を保護）。
-weekly-checklist.md はガイド資料のため毎回最新版で上書き。
+weekly-checklist.md / design-md-template.md / ui-prohibited-patterns.md はガイド資料のため毎回最新版で上書き。
+
+**design-md-template.md / ui-prohibited-patterns.md の役割（v1.6.0で追加）**: 受講生がフロントエンドUI実装時に Claude Code が自動参照することで、AIっぽいUI（紫グラデ・カード上端カラーバー等）を避け、awesome-design-md-jp の24サービスから性格に合わせた参考DESIGN.mdを選んで品質の高いUIを生成できるようになる。第6回以降の管理画面実装〜第10回納品まで継続的に効く。
 
 結果レポートのグローバル設定セクションに以下の行を追加:
 ```
@@ -138,6 +142,8 @@ weekly-checklist.md はガイド資料のため毎回最新版で上書き。
 - docs/error-solutions.md: 作成 / 既存（スキップ）
 - docs/skill-health.md: 作成 / 既存（スキップ）
 - docs/weekly-checklist.md: 作成 / 更新 / 最新
+- docs/design-md-template.md: 作成 / 更新 / 最新
+- docs/ui-prohibited-patterns.md: 作成 / 更新 / 最新
 ```
 
 ### 1-5. グローバルCLAUDE.md（~/.claude/CLAUDE.md）
@@ -637,7 +643,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.2.0）
+## セットアップ結果（v1.6.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -646,6 +652,8 @@ credentials/
 - rules/web-content-security.md: 作成 / 更新 / 最新
 - rules/vercel-deployment.md: 作成 / 更新 / 最新（paths付き：vercel.json/next.config編集時のみ自動ロード）
 - rules/supabase-security.md: 作成 / 更新 / 最新（paths付き：migrations/・*.sql編集時のみ自動ロード）
+- docs/design-md-template.md: 作成 / 更新 / 最新（DESIGN.md カタログ + 軽量テンプレート、UI実装時に参照）
+- docs/ui-prohibited-patterns.md: 作成 / 更新 / 最新（AIっぽさ排除チェックリスト、UI実装時に参照）
 - skills/interview: 作成 / 更新 / 最新
 - commands/clear-prep: 作成 / 更新 / 最新
 - commands/new-project: 作成 / 更新 / 最新

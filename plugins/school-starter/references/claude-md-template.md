@@ -164,6 +164,12 @@ Agent(AgentName)     → サブエージェント個別指定
 - **DB・認証**: Supabase（Auth + Storage + PostgreSQL）
 - **デプロイ**: Vercel
 
+## フロントエンドUI実装時のルール（必須参照）
+**フロントエンドUI実装を始める時、以下の2ファイルを必ず読んでから着手する**:
+- `~/.claude/docs/design-md-template.md` — DESIGN.md カタログ（awesome-design-md-jp 24サービス + jp-ui-contracts 5プロファイル + 実運用Tips）。プロジェクト性格に合った参考サービスを選び、`DESIGN.md` をプロジェクトルートに配置する
+- `~/.claude/docs/ui-prohibited-patterns.md` — AIっぽさ排除のチェックリスト。紫グラデ・カード上端カラーバー・`shadow-lg` 多用・`text-black` 等の典型パターンを避ける
+- 入力UIは特に `<input type="date">` `<input type="time">` を書きそうになった瞬間に ui-prohibited-patterns.md の「フォーム」セクションを必ず確認（OS/ブラウザ依存で統一感がないため、shadcn Calendar+Popover ベースのカスタムコンポーネントを使う）
+
 ## デプロイ
 - GitHubにpush → Vercel自動デプロイ
 - Vercel CLIは使用しない（安全性重視）

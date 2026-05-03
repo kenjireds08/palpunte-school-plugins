@@ -26,6 +26,8 @@
 | `~/.claude/rules/web-content-security.md` | 外部コンテンツの安全性ルール |
 | `~/.claude/rules/vercel-deployment.md` | Vercel CLI 方針（vercel.json/next.config 編集時のみ自動ロード） |
 | `~/.claude/rules/supabase-security.md` | Supabase RLS チェック（migrations/・*.sql 編集時のみ自動ロード） |
+| `~/.claude/docs/design-md-template.md` | DESIGN.md カタログ（awesome-design-md-jp 24サービス + jp-ui-contracts 5プロファイル + 実運用Tips） |
+| `~/.claude/docs/ui-prohibited-patterns.md` | AIっぽさ排除のUI禁止パターンチェックリスト（フロントエンド実装時に参照） |
 | `~/.claude/skills/interview/` | 要件ヒアリング → 仕様書自動生成スキル |
 | `~/.claude/CLAUDE.md` | グローバル設定テンプレート |
 
