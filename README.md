@@ -1,7 +1,19 @@
 # palpunte-school-plugins
 
-ぱるぷんて���クール上級コース用の Claude Code プラグイン。
+ぱるぷんてスクール上級コース用の Claude Code プラグイン。
 1回のインストール + setupで、プロの開発環境が整います。
+
+## 事前準備（受講生・初日）
+
+このプラグインは **VS Code 拡張機能版 Claude Code** が動作している前提です。
+
+まだ Claude Code を入れていない方は、以下の Notion 記事の手順でセットアップしてください（10分で完了・公式仕様準拠）:
+
+📘 **[Claude Code（VS Code拡張版）セットアップガイド ― 上級コース受講生向け](https://www.notion.so/Claude-Code-VS-Code-355af2ccb9b58198b3d7e1ec0e24b3de)**
+
+ガイド内容: VS Code インストール / Claude Code 拡張機能インストール / サインイン / 推奨レイアウト（Claude Code パネル + ターミナル分割）/ 拡張機能ならではの便利機能 / 困った時の補助プロンプト
+
+> 中級コースは Claude Code デスクトップ版を使うため、上級コースと差別化されています。VS Code 拡張版を使うことで、本格的なアプリ開発に必要な「IDE統合・ターミナル分割で複数Claude/Codex並列」運用が可能になります。
 
 ## インストール
 
