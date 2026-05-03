@@ -32,10 +32,15 @@
 **フロントエンドUI実装開始時、必ず以下を実施する:**
 
 1. プロジェクトの性格（業務系SaaS / EC / メディア / ホームページ / 管理画面 等）を把握
-2. 性格に近いサービスを下表から3つピックして提示
-3. 受講生が選んだら、そのサービスのDESIGN.mdをWebFetch/ghで取得
+2. **`AskUserQuestion` で以下を提示**（チャットの平文質問ではなく選択肢ボタンで聞く）:
+   - 「awesome-design-md-jpのカタログから候補を3つ提案します。気に入ったものがあれば選んでください。なければ frontend-design スキルでゼロから作成します」
+   - 候補は性格に近いサービスを下表から3つピックして提示（推奨は1つに `(Recommended)` を付ける）
+   - 4つ目の選択肢として「気に入ったものがない → frontend-design でゼロから作成」を必ず入れる
+3. 受講生が awesome-design-md-jp から選んだ場合 → そのサービスのDESIGN.mdをWebFetch/gh CLI で取得
 4. 取得したDESIGN.mdを参考にプロジェクト固有のDESIGN.mdを作成
-5. 「気に入ったものがない」を選んだ場合はゼロから作成（実例なし）
+5. 「気に入ったものがない」を選んだ場合 → **`frontend-design` スキル（Anthropic 公式プラグイン）を呼び出してゼロから生成**
+   - frontend-design が未インストールの場合は `/plugin install frontend-design@claude-code-plugins` を案内
+   - `/school-starter:setup` の 1-9-b で伴走インストール済みなら即発動可能
 
 ### 性格別おすすめ
 

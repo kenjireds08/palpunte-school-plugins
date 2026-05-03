@@ -556,6 +556,68 @@ options:
 
 **補足**: `claude-plugins-official` と `claude-code-plugins` の2つのマーケットに同名プラグインがあるが、**`claude-plugins-official` 版を推奨**（Anthropic 公式マーケット）。
 
+### 1-9-b. frontend-design プラグインのセットアップ伴走（推奨）
+
+**Anthropic 公式の独自性のあるフロントエンドUI生成プラグイン**。`docs/design-md-template.md` のワークフローで「awesome-design-md-jp の24サービスから3つ提案 → 受講生が選択 → DESIGN.md取得」のフローを通った後、**「気に入ったものがない/ゼロから生成したい」を選んだ場合のフォールバック先**として使う。AIっぽい汎用デザインを避け、洗練されたUIを生成する。
+
+第6回（管理画面実装）以降〜第10回納品まで、フロントエンドUI実装フェーズで継続的に使う。
+
+以下のパスで既にインストールされているかを確認:
+- `~/.claude/plugins/cache/claude-code-plugins/frontend-design`
+- `~/.claude/plugins/cache/claude-plugins-official/frontend-design`
+- `~/.claude/skills/frontend-design/SKILL.md`（プラグイン外で個別配置の場合）
+
+どれかが存在すれば「frontend-design: 利用可能」と報告。
+
+**未インストール** → 以下のフローで伴走:
+
+```
+🎨 frontend-design プラグインのセットアップ
+
+frontend-design は独自性のある高品質なフロントエンドUIを生成する
+Anthropic 公式プラグインです。AIっぽい汎用デザイン（紫グラデ・カード上端カラーバー等）
+を避け、洗練されたコードを生成します。
+
+DESIGN.md カタログ（awesome-design-md-jp 24サービス）から
+気に入った参考が見つからなかったときの「ゼロから生成」フォールバックとして使います。
+
+【インストール手順】
+⚠️ マーケット検証: `claude-code-plugins` マーケットは Anthropic 公式の anthropics 組織配下にあることを確認してからインストール。
+確認URL: https://github.com/anthropics/claude-code-plugins
+
+Claude Code で以下のコマンドを実行してください:
+
+  /plugin install frontend-design@claude-code-plugins
+
+インストール後、自動で有効化されます（再起動不要）。
+
+【使い方のイメージ】
+- 「awesome-design-md-jp の3候補から選ぶ」が基本フロー（design-md-template.md 参照）
+- どの参考も気に入らなかった時 → frontend-design スキルが自動発動してゼロから生成
+- 「独自性のあるUIを作りたい」と明示した時にも発動
+```
+
+ユーザーに `AskUserQuestion` で確認:
+```
+question: frontend-design プラグインのセットアップ方法
+options:
+  - label: "今すぐインストールする（推奨）"
+    description: /plugin install frontend-design@claude-code-plugins を実行
+  - label: "後で自分でやる"
+    description: 第6回（管理画面実装）までに /school-starter:setup を再実行するか、手動インストール
+  - label: "今回はスキップ"
+    description: frontend-design は使わない方針（awesome-design-md-jp カタログだけで運用）
+```
+
+「今すぐインストール」を選んだ場合、ユーザーに Claude Code の入力欄に以下のコマンドを貼り付けて実行するよう案内する:
+```
+/plugin install frontend-design@claude-code-plugins
+```
+
+インストール完了後は再度 `/school-starter:setup` を実行してもらい、このセクションで「frontend-design: 利用可能」と確認できる状態にする。
+
+**補足**: `claude-code-plugins` 版と `claude-plugins-official` 版の両方のマーケットに同名プラグインが存在する可能性があるが、Anthropic の公式 `claude-code-plugins` マーケット版を優先（ちーけんさん環境で実績あり）。
+
 ### 1-9-a. セキュリティ監査エージェント（security-auditor）の配置
 
 `${CLAUDE_PLUGIN_ROOT}/references/agents/security-auditor.md` を `~/.claude/agents/security-auditor.md` に配置する。
@@ -643,7 +705,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.6.0）
+## セットアップ結果（v1.6.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -665,6 +727,7 @@ credentials/
 - Codex CLI（独立レビュー用）: 利用可能 / インストール済み / スキップ
 - GitHub CLI（リポジトリ・PR/Issue 操作用・第1回から使用）: 利用可能（認証済み）/ インストール済み / 認証のみ要 / スキップ
 - feature-dev プラグイン（内部レビュー用・必須）: 利用可能 / インストール済み / スキップ
+- frontend-design プラグイン（UI生成フォールバック用・推奨・第6回以降使用）: 利用可能 / インストール済み / スキップ
 - agents/security-auditor.md（セキュリティ監査用・第7回/第10回で使用）: 作成 / 更新 / 最新
 - plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
 - Google Docs マークダウン設定: 案内表示済み
