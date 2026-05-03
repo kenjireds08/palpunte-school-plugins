@@ -24,6 +24,8 @@
 | `~/.claude/rules/development.md` | 開発原則（要件定義優先・既存パターン踏襲等） |
 | `~/.claude/rules/test.md` | テスト・lint改ざん防止 |
 | `~/.claude/rules/web-content-security.md` | 外部コンテンツの安全性ルール |
+| `~/.claude/rules/vercel-deployment.md` | Vercel CLI 方針（vercel.json/next.config 編集時のみ自動ロード） |
+| `~/.claude/rules/supabase-security.md` | Supabase RLS チェック（migrations/・*.sql 編集時のみ自動ロード） |
 | `~/.claude/skills/interview/` | 要件ヒアリング → 仕様書自動生成スキル |
 | `~/.claude/CLAUDE.md` | グローバル設定テンプレート |
 

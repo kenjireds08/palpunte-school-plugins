@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 - **GitHub**: kenjireds08/palpunte-school-plugins
-- **現在のバージョン**: v1.6.1
+- **現在のバージョン**: v1.5.0
 - **バージョン管理**: `plugins/school-starter/.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` の両方をバンプ
 
 ## 機能追加の判断フロー（Anthropic公式「Seeing like an agent」より）

@@ -1,7 +1,7 @@
 {
   "name": "school-starter",
   "description": "ぱるぷんてスクール受講生向けスターターキット。セキュリティ・開発ルール・通知音・2段階コードレビュー（feature-dev:code-reviewer + Codex別タブコピペ独立レビュー）・新規プロジェクト初期化（/new-project）・要件定義インタビュー（interview --light/--full、4フェーズ: 深掘り+用語集+技術者向け+クライアント向けの2段階出力）・Supabase接続標準（MCP不使用・CLI+psql方針）・自動学び還元（/learn スキルで案件をこなすほどClaude Codeが賢くなる）・週次チェックリスト（Boris Cherny推奨4項目）をワンインストールで提供。",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": {
     "name": "菊池健司（ちーけん）",
     "email": "kli@k-lifeinnovation.com"

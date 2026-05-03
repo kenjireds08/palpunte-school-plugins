@@ -16,7 +16,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 | 防御層 | `/plugin install` 直後 | `/school-starter:setup` 完走後 |
 |--------|----------------------|-------------------------------|
 | Hook 4種（連結 / 危険パターン / 不可視Unicode / .md作成制御） | ✅ **即有効**（hooks.json は install 時点で読み込まれる） | ✅ 有効のまま |
-| グローバル rules（~/.claude/rules/ 4種） | ❌ 未配布 | ✅ 配布完了 |
+| グローバル rules（~/.claude/rules/ 6種） | ❌ 未配布 | ✅ 配布完了 |
 | settings.json deny リスト（~/.ssh/** / curl 等） | ❌ 未配布 | ✅ 配布完了 |
 | security-auditor サブエージェント / interview スキル等 | ❌ 未配布 | ✅ 配布完了 |
 
@@ -61,7 +61,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 ### 1-2. グローバルルール（~/.claude/rules/）
 
-`~/.claude/rules/` ディレクトリを確認し、以下の4ファイルを配置:
+`~/.claude/rules/` ディレクトリを確認し、以下の6ファイルを配置:
 
 | ファイル | テンプレート元 | 役割 |
 |---------|-------------|------|
@@ -69,6 +69,8 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 | `~/.claude/rules/development.md` | `${CLAUDE_PLUGIN_ROOT}/references/rules/development.md` | 開発原則 |
 | `~/.claude/rules/test.md` | `${CLAUDE_PLUGIN_ROOT}/references/rules/test.md` | テスト・lint改ざん防止 |
 | `~/.claude/rules/web-content-security.md` | `${CLAUDE_PLUGIN_ROOT}/references/rules/web-content-security.md` | 外部コンテンツ安全性 |
+| `~/.claude/rules/vercel-deployment.md` | `${CLAUDE_PLUGIN_ROOT}/references/rules/vercel-deployment.md` | Vercel CLI 方針（vercel.json/next.config編集時に paths で自動ロード） |
+| `~/.claude/rules/supabase-security.md` | `${CLAUDE_PLUGIN_ROOT}/references/rules/supabase-security.md` | Supabase RLS チェック（migrations/, *.sql 編集時に paths で自動ロード） |
 
 初回: テンプレートを読み込んで作成
 更新時: テンプレートの最新版で上書き
@@ -642,6 +644,8 @@ credentials/
 - rules/development.md: 作成 / 更新 / 最新
 - rules/test.md: 作成 / 更新 / 最新
 - rules/web-content-security.md: 作成 / 更新 / 最新
+- rules/vercel-deployment.md: 作成 / 更新 / 最新（paths付き：vercel.json/next.config編集時のみ自動ロード）
+- rules/supabase-security.md: 作成 / 更新 / 最新（paths付き：migrations/・*.sql編集時のみ自動ロード）
 - skills/interview: 作成 / 更新 / 最新
 - commands/clear-prep: 作成 / 更新 / 最新
 - commands/new-project: 作成 / 更新 / 最新
