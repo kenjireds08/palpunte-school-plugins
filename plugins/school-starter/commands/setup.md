@@ -680,6 +680,58 @@ Google Docs に貼り付けて納品します。
 この設定はユーザー側のGoogleアカウント設定なので、Claude Code側では何も配置しない。
 案内のみを表示する。
 
+### 1-11. ステータスライン（コンテキスト・5h・7d 使用率の常時可視化）
+
+Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、チャット欄下部にコンテキスト/5時間/7日間の使用率を常時表示する Python スクリプトを配置する。
+
+**配置内容:**
+
+1. プラグインの `scripts/statusline.py` を `~/.claude/scripts/statusline.py` にコピーする
+   - `~/.claude/scripts/` ディレクトリがなければ作成
+   - 既存の `statusline.py` がある場合は上書きしない（受講生が記事URL方式でカスタマイズ済みの可能性があるため）。「既に statusline.py が配置されています。記事URL方式でカスタマイズした場合は上書きを避けます」と報告
+2. 実行権限を付与: `chmod +x ~/.claude/scripts/statusline.py`
+3. `~/.claude/settings.json` の `statusLine` 項目を以下のように設定（既存設定がない場合のみ追加）:
+   ```json
+   {
+     "statusLine": {
+       "type": "command",
+       "command": "~/.claude/scripts/statusline.py",
+       "padding": 1
+     }
+   }
+   ```
+   - 既存の `statusLine` 設定がある場合は上書きしない（受講生のカスタマイズを尊重）
+
+**受講生への案内（完走メッセージで伝える）:**
+
+```
+📊 ステータスライン配置完了（Pattern 1: Minimal Dots フォールバック版）
+
+Claude Code を再起動すると、チャット欄の下にこんな感じで表示されるよ:
+  Claude  ·  ctx ● 23%  ·  5h ● 42%  ·  7d ● 67%
+
+各数字の意味:
+- ctx: 今のセッションのコンテキスト使用率（30〜40% で /clear-prep のサイン）
+- 5h:  直近5時間の使用量（100% で5時間使えなくなる）
+- 7d:  直近7日間の使用量（100% で1週間使えなくなる）
+
+【他のデザイン（5パターン）に変えたい場合】
+記事URLとPattern番号を Claude Code に貼るだけで自動で差し替えてくれます:
+  https://nyosegawa.com/posts/claude-code-statusline-rate-limits/ これを入れたい. Pattern5
+
+5パターンの紹介:
+- Pattern 1: Minimal Dots（今配置済み）
+- Pattern 2: Sparkline Gauge（縦ブロックゲージ）
+- Pattern 3: Ring Meter（円グラフ風・最コンパクト）
+- Pattern 4: Fine Bar + Gradient（細密プログレスバー・情報量最強）
+- Pattern 5: Braille Dots（点字パターン・著者推奨・レトロかわいい）
+```
+
+**設計方針:**
+- フォールバック用に Pattern 1（Minimal Dots）を同梱。もっとも軽量で初心者向け
+- 受講生は第1回ハンズオンで「記事URLを Claude に渡して 5パターンから選ぶ」体験を推奨（Claude Code の本領発揮を体感する教材）
+- 詰まったら配布済みの Pattern 1 がそのまま動くので安心
+
 ---
 
 ## Part 2: プロジェクト設定（毎回）
