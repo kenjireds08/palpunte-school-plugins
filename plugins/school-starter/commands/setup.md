@@ -367,258 +367,44 @@ options:
 - 結果レポートに「sandbox: 無効（自覚的に選択）」と記録
 - `~/.claude/.school-starter-version` と同じディレクトリの `~/.claude/.school-starter-sandbox-opt-out` に日付を書き込み、次回セットアップ時には再度 AskUserQuestion しない（毎回聞くと受講生体験が悪化するため）
 
-### 1-8. Codex CLI のセットアップ伴走（必須）
+### 1-8. feature-dev / frontend-design プラグインの案内（自動インストールはしない）
 
-**Codex CLI はスタンドアロン版**（Claude Code 内プラグインではなくOpenAIの独立CLI）。
-このプラグインのレビュー運用では、`review` スキルが出力する「作業サマリー」を **Codex CLI または ChatGPT 別タブにコピペ**して独立レビューを受ける用途で使う。sandbox とも干渉しない。
-
-`which codex` で確認:
-
-- **インストール済み** → 「Codex CLI: 利用可能」と報告
-- **未インストール** → 以下のフローで伴走:
-
-```
-🔍 Codex CLI のセットアップ
-
-Codex CLI は以下の2用途で使います:
-  ① 要件定義・DB設計・実装計画の md ファイルを D&D で第三者レビュー
-  ② `review` スキルの「作業サマリー」をコピペして実装コードを独立レビュー
-
-どちらも別ターミナルで Codex CLI を起動して実行します（sandbox と干渉しない運用）。
-
-【インストール手順】
-0. ⚠️ タイポスクワッティング対策: https://www.npmjs.com/package/@openai/codex を開き、
-   - Publisher: `openai`（OpenAI 社の公式アカウント）
-   - Maintainer: @openai.com ドメインのメール
-   - Weekly Downloads が数万以上
-   の3点を確認してからインストールすること。`@open-ai` `@openai-codex` `openai-cli` 等の類似名は偽物の可能性あり。
-1. 公式: https://www.npmjs.com/package/@openai/codex
-2. 以下のコマンドでインストール:
-     npm install -g @openai/codex
-   または
-     brew install --cask codex
-   ※ Node.js が必要です（npmの場合）
-3. 認証:
-     codex login
-   → ブラウザが開くので OpenAI アカウントでログイン
-4. 動作確認:
-     codex --version
-
-【無料プランで試せる範囲】
-- 期間限定プロモーション中は無料アカウントでも利用可能
-- 安定利用には OpenAI Plus ($20/月) 推奨
-- 無くても /new-project の流れは動きますが、第三者レビューがスキップされます
-```
-
-ユーザーに `AskUserQuestion` で確認:
-```
-question: Codex CLI のセットアップ方法
-options:
-  - label: "今すぐインストールする（推奨）"
-    description: 上記のコマンドを実行してインストール・認証まで完了させる
-  - label: "後で自分でやる"
-    description: 必要になったら後で /school-starter:setup を再実行する
-  - label: "今回はスキップ"
-    description: Codex レビューは使わない（project-flowスキルでは案内のみ表示）
-```
-
-「今すぐインストール」を選んだ場合、`Bash` で `npm install -g @openai/codex` を実行し、その後 `codex login` の手順をユーザーに案内する。
-
-### 1-8-b. GitHub CLI のセットアップ伴走（必須）
-
-**GitHub CLI（`gh`）はリポジトリ作成・PR/Issue 操作・ログ確認を Claude Code から自然言語で扱うための必須ツール**。第1回のリポジトリ作成からずっと使うので、setup 段階で入れておく。
-
-Claude Code は GitHub との連携を、最新仕様では **MCP サーバーではなく `gh` CLI + Bash tool 経由**で行うのが推奨（context を圧迫せず成熟していて、Claude Code 組み込みの `/review`・`/security-review` 等も内部で `gh` を使う）。
-
-`which gh` で確認:
-
-- **インストール済み** → `gh auth status` で認証状態を確認
-  - 認証済み → 「GitHub CLI: 利用可能（認証済み）」と報告
-  - 未認証 → 以下の 認証フロー だけ案内
-- **未インストール** → 以下のフローで伴走:
-
-```
-🐙 GitHub CLI（gh）のセットアップ
-
-gh は以下の用途で使います:
-  ① `gh repo create` でリポジトリをコマンド一発で作成（第1回から使う）
-  ② `gh pr create` で PR 作成 / `gh pr view` でレビュー
-  ③ `gh issue create` で Issue 作成・管理
-  ④ Claude Code 組み込みの /review / /security-review も内部で gh を使う
-
-【インストール手順】
-macOS:
-    brew install gh
-
-Windows:
-    winget install --id GitHub.cli
-
-Linux（Debian/Ubuntu）:
-    sudo apt install gh
-
-公式: https://cli.github.com/
-
-【認証】
-    gh auth login
-
-→ ブラウザが開くので GitHub アカウントで承認（OAuth フロー）
-→ "HTTPS" プロトコルを選択（SSH でも可だが HTTPS が初心者向け）
-→ Git の認証情報を gh に保存するかどうかで "Yes" を選択（毎回 PAT 入力が不要になる）
-
-【動作確認】
-    gh auth status
-    gh repo list（過去に作ったリポジトリ一覧が出れば OK）
-```
-
-ユーザーに `AskUserQuestion` で確認:
-```
-question: GitHub CLI のセットアップ方法
-options:
-  - label: "今すぐインストール＆認証する（推奨）"
-    description: brew install gh → gh auth login まで完了させる
-  - label: "インストール済み・認証だけやる"
-    description: gh auth login だけ実行する
-  - label: "後で自分でやる"
-    description: 第1回までに /school-starter:setup を再実行するか、手動で認証
-  - label: "今回はスキップ"
-    description: GitHub CLI を使わない運用（手動で GitHub UI から操作）
-```
-
-「今すぐインストール＆認証」を選んだ場合:
-1. macOS: `Bash` で `brew install gh` を実行（Windows/Linux は手順を案内）
-2. インストール完了後、受講生に**別ターミナルで `gh auth login` を実行**してもらう（ブラウザ認証のため Claude Code の Bash tool では完結しない）
-3. 完了したら `gh auth status` で確認できることを案内
-
-**補足**:
-- `gh auth login` は対話式なので Claude Code 内では完結しない。受講生が別ターミナルで実行する前提
-- 認証成功後は `~/.config/gh/hosts.yml` にトークンが保存される（deny リストで保護されているパス内）
-- **GitHub MCP サーバーは導入しない方針**: gh CLI で代替可能で、MCP は常時接続で context を圧迫するため
-
-### 1-9. feature-dev プラグインのセットアップ伴走（必須）
-
-**Anthropic 公式の設計支援プラグイン**。要件定義・設計判断・複雑な機能追加の場面で、code-explorer / code-architect / code-reviewer の3つの専門エージェントが並列で動き、調査→設計案比較→レビューまで一気通貫で行う。
-
-このプラグインの `review` スキルは内部で **`feature-dev:code-reviewer` サブエージェント**を呼び出すため、**feature-dev プラグインのインストールは必須**。
-
-スクール生は第3回（要件定義）以降でも使うため、**setup の段階で入れておく**。
+**Anthropic 公式の設計支援プラグイン 2 種を案内する**。AskUserQuestion は出さず、コマンドを表示して受講生自身に打ってもらう。理由: `/plugin install` は Claude Code の入力欄でユーザー自身が実行するコマンドであり、Bash 経由の自動実行はできない。setup でエラーを出すと受講生が不安になるため、**最初から「自分でこのコマンドを打ってください」と案内するだけにする**。
 
 以下のパスで既にインストールされているかを確認:
+
+**feature-dev**:
 - `~/.claude/plugins/cache/claude-plugins-official/feature-dev`
 - `~/.claude/plugins/cache/claude-code-plugins/feature-dev`
 
-どちらかが存在すれば「feature-dev: 利用可能」と報告。
-
-**未インストール** → 以下のフローで伴走:
-
-```
-📝 feature-dev プラグインのセットアップ
-
-feature-dev は要件定義・設計判断の場面で使う Anthropic 公式プラグインです。
-コードベース調査・設計案比較・レビューを並列エージェントで一気通貫で行います。
-
-第3回（要件定義）以降で使うので、ここで入れておきましょう。
-
-【インストール手順】
-⚠️ マーケット検証: `claude-plugins-official` マーケットは Anthropic 公式の anthropics 組織配下にあることを確認してからインストール。
-確認URL: https://github.com/anthropics/claude-plugins-official （Owner が anthropics になっていればOK）。
-`claude-plugin-official`（単数形）等の類似マーケット名は第三者の模倣の可能性あり。
-
-Claude Code で以下のコマンドを実行してください:
-
-  /plugin install feature-dev@claude-plugins-official
-
-インストール後、自動で有効化されます（再起動不要）。
-
-【使い方のイメージ】
-- 「予約管理アプリの全体設計を考えたい」→ /feature-dev
-- 「認証機能の実装方針を比較したい」→ /feature-dev
-- 単純な変更は /feature-dev 不要（Plan Mode だけで十分）
-```
-
-ユーザーに `AskUserQuestion` で確認:
-```
-question: feature-dev プラグインのセットアップ方法
-options:
-  - label: "今すぐインストールする（推奨）"
-    description: /plugin install feature-dev@claude-plugins-official を実行
-  - label: "後で自分でやる"
-    description: 第3回までに /school-starter:setup を再実行するか、手動インストール
-  - label: "今回はスキップ"
-    description: feature-dev は使わない方針（Plan Mode のみで進める）
-```
-
-「今すぐインストール」を選んだ場合、ユーザーに Claude Code の入力欄に以下のコマンドを貼り付けて実行するよう案内する:
-```
-/plugin install feature-dev@claude-plugins-official
-```
-
-インストール完了後は再度 `/school-starter:setup` を実行してもらい、このセクションで「feature-dev: 利用可能」と確認できる状態にする。
-
-**補足**: `claude-plugins-official` と `claude-code-plugins` の2つのマーケットに同名プラグインがあるが、**`claude-plugins-official` 版を推奨**（Anthropic 公式マーケット）。
-
-### 1-9-b. frontend-design プラグインのセットアップ伴走（推奨）
-
-**Anthropic 公式の独自性のあるフロントエンドUI生成プラグイン**。`docs/design-md-template.md` のワークフローで「awesome-design-md-jp の24サービスから3つ提案 → 受講生が選択 → DESIGN.md取得」のフローを通った後、**「気に入ったものがない/ゼロから生成したい」を選んだ場合のフォールバック先**として使う。AIっぽい汎用デザインを避け、洗練されたUIを生成する。
-
-第6回（管理画面実装）以降〜第10回納品まで、フロントエンドUI実装フェーズで継続的に使う。
-
-以下のパスで既にインストールされているかを確認:
+**frontend-design**:
 - `~/.claude/plugins/cache/claude-code-plugins/frontend-design`
 - `~/.claude/plugins/cache/claude-plugins-official/frontend-design`
-- `~/.claude/skills/frontend-design/SKILL.md`（プラグイン外で個別配置の場合）
+- `~/.claude/skills/frontend-design/SKILL.md`
 
-どれかが存在すれば「frontend-design: 利用可能」と報告。
-
-**未インストール** → 以下のフローで伴走:
+それぞれ既にあれば「feature-dev: 利用可能」「frontend-design: 利用可能」と報告。なければ完走メッセージで以下のコマンドを表示する:
 
 ```
-🎨 frontend-design プラグインのセットアップ
+📝 feature-dev / frontend-design プラグイン（要セルフインストール）
 
-frontend-design は独自性のある高品質なフロントエンドUIを生成する
-Anthropic 公式プラグインです。AIっぽい汎用デザイン（紫グラデ・カード上端カラーバー等）
-を避け、洗練されたコードを生成します。
+setup では自動インストールできないため、Claude Code の入力欄に以下を打ってください:
 
-DESIGN.md カタログ（awesome-design-md-jp 24サービス）から
-気に入った参考が見つからなかったときの「ゼロから生成」フォールバックとして使います。
-
-【インストール手順】
-⚠️ マーケット検証: `claude-code-plugins` マーケットは Anthropic 公式の anthropics 組織配下にあることを確認してからインストール。
-確認URL: https://github.com/anthropics/claude-code-plugins
-
-Claude Code で以下のコマンドを実行してください:
-
+  /plugin install feature-dev@claude-plugins-official
   /plugin install frontend-design@claude-code-plugins
 
-インストール後、自動で有効化されます（再起動不要）。
+【それぞれの役割】
+- feature-dev: 要件定義・設計判断（第3回以降で使う）
+- frontend-design: UI 生成のフォールバック（第7回以降で使う）
 
-【使い方のイメージ】
-- 「awesome-design-md-jp の3候補から選ぶ」が基本フロー（design-md-template.md 参照）
-- どの参考も気に入らなかった時 → frontend-design スキルが自動発動してゼロから生成
-- 「独自性のあるUIを作りたい」と明示した時にも発動
+【マーケット検証】
+- claude-plugins-official: https://github.com/anthropics/claude-plugins-official
+- claude-code-plugins: https://github.com/anthropics/claude-code-plugins
+  Owner が anthropics になっていればOK（類似名は第三者の模倣の可能性あり）
 ```
 
-ユーザーに `AskUserQuestion` で確認:
-```
-question: frontend-design プラグインのセットアップ方法
-options:
-  - label: "今すぐインストールする（推奨）"
-    description: /plugin install frontend-design@claude-code-plugins を実行
-  - label: "後で自分でやる"
-    description: 第6回（管理画面実装）までに /school-starter:setup を再実行するか、手動インストール
-  - label: "今回はスキップ"
-    description: frontend-design は使わない方針（awesome-design-md-jp カタログだけで運用）
-```
+`AskUserQuestion` は出さない（受講生が選択肢で迷わないように）。完走メッセージの「次にやること」セクションで該当コマンドを並べて表示する。
 
-「今すぐインストール」を選んだ場合、ユーザーに Claude Code の入力欄に以下のコマンドを貼り付けて実行するよう案内する:
-```
-/plugin install frontend-design@claude-code-plugins
-```
-
-インストール完了後は再度 `/school-starter:setup` を実行してもらい、このセクションで「frontend-design: 利用可能」と確認できる状態にする。
-
-**補足**: `claude-code-plugins` 版と `claude-plugins-official` 版の両方のマーケットに同名プラグインが存在する可能性があるが、Anthropic の公式 `claude-code-plugins` マーケット版を優先（ちーけんさん環境で実績あり）。
-
-### 1-9-a. セキュリティ監査エージェント（security-auditor）の配置
+### 1-9. セキュリティ監査エージェント（security-auditor）の配置
 
 `${CLAUDE_PLUGIN_ROOT}/references/agents/security-auditor.md` を `~/.claude/agents/security-auditor.md` に配置する。
 
@@ -635,7 +421,7 @@ options:
 
 または `Agent` ツールに `subagent_type: "security-auditor"` を指定することでも発動する。
 
-### 1-10-a. Plan Mode 出力先の設定（plansDirectory）
+### 1-10. Plan Mode 出力先の設定（plansDirectory）
 
 `~/.claude/settings.json` の `plansDirectory` 設定を確認する。
 
@@ -647,38 +433,7 @@ options:
 
 `~/.claude/settings.json` の他の既存設定（`permissions`, `hooks`, `enabledPlugins`, `language`, `sandbox` 等）は絶対に消さないこと。`plansDirectory` キーだけを追記する。
 
-**⚠️ 受講生への案内必須**: `"./plans"` は**カレントディレクトリ相対**のため、Claude Code をホームディレクトリから起動すると `~/plans/` に書き込まれ、プロジェクトごとに計画書が散らかる事故になる。以下を必ず伝える:
-
-- Claude Code は**必ずプロジェクトフォルダに `cd` してから起動**する
-- VS Code 内のターミナルで開く場合は自動的にプロジェクトフォルダがカレントになるので問題ない
-- ターミナル直接起動（`claude` コマンド）の場合は起動前に `cd ~/claude-code-projects/<プロジェクト名>` を必ず実行
-- 計画書が見当たらない時は「今 Claude をどこから起動したか」を確認（`pwd` で確認可能）
-
-### 1-10. Google Docs マークダウン設定の案内
-
-GWS CLI を使わなくても、見積もり書（mdファイル）を Google Docs にきれいに貼り付けられる。
-スクール生に以下を案内する:
-
-```
-📝 Google Docs のマークダウン設定（1回だけやればOK）
-
-スクール生の見積もり書は docs/006_estimate.md にmdで作成し、
-Google Docs に貼り付けて納品します。
-そのために、Google Docs 側で1回だけ設定が必要です:
-
-1. https://docs.google.com/ で新規ドキュメントを開く
-2. ツール → 設定
-3. 「全般」タブの「マークダウンを有効にする」にチェック
-4. OK
-
-これで以降、右クリック → 「マークダウンから貼り付け」が使えます。
-（普通の Cmd+V だとマークダウン記法のままになるので注意）
-
-詳しい使い方は /new-project の流れで Claude Code が案内します。
-```
-
-この設定はユーザー側のGoogleアカウント設定なので、Claude Code側では何も配置しない。
-案内のみを表示する。
+**起動位置の補足**: `"./plans"` はカレントディレクトリ相対だが、**VS Code のターミナルから起動すれば自動的にプロジェクトフォルダがカレントになる**ため、第1回でこの起動方法を案内できれば事故は起きない。完走メッセージでは長文警告を出さない（受講生が混乱するため）。
 
 ### 1-11. ステータスライン（コンテキスト・5h・7d 使用率の常時可視化）
 
@@ -757,7 +512,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.6.1）
+## セットアップ結果（v1.8.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -776,13 +531,10 @@ credentials/
 - denyリスト: 設定済み / N項目追加（Bash経路塞ぎ `cat/grep/head/tail/less/more *.env*` 含む）
 - defaultMode / disableBypassPermissionsMode: 追加 / 設定済み / 既存設定を尊重
 - sandbox: 有効（推奨）/ 無効 → 有効化を案内（要 `/sandbox` 実行）/ 無効（自覚的に選択）
-- Codex CLI（独立レビュー用）: 利用可能 / インストール済み / スキップ
-- GitHub CLI（リポジトリ・PR/Issue 操作用・第1回から使用）: 利用可能（認証済み）/ インストール済み / 認証のみ要 / スキップ
-- feature-dev プラグイン（内部レビュー用・必須）: 利用可能 / インストール済み / スキップ
-- frontend-design プラグイン（UI生成フォールバック用・推奨・第6回以降使用）: 利用可能 / インストール済み / スキップ
-- agents/security-auditor.md（セキュリティ監査用・第7回/第10回で使用）: 作成 / 更新 / 最新
+- feature-dev プラグイン（内部レビュー用・必須・要セルフインストール）: 利用可能 / 要 `/plugin install`
+- frontend-design プラグイン（UI生成フォールバック用・推奨・要セルフインストール）: 利用可能 / 要 `/plugin install`
+- agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
 - plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
-- Google Docs マークダウン設定: 案内表示済み
 
 ### プロジェクト設定
 - .claudeignore: 作成済み / 既存
@@ -792,22 +544,26 @@ credentials/
 グローバル設定は今後作成するすべてのプロジェクトに自動で適用されます。
 
 📌 次にやること:
+
+1. sandbox を有効化（最優先・案内されていた場合）:
+     /sandbox
+
+2. feature-dev プラグインをインストール（要セルフ実行）:
+     /plugin install feature-dev@claude-plugins-official
+
+3. frontend-design プラグインをインストール（要セルフ実行）:
+     /plugin install frontend-design@claude-code-plugins
+
+4. Codex CLI と GitHub CLI は授業で扱うため、ここでは不要。
+   - Codex CLI: 第2回までに講義内で導入
+   - GitHub CLI: 第4回（Git/GitHub 回）で講義内で導入
+
+5. Claude Code を再起動（ステータスラインを反映）
+
 新しいアプリ開発を始めるときは、フォルダを作って Claude Code を起動したら
 最初に /new-project と入力してください。
-あとは Claude Code が対話形式でフェーズを進めてくれます。
 
-🔍 設定を自分で確認したくなったら（覚えておくと便利）:
-  - /permissions — 有効な allow / ask / deny ルールと設定ソースファイルを一覧表示（deny が効いているか確認する最速手段）
-  - /status — どのスコープ（User / Project / Local / Managed）の設定が効いているか確認。「設定したはずの項目が効かない」ときの第一の確認コマンド
-  - どちらも Claude Code の入力欄で打つだけ
-
-💡 プラグインの更新があった場合（必ず差分を読んでから）:
-  1. /plugin update school-starter  （または新規 MCP 等のインストール）
-  2. ⚠ 直後に /plugin disable school-starter で一旦止める（SessionStart/UserPromptSubmit Hook 発火を止める）
-  3. docs/plugin-changelog.md の差分を目視確認（想定外の変更がないか）
-  4. ~/.claude/plugins/cache/<source>/<plugin>/ の hooks/scripts/agents を目視
-  5. 問題なければ /plugin enable school-starter
-  6. /school-starter:setup（このコマンドを再実行）
-
-  ※ この「install/update 直後 → disable → 目視 → enable」手順は school-starter 以外のプラグイン・MCP を入れる時も同じ。詳細は ~/.claude/rules/env-security.md 参照
+🔍 設定を自分で確認したくなったら:
+  - /permissions — 有効な allow / ask / deny ルールと設定ソースを一覧
+  - /status — どのスコープの設定が効いているか確認
 ```
