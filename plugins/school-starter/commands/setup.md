@@ -488,7 +488,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.5）
+## セットアップ結果（v1.8.6）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -538,6 +538,38 @@ credentials/
 
 3. /reload-plugins （feature-dev / frontend-design を反映）
 
+📋 受講生環境チェックリスト（M1 / Apple Silicon ユーザー向け・次の 4. に進む前に）
+
+   M1 Mac 実機検証で「ここで詰まる」と判明した 3 つの罠を、Claude Code に
+   質問して事前に潰してから Codex CLI のインストールに進んでください。
+
+   a. 管理者権限の確認（標準ユーザーだと sudo / brew install が詰む）:
+        Claude Code に↓を貼り付け:
+        「私のユーザーは管理者ですか？
+         dscl . -read /Groups/admin GroupMembership で確認して」
+
+      → 出力に自分のユーザー名がなければ標準ユーザーです。
+        その Mac のメイン管理者に頼んで管理者に昇格してから次へ進んでください。
+
+   b. Homebrew インストール後の Next steps 3 行を実行したか確認:
+        Claude Code に↓を貼り付け:
+        「brew install 後に表示された ==> Next steps の PATH 設定 3 行
+         （eval "$(/opt/homebrew/bin/brew shellenv)" を ~/.zprofile に
+          追記する手順）を実行したか確認して」
+
+      → これを飛ばすと brew コマンドが PATH に通らず、
+        Codex CLI のインストールで「brew: command not found」が出ます。
+        Homebrew は brew.sh のコピーアイコンから取得し、貼った直後に
+        矢印キーで「最後の行が中途半端に切れていないか」を目視確認してください。
+
+   c. コピペの罠（自分で気をつける運用ポイント）:
+      - チャット欄からコマンドをコピペするとき、行末に余計な改行が
+        混入することがあります。貼った直後に矢印キーで「最後の行が
+        中途半端でないか」を目視確認してください。
+      - ターミナルからコマンドをコピーするとき、% や $ より左
+        （ユーザー名@ホスト名）まで一緒にコピーすると command not found
+        になります。コマンド本体だけを選択する習慣をつけてください。
+
 4. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
    Claude Code の入力欄に以下のように打ってください:
      「Codex CLI を入れて。macOS なら brew、Windows なら winget で。
@@ -580,8 +612,10 @@ credentials/
 - GitHub CLI: 第4回（Git/GitHub 回）で授業内で導入
 - Codex CLI でつまずいた場合の Q&A: 第2回冒頭でフォローアップ
 
-新しいアプリ開発を始めるときは、フォルダを作って Claude Code を起動したら
-最初に /new-project と入力してください。
+新しいアプリ開発を始めるときは、フォルダを作って **VS Code でそのフォルダを開き、
+VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマンドで Claude Code
+を起動** → 最初に /new-project と入力してください。
+（こうすればプロジェクトフォルダがカレントになり、./plans が正しく機能します）
 
 🔍 設定を自分で確認したくなったら:
   - /permissions — 有効な allow / ask / deny ルールと設定ソースを一覧
