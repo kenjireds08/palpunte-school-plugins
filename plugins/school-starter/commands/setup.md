@@ -490,7 +490,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.9.0）
+## セットアップ結果（v1.9.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -632,4 +632,11 @@ VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマン�
 🔍 設定を自分で確認したくなったら:
   - /permissions — 有効な allow / ask / deny ルールと設定ソースを一覧
   - /status — どのスコープの設定が効いているか確認
+
+🆘 困ったとき・カスタマイズしたくなったら:
+  cat ~/.claude/docs/onboarding.md
+
+  → CLAUDE.md の書き方 / Hook の基本 / Settings・Permissions の使いこなし /
+    権限ルール構文を集約した受講生向けリファレンスです。暗記不要・必要なときに
+    開けば OK。VS Code で開いてもよいです。
 ```
