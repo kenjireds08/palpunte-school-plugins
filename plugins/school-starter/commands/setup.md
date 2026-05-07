@@ -488,7 +488,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.6）
+## セットアップ結果（v1.8.7）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -551,7 +551,16 @@ credentials/
       → 出力に自分のユーザー名がなければ標準ユーザーです。
         その Mac のメイン管理者に頼んで管理者に昇格してから次へ進んでください。
 
-   b. Homebrew インストール後の Next steps 3 行を実行したか確認:
+   b. Homebrew インストール: 2 つの罠（パスワード入力 + Next steps 3 行）
+
+      【罠 1: インストール途中で Password を聞かれる】
+        Homebrew のインストール中に「Password:」と表示されます。これは
+        Mac のログインパスワード（普段ログイン時に入力するもの）です。
+        ★ 入力しても画面には何も表示されません（セキュリティのため・
+           でもちゃんと入力されています）。落ち着いて打って Enter。
+        → 「打てない・壊れた」と勘違いして詰むのが受講生 No.1 の罠。
+
+      【罠 2: インストール後の Next steps 3 行】
         Claude Code に↓を貼り付け:
         「brew install 後に表示された ==> Next steps の PATH 設定 3 行
          （eval "$(/opt/homebrew/bin/brew shellenv)" を ~/.zprofile に
