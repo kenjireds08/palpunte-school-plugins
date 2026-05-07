@@ -17,8 +17,14 @@
 
 ## インストール
 
+Claude Code の入力欄に以下を順番に打つ:
+
 ```
-/plugin install school-starter@kenjireds08/palpunte-school-plugins
+/plugin marketplace add kenjireds08/palpunte-school-plugins
+```
+
+```
+/plugin install school-starter@palpunte-school-plugins
 ```
 
 ## 初回セットアップ（必ず実行）

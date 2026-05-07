@@ -24,8 +24,9 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 したがって、受講生への案内で以下を明示する:
 
-1. `/plugin install school-starter@kenjireds08/palpunte-school-plugins` を実行
-2. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
+1. `/plugin marketplace add kenjireds08/palpunte-school-plugins` を実行（マーケット追加）
+2. 続けて `/plugin install school-starter@palpunte-school-plugins` を実行（プラグイン本体インストール）
+3. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
 3. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
 4. setup 後に `/school-starter:check` を1回走らせて、deny リスト・Hook・rules が全部配置されたことを確認
 
@@ -38,7 +39,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 **Hook は「最後の保険」であって唯一の防御ではない**。最終的な防御線は**受講生自身の目視確認**（引き継ぎリポジトリの CLAUDE.md 冒頭チェック・プラグイン内部スクリプトの目視・意図不明なコマンドを実行する前の確認）である、と位置付けを明確に伝える。
 
-**サプライチェーン注意**: `/plugin install school-starter@kenjireds08/palpunte-school-plugins` は現状 GitHub のデフォルトブランチ最新コミットを拾う仕様。将来 GitHub アカウントが乗っ取られた場合、受講生の次回 setup で悪性コードが配布されるリスクがある。以下で軽減する:
+**サプライチェーン注意**: `/plugin marketplace add kenjireds08/palpunte-school-plugins` + `/plugin install school-starter@palpunte-school-plugins` は現状 GitHub のデフォルトブランチ最新コミットを拾う仕様。将来 GitHub アカウントが乗っ取られた場合、受講生の次回 setup で悪性コードが配布されるリスクがある。以下で軽減する:
 
 - 受講生には **`/plugin update school-starter` を実行するタイミングで `docs/plugin-changelog.md` を読んでもらう**（想定外の変更がないか確認）
 - 更新時に `/school-starter:setup` で置き換わるファイル一覧（rules/・commands/・agents/）は配置後に目視確認
@@ -479,7 +480,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.1）
+## セットアップ結果（v1.8.2）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
