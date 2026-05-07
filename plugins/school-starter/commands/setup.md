@@ -341,14 +341,14 @@ denyリストは大きく4カテゴリ:
 
 **Anthropic 公式の設計支援プラグイン 2 種を案内する**。AskUserQuestion は出さず、コマンドを表示して受講生自身に打ってもらう。理由: `/plugin install` は Claude Code の入力欄でユーザー自身が実行するコマンドであり、Bash 経由の自動実行はできない。setup でエラーを出すと受講生が不安になるため、**最初から「自分でこのコマンドを打ってください」と案内するだけにする**。
 
+**重要**: feature-dev と frontend-design は **両方とも `claude-plugins-official` マーケットに集約**されている（v1.8.4 で発覚・v1.6.1〜v1.8.3 では frontend-design を `claude-code-plugins` と誤記していた）。`claude-plugins-official` は Claude Code に**組み込みでプリ登録**されているため `/plugin marketplace add` 不要・`/plugin install` 一発で入る。
+
 以下のパスで既にインストールされているかを確認:
 
 **feature-dev**:
 - `~/.claude/plugins/cache/claude-plugins-official/feature-dev`
-- `~/.claude/plugins/cache/claude-code-plugins/feature-dev`
 
 **frontend-design**:
-- `~/.claude/plugins/cache/claude-code-plugins/frontend-design`
 - `~/.claude/plugins/cache/claude-plugins-official/frontend-design`
 - `~/.claude/skills/frontend-design/SKILL.md`
 
@@ -357,10 +357,14 @@ denyリストは大きく4カテゴリ:
 ```
 📝 feature-dev / frontend-design プラグイン（要セルフインストール）
 
-setup では自動インストールできないため、Claude Code の入力欄に以下を打ってください:
+両方とも Anthropic 公式の claude-plugins-official マーケットに含まれており、
+このマーケットは Claude Code に組み込みプリ登録されているため、
+追加のマーケット add は不要です。Claude Code の入力欄に以下を順に打ってください:
 
   /plugin install feature-dev@claude-plugins-official
-  /plugin install frontend-design@claude-code-plugins
+  /plugin install frontend-design@claude-plugins-official
+
+→ scope を聞かれたら user を選択（全プロジェクトで使えるようにするため）
 
 【それぞれの役割】
 - feature-dev: 要件定義・設計判断（第3回以降で使う）
@@ -368,7 +372,6 @@ setup では自動インストールできないため、Claude Code の入力�
 
 【マーケット検証】
 - claude-plugins-official: https://github.com/anthropics/claude-plugins-official
-- claude-code-plugins: https://github.com/anthropics/claude-code-plugins
   Owner が anthropics になっていればOK（類似名は第三者の模倣の可能性あり）
 ```
 
@@ -482,7 +485,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.3）
+## セットアップ結果（v1.8.4）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -515,12 +518,24 @@ credentials/
 
 📌 次にやること（この順序で進めてください）:
 
-【重要】sandbox は最後に有効化します。先に sandbox を ON にすると、
-brew install / npm install -g など全システム書き換えが OS 層で
-ブロックされる可能性があるため、Codex CLI とプラグインを先に入れてから
-sandbox を ON にする順序にしています。
+【重要】軽い作業（プラグインインストール = Claude Code 内で完結する数十秒）を
+先に終えてから、重い作業（Codex CLI = OS レベルインストール）→ sandbox 有効化、
+の順で進めます。sandbox は brew install / npm install -g 等を OS 層でブロックする
+可能性があるため必ず最後にします。
 
-1. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
+1. feature-dev プラグインをインストール（要セルフ実行・約30秒）:
+     /plugin install feature-dev@claude-plugins-official
+
+   → scope を聞かれたら user を選択（全プロジェクトで使えるようにするため）
+
+2. frontend-design プラグインをインストール（要セルフ実行・約30秒）:
+     /plugin install frontend-design@claude-plugins-official
+
+   → scope を聞かれたら user を選択
+
+3. /reload-plugins （feature-dev / frontend-design を反映）
+
+4. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
    Claude Code の入力欄に以下のように打ってください:
      「Codex CLI を入れて。macOS なら brew、Windows なら winget で。
       私の OS を判定してインストール手順を案内して」
@@ -534,20 +549,14 @@ sandbox を ON にする順序にしています。
    ※ 6 エリア構成（中央に Codex CLI 常駐）が最も推奨ですが、まず CLI を試して
      ダメなら拡張機能でという順序
 
-2. feature-dev プラグインをインストール（要セルフ実行）:
-     /plugin install feature-dev@claude-plugins-official
-
-3. frontend-design プラグインをインストール（要セルフ実行）:
-     /plugin install frontend-design@claude-code-plugins
-
-4. sandbox を有効化（最後）:
+5. sandbox を有効化（最後・必ずここまで完了してから）:
      /sandbox
 
    ※ ここで初めて OS 層の防御を ON にする。これ以降は brew/npm の
      全システム書き換えが制限される可能性があるが、Codex CLI と
      プラグインは既に入っているので影響なし。
 
-5. Claude Code を再起動（ステータスラインを反映）
+6. Claude Code を再起動（ステータスラインを反映）
 
 【授業で扱う内容】
 - GitHub CLI: 第4回（Git/GitHub 回）で授業内で導入
