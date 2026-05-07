@@ -319,9 +319,7 @@ denyリストは大きく4カテゴリ:
 - `bypassPermissions` が必要になるのは基本的に「隔離された VM・Docker コンテナ・devcontainer」で使うとき。普段のローカル開発では使わない
 - もし使いたくなったら `~/.claude/settings.json` の `disableBypassPermissionsMode` を `"disable"` から外す（削除または値変更）
 
-### 1-7. sandbox 有効化の確認（AskUserQuestion なし・完走後の案内のみ）
-
-`~/.claude/settings.json` を読み、`sandbox.enabled` が `true` かを確認する。
+### 1-7. sandbox 有効化の案内（v1.8.5〜 settings.json 検査を諦め、一律で完走メッセージに案内する設計）
 
 **このプラグインのレビュー運用はサンドボックス ON と両立するように設計されている。**
 コードレビューは `review` スキル（`feature-dev:code-reviewer` サブエージェント + 最終サマリーを Codex別タブにコピペ）で行うため、Codex CLI/プラグインとネットワーク層で競合しない。
@@ -330,12 +328,17 @@ denyリストは大きく4カテゴリ:
 
 公式仕様として、`permissions.deny` の `Read(...)` / `Edit(...)` ルールは **Claude の組み込み Read / Edit tool にのみ適用**される。Bash サブプロセスには適用されないため、`Read(./.env)` deny を設定していても **`Bash(cat .env)` では秘密を読み取れてしまう**。サンドボックスは **OS レベルでプロセス単位のファイル・ネットワーク境界を強制**するため、Bash・Bash サブプロセス・MCP 経由の bash 実行ツールを含む全てのプロセスに対して一律のガードをかけられる。
 
-**処理（v1.8.1〜 AskUserQuestion を廃止）**:
+**処理（v1.8.5〜 settings.json 検査廃止）**:
 
-- **sandbox 有効** → 「sandbox: 有効」と報告。完走メッセージの「次にやること」セクションには `/sandbox` の案内を出さない
-- **sandbox 無効** → 「sandbox: 無効 → 完走後に `/sandbox` で有効化を案内」と報告。完走メッセージの「次にやること」セクションで `/sandbox` を打つよう案内する（最後のステップ・Codex CLI / feature-dev / frontend-design インストール後）
+ノート PC 実機検証（2026-05-07）で判明した事実: **Claude Code は `/sandbox` 設定を `~/.claude/settings.json` には書き込まない**。sandbox 状態は Claude Code 内部で管理されており、ファイルベースで検出できない。`grep -i "sandbox" ~/.claude/settings.json` / `ls ~/.claude/ | grep -i sandbox` / `find ~/.claude -name "*sandbox*"` のいずれもヒットしない。
 
-**v1.8.1 で AskUserQuestion を削除した理由**: 受講生にとって sandbox は実質「有効化する」一択で、選択肢を出す意味が薄い。AskUserQuestion で setup フローを止めるより、完走メッセージで案内するほうがシンプル。自覚的に OFF にしたい開発者は個別判断で `/sandbox` を打たない選択をできる。
+したがって setup スクリプトは **sandbox 状態を検出しようとせず、一律で完走メッセージに `/sandbox` 実行を案内する**。受講生が既に有効化済みでも `/sandbox` 再実行は冪等（再度 3 択 UI が出るだけで害なし）なので、検出して分岐する意味がない。
+
+- 結果レポートには「sandbox: 完走後に `/sandbox` で有効化を案内（auto-allow 推奨）」と一律で記載する
+
+**自分で確認したい受講生向けの案内**:
+- `/sandbox` を再実行 → `(current)` がどこに付くかを目視確認
+- または `/status` で現在の権限モード/sandbox 状態を表示
 
 ### 1-8. feature-dev / frontend-design プラグインの案内（自動インストールはしない）
 
@@ -485,7 +488,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.4）
+## セットアップ結果（v1.8.5）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -503,7 +506,7 @@ credentials/
 - settings.json $schema: 追加 / 設定済み
 - denyリスト: 設定済み / N項目追加（Bash経路塞ぎ `cat/grep/head/tail/less/more *.env*` 含む）
 - defaultMode / disableBypassPermissionsMode: 追加 / 設定済み / 既存設定を尊重
-- sandbox: 有効（推奨）/ 無効 → 完走後に `/sandbox` で有効化を案内
+- sandbox: 完走後に `/sandbox` で有効化を案内（auto-allow 推奨・settings.json では状態検出不可のため一律案内）
 - feature-dev プラグイン（内部レビュー用・必須・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - frontend-design プラグイン（UI生成フォールバック用・推奨・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
@@ -551,6 +554,21 @@ credentials/
 
 5. sandbox を有効化（最後・必ずここまで完了してから）:
      /sandbox
+
+   → 3 択 UI が出ます。矢印キーで以下を選んで Enter:
+     1. Sandbox BashTool, with auto-allow      ← これを選ぶ（推奨）
+     2. Sandbox BashTool, with regular permissions
+     3. No Sandbox (current)                   ← デフォルト・選ばない
+
+   → 「✓ Sandbox enabled with auto-allow for bash commands」と出れば成功
+
+   【auto-allow の安全性について】
+   auto-allow は「sandbox 内のコマンドだけ permission prompt をスキップする」モード。
+   ask/deny ルールは常に尊重されるため、school-starter の deny リスト
+   （Bash(curl *) / Bash(rm -rf .) / Read(~/.ssh/**) 等）はそのまま機能する。
+   - 安全性は維持される（deny リストが効く + sandbox が OS 層で守る）
+   - permission prompts が減る（受講生体験が良くなる）
+   の二重メリット。「Hook + deny + rules + sandbox + 受講生判断」の多層防御と整合する。
 
    ※ ここで初めて OS 層の防御を ON にする。これ以降は brew/npm の
      全システム書き換えが制限される可能性があるが、Codex CLI と
