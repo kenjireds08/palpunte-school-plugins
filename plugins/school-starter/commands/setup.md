@@ -316,7 +316,7 @@ denyリストは大きく4カテゴリ:
 - `bypassPermissions` が必要になるのは基本的に「隔離された VM・Docker コンテナ・devcontainer」で使うとき。普段のローカル開発では使わない
 - もし使いたくなったら `~/.claude/settings.json` の `disableBypassPermissionsMode` を `"disable"` から外す（削除または値変更）
 
-### 1-7. sandbox有効化の確認
+### 1-7. sandbox 有効化の確認（AskUserQuestion なし・完走後の案内のみ）
 
 `~/.claude/settings.json` を読み、`sandbox.enabled` が `true` かを確認する。
 
@@ -325,47 +325,14 @@ denyリストは大きく4カテゴリ:
 
 **なぜ deny リストだけでは不十分で sandbox が必要か**:
 
-公式仕様として、`permissions.deny` の `Read(...)` / `Edit(...)` ルールは **Claude の組み込み Read / Edit tool にのみ適用**される（権限ドキュメント「Read と Edit」セクション明記）。Bash サブプロセスには適用されないため、`Read(./.env)` deny を設定していても **`Bash(cat .env)` では秘密を読み取れてしまう**。
+公式仕様として、`permissions.deny` の `Read(...)` / `Edit(...)` ルールは **Claude の組み込み Read / Edit tool にのみ適用**される。Bash サブプロセスには適用されないため、`Read(./.env)` deny を設定していても **`Bash(cat .env)` では秘密を読み取れてしまう**。サンドボックスは **OS レベルでプロセス単位のファイル・ネットワーク境界を強制**するため、Bash・Bash サブプロセス・MCP 経由の bash 実行ツールを含む全てのプロセスに対して一律のガードをかけられる。
 
-`Bash(cat *)` 自体を deny すれば防げるが、`cat` の完全 deny は受講生の日常操作を大幅に阻害する（`cat package.json` 等も読めなくなる）。
+**処理（v1.8.1〜 AskUserQuestion を廃止）**:
 
-サンドボックスは **OS レベルでプロセス単位のファイル・ネットワーク境界を強制**するため、Bash・Bash サブプロセス・MCP 経由の bash 実行ツールを含む**全てのプロセスに対して一律のガード**をかけられる。deny リストが「ツール層」、サンドボックスが「OS 層」で多層防御する位置付け。
+- **sandbox 有効** → 「sandbox: 有効」と報告。完走メッセージの「次にやること」セクションには `/sandbox` の案内を出さない
+- **sandbox 無効** → 「sandbox: 無効 → 完走後に `/sandbox` で有効化を案内」と報告。完走メッセージの「次にやること」セクションで `/sandbox` を打つよう案内する（最後のステップ・Codex CLI / feature-dev / frontend-design インストール後）
 
-- **sandbox有効** → 「sandbox: 有効」と報告。問題なし（推奨状態）
-- **sandbox無効** → 以下を表示し、`AskUserQuestion` で**明示的に意思決定を求める**（黙って素通しせず、初回セットアップで必ず一度は受講生に選ばせる）:
-
-```
-⚠ sandbox が無効です（OS 層の防御が未発動）
-
-deny リスト（ツール層）と rules（AI の自制）は設定されていますが、
-OS プロセス単位でファイル・ネットワーク境界を強制する sandbox が OFF です。
-公式仕様として deny の Read/Edit ルールは Bash サブプロセスに効かないため、
-Bash(cat .env) / 環境ランナー（devbox run / docker exec）経由の読み取りは
-sandbox でしか完全に塞げません。
-
-「disableBypassPermissionsMode で bypass を封じたのに sandbox が off」は、
-車のブレーキを封印したのにシートベルトを締めていない状態です。
-このプラグインのレビュー運用（feature-dev:code-reviewer + Codex別タブコピペ）は
-sandbox ON と完全に両立するよう設計されています。
-```
-
-`AskUserQuestion` で確認:
-```
-question: sandbox を有効化しますか？
-options:
-  - label: "今すぐ有効化する（強く推奨）"
-    description: /sandbox コマンドを案内する。このセットアップ完了後に必ず有効化する前提
-  - label: "理由があって無効のままにする"
-    description: ちーけんさん等の開発者が自覚的に OFF にしている場合。後で /sandbox で切り替え可能
-```
-
-「今すぐ有効化」を選んだ場合:
-- セットアップ完了後に受講生が `/sandbox` を打つよう完走メッセージ内で案内
-- 結果レポートに「sandbox: 無効 → 有効化を案内（要 `/sandbox` 実行）」と記録
-
-「無効のまま」を選んだ場合:
-- 結果レポートに「sandbox: 無効（自覚的に選択）」と記録
-- `~/.claude/.school-starter-version` と同じディレクトリの `~/.claude/.school-starter-sandbox-opt-out` に日付を書き込み、次回セットアップ時には再度 AskUserQuestion しない（毎回聞くと受講生体験が悪化するため）
+**v1.8.1 で AskUserQuestion を削除した理由**: 受講生にとって sandbox は実質「有効化する」一択で、選択肢を出す意味が薄い。AskUserQuestion で setup フローを止めるより、完走メッセージで案内するほうがシンプル。自覚的に OFF にしたい開発者は個別判断で `/sandbox` を打たない選択をできる。
 
 ### 1-8. feature-dev / frontend-design プラグインの案内（自動インストールはしない）
 
@@ -512,7 +479,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.0）
+## セットアップ結果（v1.8.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -530,7 +497,7 @@ credentials/
 - settings.json $schema: 追加 / 設定済み
 - denyリスト: 設定済み / N項目追加（Bash経路塞ぎ `cat/grep/head/tail/less/more *.env*` 含む）
 - defaultMode / disableBypassPermissionsMode: 追加 / 設定済み / 既存設定を尊重
-- sandbox: 有効（推奨）/ 無効 → 有効化を案内（要 `/sandbox` 実行）/ 無効（自覚的に選択）
+- sandbox: 有効（推奨）/ 無効 → 完走後に `/sandbox` で有効化を案内
 - feature-dev プラグイン（内部レビュー用・必須・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - frontend-design プラグイン（UI生成フォールバック用・推奨・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
@@ -543,10 +510,26 @@ credentials/
 ✅ セットアップ完了！
 グローバル設定は今後作成するすべてのプロジェクトに自動で適用されます。
 
-📌 次にやること:
+📌 次にやること（この順序で進めてください）:
 
-1. sandbox を有効化（最優先・案内されていた場合）:
-     /sandbox
+【重要】sandbox は最後に有効化します。先に sandbox を ON にすると、
+brew install / npm install -g など全システム書き換えが OS 層で
+ブロックされる可能性があるため、Codex CLI とプラグインを先に入れてから
+sandbox を ON にする順序にしています。
+
+1. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
+   Claude Code の入力欄に以下のように打ってください:
+     「Codex CLI を入れて。macOS なら brew、Windows なら winget で。
+      私の OS を判定してインストール手順を案内して」
+   → Claude が brew install --cask codex（macOS）/
+     winget install OpenAI.Codex（Windows）等を案内してくれます
+   → 認証は別ターミナルで `codex login`
+
+   【フォールバック】CLI インストールが難しかった場合:
+   - VS Code 拡張機能版の Codex を入れる
+   - それも難しければ ChatGPT デスクトップアプリ / ブラウザ版で代替
+   ※ 6 エリア構成（中央に Codex CLI 常駐）が最も推奨ですが、まず CLI を試して
+     ダメなら拡張機能でという順序
 
 2. feature-dev プラグインをインストール（要セルフ実行）:
      /plugin install feature-dev@claude-plugins-official
@@ -554,11 +537,18 @@ credentials/
 3. frontend-design プラグインをインストール（要セルフ実行）:
      /plugin install frontend-design@claude-code-plugins
 
-4. Codex CLI と GitHub CLI は授業で扱うため、ここでは不要。
-   - Codex CLI: 第2回までに講義内で導入
-   - GitHub CLI: 第4回（Git/GitHub 回）で講義内で導入
+4. sandbox を有効化（最後）:
+     /sandbox
+
+   ※ ここで初めて OS 層の防御を ON にする。これ以降は brew/npm の
+     全システム書き換えが制限される可能性があるが、Codex CLI と
+     プラグインは既に入っているので影響なし。
 
 5. Claude Code を再起動（ステータスラインを反映）
+
+【授業で扱う内容】
+- GitHub CLI: 第4回（Git/GitHub 回）で授業内で導入
+- Codex CLI でつまずいた場合の Q&A: 第2回冒頭でフォローアップ
 
 新しいアプリ開発を始めるときは、フォルダを作って Claude Code を起動したら
 最初に /new-project と入力してください。
