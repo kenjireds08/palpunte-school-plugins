@@ -26,7 +26,9 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 1. `/plugin marketplace add kenjireds08/palpunte-school-plugins` を実行（マーケット追加）
 2. 続けて `/plugin install school-starter@palpunte-school-plugins` を実行（プラグイン本体インストール）
-3. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
+3. **scope の選択を聞かれたら `user` を選ぶ**（全プロジェクトで使えるようにするため）
+4. `/reload-plugins` を実行（"Installed school-starter. Run /reload-plugins to apply." と表示されるため必須）
+5. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
 3. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
 4. setup 後に `/school-starter:check` を1回走らせて、deny リスト・Hook・rules が全部配置されたことを確認
 
@@ -480,7 +482,7 @@ credentials/
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.8.2）
+## セットアップ結果（v1.8.3）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新

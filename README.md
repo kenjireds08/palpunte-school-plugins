@@ -19,13 +19,27 @@
 
 Claude Code の入力欄に以下を順番に打つ:
 
+### ステップ1: マーケットプレイスを追加
+
 ```
 /plugin marketplace add kenjireds08/palpunte-school-plugins
 ```
 
+### ステップ2: プラグイン本体をインストール
+
 ```
 /plugin install school-starter@palpunte-school-plugins
 ```
+
+→ scope の選択を聞かれたら **user** を選ぶ（全プロジェクトで使えるようにするため）
+
+### ステップ3: プラグインをリロード
+
+```
+/reload-plugins
+```
+
+→ "Installed school-starter. Run /reload-plugins to apply." と表示されるので、必ずこのコマンドを打つ。打たずに setup を実行すると `Unknown command: /school-starter:setup` エラーが出る
 
 ## 初回セットアップ（必ず実行）
 
