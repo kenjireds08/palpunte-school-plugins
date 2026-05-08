@@ -1,5 +1,5 @@
 ---
-description: スクール環境の初期セットアップ・更新（グローバル設定 + プロジェクト設定）
+description: スクール環境のグローバル設定セットアップ・更新（プロジェクト固有の初期化は /new-project に分離）
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 ---
 
@@ -467,30 +467,12 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで�
 
 ---
 
-## Part 2: プロジェクト設定（毎回）
-
-### 2-1. .claudeignore の確認
-
-プロジェクトルートに `.claudeignore` があるか確認。なければ以下を作成:
-```
-.env*
-*.pem
-*.key
-credentials/
-```
-
-### 2-2. .gitignore の確認
-
-`.gitignore` に `.env*` が含まれているか確認。なければ追加を提案。
-
----
-
 ## 結果レポート
 
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.9.1）
+## セットアップ結果（v1.10.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -515,12 +497,12 @@ credentials/
 - agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
 - plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
 
-### プロジェクト設定
-- .claudeignore: 作成済み / 既存
-- .gitignore: .env*あり / 追加済み
-
 ✅ セットアップ完了！
 グローバル設定は今後作成するすべてのプロジェクトに自動で適用されます。
+
+📌 プロジェクト固有のセットアップ（.gitignore / .claudeignore / CLAUDE.md / 000_PROJECT_STATUS.md）は
+   新規プロジェクトを作るときに `/new-project` で一括処理されます。
+   `/school-starter:setup` はグローバル環境（`~/.claude/` 配下）の整備に専念する設計です。
 
 📌 次にやること（この順序で進めてください）:
 
@@ -618,7 +600,9 @@ credentials/
      全システム書き換えが制限される可能性があるが、Codex CLI と
      プラグインは既に入っているので影響なし。
 
-6. Claude Code を再起動（ステータスラインを反映）
+6. Claude Code を再起動（クリーンな context で次のステップに進むため）
+   ※ ステータスライン（ctx / 5h / 7d）は再起動しなくても /reload-plugins で既に反映されています。
+     再起動の真の価値は「会話 context のクリーンスタート」です。
 
 【授業で扱う内容】
 - GitHub CLI: 第4回（Git/GitHub 回）で授業内で導入
@@ -633,10 +617,12 @@ VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマン�
   - /permissions — 有効な allow / ask / deny ルールと設定ソースを一覧
   - /status — どのスコープの設定が効いているか確認
 
-🆘 困ったとき・カスタマイズしたくなったら:
-  cat ~/.claude/docs/onboarding.md
+🆘 困ったとき・カスタマイズしたくなったら、Claude Code に質問:
+  - 「CLAUDE.md ってどう書けばいい？」
+  - 「Hook って何？」
+  - 「Settings・Permissions の使いこなし方を教えて」
+  - 「権限ルール（allow / ask / deny）の書き方を教えて」
 
-  → CLAUDE.md の書き方 / Hook の基本 / Settings・Permissions の使いこなし /
-    権限ルール構文を集約した受講生向けリファレンスです。暗記不要・必要なときに
-    開けば OK。VS Code で開いてもよいです。
+  → Claude が ~/.claude/docs/onboarding.md（受講生向けリファレンス）を読んで答えてくれます。
+    暗記不要・必要なときに「Claude に聞く」だけで OK。
 ```
