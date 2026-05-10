@@ -25,6 +25,8 @@ description: アプリ開発プロジェクトのフェーズ進行をガイド�
 - ユーザーが「次は何をすればいい？」「次のステップは？」「これでいい？」と聞いてきたとき
 - `docs/000_PROJECT_STATUS.md` が存在するプロジェクトで作業しているとき
 - ユーザーが「実装を始めたい」と言ったが、まだ要件定義・DB設計・タスクバックログが揃っていないとき（「まず準備しましょう」と止める）
+- **要件定義（Codex レビュー含む）が完成し、次はタスク管理体系を整える段階に入ったとき**（v1.11.0〜・後述「3 階層自動展開」を発動）
+- ユーザーが「タスク分解して」「プロジェクトステータス作って」「タスクバックログ作って」と言ったとき（v1.11.0〜・明示呼び出し）
 
 ## 2つのモード
 
@@ -117,22 +119,37 @@ Phase B4: 【チェックポイント①】Codex第三者レビュー
   → ユーザーがOKしたら、Codex CLI 起動の手順を案内（後述）
   → レビュー結果を貼ってもらい、指摘があれば修正ループ
 
-Phase B5: プロジェクトステータス作成
-  → docs/000_PROJECT_STATUS.md にフェーズごとのシンプルなチェックリスト
-  → 各項目は docs/005_task_backlog.md または docs/tasks/{name}.md へのリンク付き
-  → 詳細は書かない（リンク先で見る）
+Phase B5: 3 階層自動展開（v1.11.0〜）
+  → 受講生に以下のメッセージを表示:
 
-Phase B6: タスクバックログ作成
-  → docs/005_task_backlog.md に各タスクの実装詳細
-  → 大きなタスク（3日以上かかりそう）は docs/tasks/{task_name}.md に分離
-  → プロジェクトステータスのチェックリストとリンク
+      要件定義が完成しました 🎉
 
-Phase B7: 【チェックポイント②】Codex第三者レビュー
-  → 「実装計画（ステータス + バックログ）をCodexで第三者レビューしますか？」
-  → 同様にレビュー → 修正ループ
+      次は、この要件定義をもとに『プロジェクトステータス』でやることを管理し、
+      作業内容を『タスクバックログ』や『個別の詳細メモ』にまとめて、
+      プロジェクトステータスと互いにリンクさせる段階です。
 
-Phase B8: 実装開始準備完了
-  → 「準備完了です！Phase 1のタスクから実装を始めましょう」
+      これをやるとセッションをクリアしても「今どこまで進んでて、次は何やる」が
+      すぐわかる状態になります。
+
+      このまま進めていいですか？
+
+  → ユーザー OK で以下を自動実行（5-10 分・後述「3 階層自動展開ロジック」参照）:
+     1. 要件定義書をスキャン → Phase 抽出 + タスク分解
+     2. docs/000_PROJECT_STATUS.md（ダッシュボード）を生成
+     3. docs/NNN_task_backlog.md（タスク作業手順）を生成
+     4. docs/NNN_db_schema.md / NNN_security_design.md / NNN_api_design.md を判定 → 該当時のみ生成
+     5. 全ファイル間に双方向リンク自動セット
+     6. Codex 最終ゲートを強く提案（次の Phase B6 へ）
+  → 旧 Phase B5（PROJECT_STATUS のみ）+ 旧 Phase B6（task_backlog のみ）を統合した
+
+Phase B6: 【チェックポイント②】Codex 最終ゲート
+  → 「実装計画（プロジェクトステータス + タスクバックログ + 個別詳細メモ）を Codex で第三者レビューしますか？強く推奨します」
+  → 後述「Codex CLI 第三者レビューの手順」を表示
+  → lesson-03 で確立した「収束判定ルール」も併せて表示
+  → 修正ループ → 収束判定で完了
+
+Phase B7: 実装開始準備完了
+  → 「準備完了です！Phase B3 環境構築の最初のタスクから実装を始めましょう」
   → 以降は docs/000_PROJECT_STATUS.md を見ながら、リンク先の詳細を読みつつ実装
 ```
 
@@ -149,9 +166,11 @@ Phase B8: 実装開始準備完了
 ```markdown
 ---
 mode: undecided | order_won | consultation | personal
-current_phase: phase_0 | phase_a1 | phase_a15 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7 | phase_b8
+current_phase: phase_0 | phase_a1 | phase_a15 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7
 phase_status: in_progress | completed
 last_updated: YYYY-MM-DD
+total_tasks: N        # v1.11.0〜：3 階層自動展開で生成された総タスク数
+completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進むたびに +1）
 ---
 
 # プロジェクトステータス
@@ -179,10 +198,9 @@ last_updated: YYYY-MM-DD
 | order_won | phase_b1 | completed | 「`/interview --full` で要件定義を詰めましょう（spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリングします）」 |
 | order_won | phase_b2 | completed | 「DB設計を提案します」 |
 | order_won | phase_b3 | completed | 「Codex CLI で要件定義とDB設計を第三者レビューしますか？強く推奨します」 |
-| order_won | phase_b4 | completed | 「プロジェクトステータスをフェーズ別チェックリスト形式で作成します」 |
-| order_won | phase_b5 | completed | 「タスクバックログを作成します」 |
-| order_won | phase_b6 | completed | 「実装計画を Codex CLI で第三者レビューしますか？」 |
-| order_won | phase_b7 | completed | 「準備完了！実装を開始しましょう。Phase 1 のタスクから進めます」 |
+| order_won | phase_b4 | completed | **【v1.11.0〜・3 階層自動展開メッセージ】**「要件定義が完成しました 🎉 次は、この要件定義をもとに『プロジェクトステータス』でやることを管理し、作業内容を『タスクバックログ』や『個別の詳細メモ』にまとめて、プロジェクトステータスと互いにリンクさせる段階です。これをやるとセッションをクリアしても『今どこまで進んでて、次は何やる』がすぐわかる状態になります。このまま進めていいですか？」 → OK で「3 階層自動展開ロジック」実行 |
+| order_won | phase_b5 | completed | 「実装計画（プロジェクトステータス + タスクバックログ + 個別詳細メモ）を Codex CLI で第三者レビューしますか？強く推奨します」 |
+| order_won | phase_b6 | completed | 「準備完了！実装を開始しましょう。Phase B3 環境構築の最初のタスクから進めます」 |
 | personal | phase_b2 | * | 受注獲得モードを飛ばして要件定義から開始（以降は order_won と同じフロー） |
 
 ### ステータス更新ルール（Claudeが守ること）
@@ -334,73 +352,220 @@ Phase B4 と Phase B7 で使う定型プロンプト。Claudeがそのまま表�
 ─────────────────────────────────────────────
 ```
 
-## プロジェクトステータスのフォーマット（Phase B5で作成する形）
+## ファイル群のフォーマット（Phase B5 の 3 階層自動展開で生成する形）
+
+詳細テンプレは `references/docs/` 配下にある:
+- `project-status-template.md` — プロジェクトステータスの完全形
+- `task-backlog-template.md` — タスクバックログの完全形
+- `db-schema-template.md` — DB 設計（条件付き）
+- `security-design-template.md` — セキュリティ設計（条件付き）
+- `api-design-template.md` — API 設計（条件付き）
+
+### プロジェクトステータスの構造（要点）
 
 ```markdown
-# プロジェクトステータス
-
-**最終更新**: YYYY-MM-DD
-**現在のフェーズ**: Phase 1
-
+---
+mode: order_won
+current_phase: phase_b5
+phase_status: completed
+last_updated: YYYY-MM-DD
+total_tasks: 39
+completed_tasks: 0
 ---
 
-## Phase 1: 基盤構築
-- [ ] Next.js 初期セットアップ → [詳細](005_task_backlog.md#phase1-1)
-- [ ] Supabase 接続 → [詳細](005_task_backlog.md#phase1-2)
-- [ ] 認証実装 → [詳細](tasks/auth_implementation.md)
+# プロジェクトステータス
 
-## Phase 2: コア機能
-- [ ] 予約一覧画面 → [詳細](005_task_backlog.md#phase2-1)
-- [ ] 予約作成画面 → [詳細](005_task_backlog.md#phase2-2)
-...
+## 📍 現在地
+**Phase B5 完了 → Phase B3 環境構築開始**
 
-## Phase 3: 管理機能
-- [ ] 管理者ダッシュボード → [詳細](tasks/admin_dashboard.md)
-...
+### 次のアクション
+→ T-10: Next.js プロジェクトセットアップ（[詳細](NNN_task_backlog.md#t-10)）
 
-## Phase 4: デプロイ
-- [ ] Vercel デプロイ → [詳細](005_task_backlog.md#phase4-1)
-- [ ] 本番環境変数設定 → [詳細](005_task_backlog.md#phase4-2)
+### 詳細リンク
+- 要件定義: [001_requirements.md](001_requirements.md)
+- タスク詳細: [{NNN}_task_backlog.md]({NNN}_task_backlog.md)
+- DB 設計 / セキュリティ / API 設計: 該当ファイルへ
+
+## 双方向リンク構造図
+（PROJECT_STATUS ↔ task_backlog ↔ 個別 md の図）
+
+## 全体進捗
+### Phase B3: 環境構築 (0/9)
+- [ ] T-10: Next.js プロジェクトセットアップ → [詳細](NNN_task_backlog.md#t-10)
+- [ ] T-11: ...
+
+### Phase B4: 顧客側機能 (0/12)
+### Phase B5: 管理側機能 (0/7)
+### Phase B6: メール + Cron (0/4)
+### Phase B7: 受入 + デプロイ (0/4)
+
+## 完了タスク（直近 5 件）
+（実装が進んだら自動追記される領域）
+
+## 運用ルール
+- /clear 耐性: 「次のアクション」フィールドを必ず更新
+- タスク完了時: チェックボックス [x] + completed_tasks +1
+- Phase 移行時: フロントマター更新
 ```
 
 **ポイント**:
 - 各項目は1行で簡潔に
-- 詳細は必ずリンク先（005_task_backlog.md または tasks/{name}.md）に書く
-- ステータスは [ ] / [x] で管理
-- フェーズが進んだら「現在のフェーズ」を更新
+- 詳細は必ずリンク先（task_backlog.md または個別 md）に書く
+- フロントマターで進捗を機械可読化
+- 「次のアクション」が /clear 耐性の入口
 
-## タスクバックログのフォーマット（Phase B6で作成する形）
+### タスクバックログの構造（要点）
 
 ```markdown
 # タスクバックログ
 
-## phase1-1: Next.js 初期セットアップ
-**目的**: プロジェクトの土台を作る
-**手順**:
-1. `npx create-next-app@latest` で雛形作成
-2. TypeScript / Tailwind / App Router を選択
-3. shadcn/ui をインストール
-**完了条件**: `npm run dev` で起動確認
+## 📋 全タスク一覧
+| ID | Phase | タスク名 | 状態 | 関連ファイル |
+|----|-------|---------|------|------------|
+| T-10 | B3 | Next.js セットアップ | ⬜ | - |
+| T-11 | B3 | Supabase プロジェクト作成 | ⬜ | [{NNN}_db_schema.md] |
+| ... | ... | ... | ... | ... |
 
-## phase1-2: Supabase 接続
-**目的**: DB接続の確立
-**手順**:
-1. Supabase プロジェクト作成
-2. `@supabase/supabase-js` インストール
-3. `lib/supabase/client.ts` と `server.ts` を作成
-4. `.env.local` に URL と ANON_KEY を設定
-**完了条件**: クライアントから DB に接続できる
+## Phase B3: 環境構築
 
-...
+### T-10: Next.js プロジェクトセットアップ
+**目的**: モックアップを Next.js に移植する土台作り
+**依存**: なし
+**作業手順**:
+1. ...
+**完了条件 (DoD)**:
+- [ ] ...
+**関連リンク**:
+- PROJECT_STATUS: [Phase B3](000_PROJECT_STATUS.md#phase-b3-環境構築)
 ```
 
 **ポイント**:
-- ステータス側の項目とアンカー（#phase1-1）で対応
-- 大きなタスクは別ファイル `tasks/{name}.md` に分離
-- 「目的」「手順」「完了条件」の3点セットで書く
+- 冒頭の「全タスク一覧」テーブルが俯瞰用
+- 各タスク 5-10 行 / 目的・依存・作業手順・完了条件
+- 大型タスクは関連リンクで個別 md にジャンプ
 
 ## 実装中も常に意識すること
 
 - ユーザーが「実装を始めたい」と言ったとき、上記のフェーズが揃っていなければ「先にこれを準備しましょう」と止める
-- 実装中も、毎タスク完了時に `docs/000_PROJECT_STATUS.md` の該当チェックを `[x]` に更新する
+- 実装中も、毎タスク完了時に `docs/000_PROJECT_STATUS.md` の該当チェックを `[x]` に更新する + フロントマター `completed_tasks` を +1
 - 新しい要件が出てきたら、`docs/001_requirements.md` を更新してから実装する（後付けで仕様を変えない）
+
+---
+
+## 3 階層自動展開ロジック（v1.11.0〜）
+
+Phase B5 移行時にユーザーが「3 階層自動展開」に OK したとき、または「タスク分解して」「プロジェクトステータス作って」等の自然言語で発火したとき、以下のステップで実行する。
+
+### Step 0: ファイル命名ルール（重要・ちーけん流）
+
+| 種類 | 固定/動的 | 命名 |
+|------|---------|------|
+| プロジェクトステータス | **固定** | `000_PROJECT_STATUS.md` |
+| 要件定義 | **固定** | `001_requirements.md` |
+| その他全て | **動的**（番号は Claude が空きを選ぶ） | `NNN_task_backlog.md` / `NNN_db_schema.md` / `NNN_security_design.md` / `NNN_api_design.md` |
+
+- **固定は 000 と 001 のみ**
+- それ以外は **その時の `docs/` の空き番号** を Claude が判断して使う
+- 名前の意味的サフィックス（`task_backlog` / `db_schema` / `security_design` / `api_design`）は意味で揃える
+- 既に同じ意味のファイルがあれば**上書きしない**で確認を求める
+
+### Step 1: 要件定義スキャン
+
+`docs/001_requirements.md` を Read して以下を抽出:
+- 全機能リスト（h1/h2 見出しから）
+- データモデル定義（テーブル名・カラム）
+- 認証・RLS 記述
+- API / Server Actions 記述
+- Cron / 外部連携記述
+
+### Step 2: Phase 抽出ロジック
+
+要件定義の機能を以下の Phase に振り分け:
+
+| Phase | 含むタスク種別 |
+|------|--------------|
+| B3 | 環境構築（Next.js セットアップ・Supabase 接続・DB マイグレーション・基盤コンポーネント）|
+| B4 | 顧客側機能（LP・予約フロー・マイページ・認証画面）|
+| B5 | 管理側機能（管理ダッシュボード・予約管理・顧客管理・休業日設定）|
+| B6 | メール・Cron（メール認証・予約完了通知・リマインダー・キャンセル通知）|
+| B7 | 受入・デプロイ（DoD チェックリスト・Vercel デプロイ・本番環境変数）|
+
+### Step 3: タスク粒度ルール（lesson-03 で確立・厳守）
+
+- 1 タスク = **半日〜2-3 日で完了する単位**
+- **機能単位で切る**（実装単位ではない）
+- 受入テストは「1 タスク」で OK（チェックリスト形式・19 項目あっても 1 タスクに統合）
+- **30-50 タスク**が MVP 規模の標準（lesson-03 学生環境では 39 タスクが綺麗な粒度だった）
+
+**避けるべき粒度誤解（lesson-03 で 2 回発生した実例）**:
+- ❌ 「Todo 管理特化 = 抜粋のみ」と解釈してフェーズ進捗 + 3 タスクに切り詰める → これは間違い
+- ⭕ Phase 別に全タスクを詳細粒度で列挙し、1 タスクの作業手順は task_backlog に逃がす
+
+### Step 4: 個別 md 判定（条件付き生成）
+
+`docs/001_requirements.md` のスキャンで以下のキーワードと一定ボリュームが揃ったら自動生成:
+
+| ファイルサフィックス | 必須キーワード（いずれか）+ 100 文字以上 |
+|--------------------|----------------------------------------|
+| `*_db_schema.md` | "データモデル" / "DDL" / "テーブル" / "Postgres" / "Supabase" / "スキーマ" |
+| `*_security_design.md` | "RLS" / "認証" / "認可" / "要配慮個人情報" / "個人情報保護法" / "OWASP" / "JWT" |
+| `*_api_design.md` | "Server Action" / "API エンドポイント" / "Cron" / "outbox" / "Webhook" / "Resend" |
+
+該当しないファイルは生成せず、必要な内容は `task_backlog.md` に統合する。
+
+### Step 5: 双方向リンク
+
+生成した全ファイル間にバックリンクをセット:
+- PROJECT_STATUS → task_backlog（各タスクの「詳細」リンク）
+- task_backlog → 個別 md（大型タスクの「関連リンク」）
+- 個別 md → PROJECT_STATUS / task_backlog / 001_requirements（バックリンクセクション）
+
+### Step 6: 生成完了報告 + Codex 最終ゲート提案
+
+3 階層展開完了直後に以下を表示:
+
+```
+✅ プロジェクトステータス + タスクバックログ + 個別詳細メモを作成しました。
+
+【生成ファイル】
+- docs/000_PROJECT_STATUS.md（全タスク N 件・Phase 別構造）
+- docs/{NNN}_task_backlog.md（各タスクの作業手順）
+- docs/{NNN}_db_schema.md ※要件定義に該当があれば
+- docs/{NNN}_security_design.md ※同上
+- docs/{NNN}_api_design.md ※同上
+
+⚠️ 実装前の最終ゲートとして、Codex に以下を強く推奨します:
+- タスク分解の網羅性
+- Phase 分け・優先順位・依存関係の妥当性
+- 要件 ↔ DB ↔ API の文言一致
+- 双方向リンクの整合性
+- 抜け / 過剰タスク
+
+【収束判定ルール（lesson-03 準拠）】
+🟢 Critical 0 件 / High 0 件 → 収束 → 実装開始
+🟡 Medium のみ → 個別判定（重要なものだけ反映）
+🔴 High 以上 → 反映必須 → 再度 Codex
+
+実装前のミスを防ぐため、最低 2 往復は推奨します。
+
+Codex レビューを実行しますか？（手順を表示します）
+```
+
+ユーザーが OK したら、後述「Codex CLI 第三者レビューの手順」を表示する。
+
+### Step 7: PROJECT_STATUS フロントマター
+
+生成時に以下を埋める:
+
+```yaml
+---
+mode: order_won
+current_phase: phase_b5
+phase_status: completed
+last_updated: YYYY-MM-DD
+total_tasks: N    # Step 3 で生成したタスク総数
+completed_tasks: 0
+---
+```
+
+実装中に毎タスク完了で `completed_tasks` を +1 + 該当チェックボックスを `[x]` に。
