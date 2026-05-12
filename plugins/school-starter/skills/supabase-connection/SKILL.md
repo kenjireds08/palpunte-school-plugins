@@ -1,6 +1,6 @@
 ---
 name: supabase-connection
-description: "Supabase案件で接続・DB操作・スキーマ管理が必要なとき。Supabase MCP は使わず、Supabase CLI + psql 直接接続で進める方針を提供。トリガー: 「Supabaseに接続」「DBの中身を確認」「テーブルを作成」「マイグレーション」「.env.local に SUPABASE_URL を設定」等。"
+description: "Supabase案件で接続・DB操作・スキーマ管理が必要なとき。Supabase MCP は使わず、Supabase CLI + psql or Supabase Studio SQL Editor で進める方針を提供。受講生向けのデータ操作は SQL Editor を第一推奨。トリガー: 「Supabaseに接続」「DBの中身を確認」「テーブルを作成」「マイグレーション」「データを削除」「SQLを実行」「.env.local に SUPABASE_URL を設定」等。"
 ---
 
 # Supabase 接続・DB操作（MCP不使用方針）
@@ -68,12 +68,46 @@ psql "$DATABASE_URL" -c "SELECT version();"
 
 正常に PostgreSQL バージョンが表示されれば OK。
 
-## 日常操作のパターン
+## SQL 実行の使い分け（v1.11.1〜・受講生向け対応で必読）
 
-### SQL を実行する
+**目的別に「どの実行手段を使うか」「コピペ先はどこか」を AI が明示する**。受講生は「ターミナル？ブラウザ？どこに貼り付ければいいの？」で詰まりやすいため、曖昧にしない。
+
+### 早見表
+
+| 操作種別 | 第一推奨 | 補助 | 受講生に渡すときの一言 |
+|---------|---------|------|---------------------|
+| **データ操作**（SELECT / INSERT / UPDATE / DELETE）| **Supabase Studio の SQL Editor**（ブラウザ） | psql | 「ブラウザで Supabase Dashboard → 左サイドバー SQL Editor を開いてください」 |
+| **スキーマ変更**（CREATE TABLE / ALTER TABLE 等） | `supabase migration new` + `supabase db push` | — | 「ターミナルで `supabase migration new <名前>` を実行 → 生成されたファイルに SQL を書く → `supabase db push`」 |
+| **CSV ダンプ・大量データ・スクリプト処理** | psql 直接接続 | — | 「ターミナルで `psql "$DATABASE_URL"` を実行 → 対話プロンプトで SQL 貼り付け」 |
+
+### IMPORTANT: 受講生向け SQL は Supabase Studio SQL Editor を第一推奨
+
+理由:
+- **結果がテーブル表示で見やすい**（psql のテキスト出力より直感的）
+- **ブラウザだけで完結**（ターミナル操作に不慣れな受講生でも詰まらない）
+- **auth.users 削除等の管理画面操作と同じ画面**で完結する
+- **`.env` の `DATABASE_URL` 取得・URL エンコード・接続文字列の理解が不要**（受講生のハードルが一気に下がる）
+
+### YOU MUST: コピペ先を必ず最初に明示する
+
+❌ 悪い例: 「以下を実行してください: `SELECT * FROM customers;`」
+（→ 受講生は「どこで実行するの？」で混乱）
+
+✅ 良い例: 「**ブラウザで Supabase Dashboard → SQL Editor を開いて**、以下を貼り付けて Run してください:」
+（→ 迷いなく実行できる）
+
+### AI（Claude）が自走で SQL を実行する場合
+
+Claude のサンドボックスは `.env` 読み取り deny + 認証情報 deny のため、**psql 直接接続が deny されるケースがある**。その場合は次のいずれかにフォールバック:
+
+1. **受講生に SQL Editor で実行してもらう**（第一推奨。ちーけんさんに「これを Supabase の SQL Editor に貼ってください」と依頼）
+2. supabase CLI のサブコマンド（`db diff` / `db pull` 等）で迂回
+3. migration ファイルとして書き出して `supabase db push` で適用（スキーマ変更のみ）
+
+### コマンド例（AI が自走する場合のみ）
 
 ```bash
-# 直接 psql で実行
+# 直接 psql で実行（サンドボックスが deny した場合は SQL Editor へ切替）
 psql "$DATABASE_URL" -c "SELECT count(*) FROM products;"
 
 # ファイルから実行
@@ -115,6 +149,8 @@ supabase inspect db long-running-queries --linked
 - **RLS を有効化していない**: 公開スキーマの全テーブルで `ENABLE ROW LEVEL SECURITY` を必ず有効化
 - **パスワードの特殊文字を URL エンコードし忘れる**: `*/%?@&` 等は URLエンコードする
 - **`apply_migration` でスキーマ変更**: 履歴がぐちゃぐちゃになる。`db query` または直接 psql で iterate → 完成したら `migration new` でファイル化
+- **コピペ先を曖昧にする**（v1.11.1〜追加）: 「以下を実行してください」だけでは受講生は「どこに？」で詰まる。**必ず「ブラウザで Supabase Dashboard → SQL Editor」or「ターミナルで psql プロンプト」**を最初に明示する
+- **受講生にいきなり psql を勧める**（v1.11.1〜追加）: ターミナル不慣れな受講生は詰まる。データ操作は **SQL Editor を第一推奨**。psql は AI が自走する場合 or 大量データ処理の場合のみ
 
 ## RLS（Row Level Security）必須チェック
 
