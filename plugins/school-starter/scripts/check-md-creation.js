@@ -44,11 +44,20 @@ process.stdin.on('end', () => {
     }
 
     // 許可ディレクトリ配下（ファイルの親ディレクトリのどこかに含まれていれば OK）
+    // v1.14.0: プラグイン構造の必須パス（skills / commands / agents / hooks / scripts / .claude-plugin / plugins）を追加
+    // 受講生・講師がプラグイン開発・更新する際の正規ファイル作成がブロックされる誤検知を回避
     const ALLOWED_DIRS = [
       /[\\/]Obsidian[\\/]/,
       /[\\/]docs[\\/]/,
       /[\\/]curriculum[\\/]/,
       /[\\/]references[\\/]/,
+      /[\\/]plugins[\\/]/,
+      /[\\/]skills[\\/]/,
+      /[\\/]commands[\\/]/,
+      /[\\/]agents[\\/]/,
+      /[\\/]hooks[\\/]/,
+      /[\\/]scripts[\\/]/,
+      /[\\/]\.claude-plugin[\\/]/,
     ];
     if (ALLOWED_DIRS.some((re) => re.test(p))) {
       process.stdout.write(d);
