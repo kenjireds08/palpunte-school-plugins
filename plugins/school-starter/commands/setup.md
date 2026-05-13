@@ -405,15 +405,18 @@ denyリストは大きく4カテゴリ:
 
 `~/.claude/settings.json` の `plansDirectory` 設定を確認する。
 
-この設定がないと、Plan Mode で作った計画書が `~/.claude/plans/` にグローバル保存されてしまい、リポジトリごとに混ざって見づらくなる。`./plans` に設定するとプロジェクトルート配下の `plans/` に出力されるため、リポジトリごとに計画書を管理できる。
+この設定がないと、Plan Mode で作った計画書が `~/.claude/plans/` にグローバル保存されてしまい、リポジトリごとに混ざって見づらくなる。`./docs/plans` に設定するとプロジェクトルート配下の `docs/plans/` に出力されるため、リポジトリごとに計画書を管理できる + 既存の `docs/` 配下に揃うのでドキュメント管理が綺麗に集約される（v1.15.0〜推奨値変更）。
 
-- **`plansDirectory` がない** → 既存設定を保持したまま `"plansDirectory": "./plans"` を追記。「plansDirectory: 設定済み（./plans）」と報告
-- **既に設定済み** → 値がユーザーのカスタム設定（例: `"./docs/plans"`）の場合はそのまま尊重。「plansDirectory: 既存設定を保持（<値>）」と報告
-- **`"./plans"` で既設定** → 「plansDirectory: 最新」と報告
+- **`plansDirectory` がない** → 既存設定を保持したまま `"plansDirectory": "./docs/plans"` を追記。「plansDirectory: 設定済み（./docs/plans）」と報告
+- **`"./plans"` で既設定（v1.14.x までの旧推奨）** → `"./docs/plans"` に更新。「plansDirectory: 更新（./plans → ./docs/plans）」と報告
+- **`"./docs/plans"` で既設定** → 「plansDirectory: 最新」と報告
+- **その他のカスタム値** → そのまま尊重。「plansDirectory: 既存設定を保持（<値>）」と報告
 
-`~/.claude/settings.json` の他の既存設定（`permissions`, `hooks`, `enabledPlugins`, `language`, `sandbox` 等）は絶対に消さないこと。`plansDirectory` キーだけを追記する。
+`~/.claude/settings.json` の他の既存設定（`permissions`, `hooks`, `enabledPlugins`, `language`, `sandbox` 等）は絶対に消さないこと。`plansDirectory` キーだけを追記・更新する。
 
-**起動位置の補足**: `"./plans"` はカレントディレクトリ相対だが、**VS Code のターミナルから起動すれば自動的にプロジェクトフォルダがカレントになる**ため、第1回でこの起動方法を案内できれば事故は起きない。完走メッセージでは長文警告を出さない（受講生が混乱するため）。
+**起動位置の補足**: `"./docs/plans"` はカレントディレクトリ相対だが、**VS Code のターミナルから起動すれば自動的にプロジェクトフォルダがカレントになる**ため、第1回でこの起動方法を案内できれば事故は起きない。完走メッセージでは長文警告を出さない（受講生が混乱するため）。
+
+**v1.15.0 の変更理由**: v1.14.x までは `./plans` を推奨していたが、`check-md-creation.js` Hook の許可ディレクトリ（`docs/` 等）に `plans/` が含まれず、Plan Mode で `.md` を新規作成すると Hook にブロックされる自己矛盾があった。v1.15.0 で ① Hook に `plans/` を追加 + ② 推奨値を `./docs/plans` に変更（既存の docs/ に集約） の二重対策で解決。
 
 ### 1-11. ステータスライン（コンテキスト・5h・7d 使用率の常時可視化）
 
@@ -474,7 +477,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで�
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.14.1）
+## セットアップ結果（v1.15.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -497,7 +500,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで�
 - feature-dev プラグイン（内部レビュー用・必須・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - frontend-design プラグイン（UI生成フォールバック用・推奨・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
-- plansDirectory 設定: 設定済み（./plans）/ 既存設定を保持（<値>）/ 最新
+- plansDirectory 設定: 設定済み（./docs/plans）/ 更新（./plans → ./docs/plans）/ 既存設定を保持（<値>）/ 最新
 
 ✅ セットアップ完了！
 グローバル設定は今後作成するすべてのプロジェクトに自動で適用されます。
@@ -613,7 +616,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで�
 新しいアプリ開発を始めるときは、フォルダを作って **VS Code でそのフォルダを開き、
 VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマンドで Claude Code
 を起動** → 最初に /new-project と入力してください。
-（こうすればプロジェクトフォルダがカレントになり、./plans が正しく機能します）
+（こうすればプロジェクトフォルダがカレントになり、./docs/plans が正しく機能します）
 
 🔍 設定を自分で確認したくなったら:
   - /permissions — 有効な allow / ask / deny ルールと設定ソースを一覧
