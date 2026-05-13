@@ -39,6 +39,7 @@ IMPORTANT: 納品前に以下をすべて確認する。1 つでも抜けると�
 - [ ] カラムレベルで機密列を制限している（例: `payments.amount` を admin ロールのみ / `users.phone` / `users.line_id` は本人のみ見えるようビュー or `GRANT SELECT (col1, col2) ON TABLE` で隔離） — **OWASP A01: Broken Access Control**
 - [ ] 納品前に `npm audit --omit=dev` / `pnpm audit --prod` を 1 回走らせ、**High / Critical がゼロ**を確認（本番依存の既知脆弱性検出） — **OWASP A06: Vulnerable and Outdated Components**
 - [ ] `next.config.js` の `headers()` で **CSP / HSTS / X-Frame-Options / Referrer-Policy / Permissions-Policy** を本番向けに設定（特に `Content-Security-Policy` の `connect-src` を Supabase URL に絞る） — **OWASP A05: Security Misconfiguration**
+- [ ] **`CREATE TABLE` 後に `GRANT` 文を必ず付与**（後述「Data API デフォルト変更」セクション参照。2026-05-30 以降の新規プロジェクト / 10-30 以降の既存プロジェクトで必須化） — **OWASP A01: Broken Access Control / A05: Security Misconfiguration**
 
 ※ 上記項目は OWASP Top 10 2021 のうち **A01 (Broken Access Control)** / **A02 (Cryptographic Failures)** / **A03 (Injection)** / **A04 (Insecure Design)** / **A05 (Security Misconfiguration)** / **A06 (Vulnerable and Outdated Components)** / **A07 (Identification and Authentication Failures)** / **A10 (SSRF)** をカバー。`@agent-security-auditor` は A08 (Software and Data Integrity Failures) / A09 (Security Logging and Monitoring Failures) も見る。
 
@@ -64,7 +65,66 @@ IMPORTANT: 納品前に以下をすべて確認する。1 つでも抜けると�
 5. クライアント側コードに `service_role` が含まれていれば即削除（Server Component / API Route / Edge Function に移動）
 6. 納品前は `@agent-security-auditor` に「Supabase RLS と認証周りを OWASP Top 10 観点でレビューして」と頼んで第三者監査を入れる
 
+## 2026-05/10 Supabase Data API デフォルト変更（超重要・必読）
+
+**何が変わるか**: `public` スキーマの新規テーブルが Data API（supabase-js / PostgREST / GraphQL）にデフォルトで露出しなくなる。**明示的な `GRANT` 文を書かないとクライアントから読み書きできなくなる**。
+
+| 適用日 | 対象 |
+|--------|------|
+| **2026-05-30** | **新規プロジェクト** に適用 |
+| **2026-10-30** | **既存プロジェクト** にも適用 |
+
+| 影響あり | 影響なし |
+|---------|---------|
+| supabase-js を使う Next.js / React アプリ | psql / ORM / app server からの直接接続 |
+| PostgREST `/rest/v1/` 経由のアクセス | 既存テーブル（grants 維持） |
+| GraphQL `/graphql/v1/` 経由のアクセス | - |
+
+### 受講生がやるべきこと（必須）
+
+migration ファイルで **`CREATE TABLE` 後に必ず `GRANT` 文をセット**で書く。これからは下記テンプレを **コピペ運用**にする：
+
+```sql
+-- 1. テーブル作成
+create table public.your_table (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id),
+  -- ...
+);
+
+-- 2. ロール権限付与（2026-05-30 以降の新規プロジェクトで必須・必ず書く）
+grant select on public.your_table to anon;
+grant select, insert, update, delete on public.your_table to authenticated;
+grant select, insert, update, delete on public.your_table to service_role;
+
+-- 3. RLS 有効化
+alter table public.your_table enable row level security;
+
+-- 4. ポリシー追加
+create policy "users can read own rows"
+  on public.your_table for select to authenticated
+  using (auth.uid() = user_id);
+
+create policy "users can insert own rows"
+  on public.your_table for insert to authenticated
+  with check (auth.uid() = user_id);
+```
+
+### GRANT 漏れ時のエラー
+
+PostgREST は `42501` エラーコードを返し、**エラーメッセージに必要な `GRANT` 文がそのまま含まれる**ので、エラーが出たらそのままコピペで直せる。
+
+```
+ERROR:  permission denied for table your_table
+HINT:  Run: grant select on public.your_table to anon;
+```
+
+### 既存プロジェクトの確認
+
+Supabase ダッシュボード → **Security Advisor** で各プロジェクトの状況を確認できる。
+
 ## 関連リソース
 
 - `~/.claude/rules/env-security.md` — `.env` / シークレット情報の取り扱い
 - Supabase 公式ドキュメント: [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- Supabase 公式ブログ: Data API default schema change（2026-05 発表）
