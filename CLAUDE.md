@@ -1,6 +1,6 @@
 # palpunte-school-plugins
 
-ぱるぷんてスクール上級コース向け Claude Code プラグイン。
+未来AI学院上級コース向け Claude Code プラグイン。
 
 ## プロジェクト概要
 

@@ -1,6 +1,6 @@
 # palpunte-school-plugins
 
-ぱるぷんてスクール上級コース用の Claude Code プラグイン。
+未来AI学院上級コース用の Claude Code プラグイン。
 1回のインストール + setupで、プロの開発環境が整います。
 
 ## 事前準備（受講生・初日）
