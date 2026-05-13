@@ -28,6 +28,34 @@ description: "Supabase案件で接続・DB操作・スキーマ管理が必要�
 
 実証データソース: [@_avichawla の DocuRAG実証実験（2026-04-21）](https://x.com/_avichawla/status/2046500537584218438) / MCPMark V2 ベンチマーク
 
+## SQL 操作の優先順位（IMPORTANT・受講生対応の最上位ルール / v1.14.1〜）
+
+ちーけんさん方針（2026-05-13 確立）:
+
+1. **ターミナル必須の作業** → CLI でちーけんさんに実行依頼
+   （`supabase db push` / `supabase migration new` 等の CLI 専用機能）
+2. **SQL Editor でも CLI でもできる作業** → **SQL Editor を優先**
+   （SELECT / INSERT / UPDATE / DELETE / テスト SQL / 一回限りの ad-hoc 実行）
+3. **可能なら Claude Code が代行** → セキュリティが許す範囲で自走
+   （migration ファイル作成 / テスト SQL ファイル作成は OK・本番 DB 書き換えは NG）
+
+### Claude が代行できる範囲（早見表）
+
+| 操作 | Claude 代行可？ | 理由 |
+|------|---------------|------|
+| migration ファイル作成・編集 | ✅ | リポジトリ内ファイル編集 |
+| テスト SQL ファイル作成・編集 | ✅ | 同上 |
+| `supabase db diff` / `migration list` 等の読み取り系 | ✅ | 認証情報を読まない範囲 |
+| `supabase db push` | ❌ | DATABASE_URL（認証情報）読み取りが deny |
+| `psql "$DATABASE_URL" -f ...` | ❌ | 同上 |
+| SQL Editor 操作 | ❌ | Web UI なので CLI 不可 |
+
+→ **本番 DB を書き換える操作はすべてちーけんさんに依頼**するのが安全な原則。
+
+### 1コマンドで済む CLI 連結はあり
+
+`supabase db push && psql "$DATABASE_URL" -f tests/foo.test.sql` のように **「migration 適用 → 即テスト実行」を `&&` 連結で 1 コマンド化**するのは便利なのでアリ。ただし AI が CLI を選んだ理由を**一言添える**こと（例: 「migration 適用は CLI 必須なので、テストも一緒に CLI で走らせます」）。**理由なく無条件で CLI 一発を勧めるのは NG**。受講生に「SQL Editor のほうがよかったのでは？」と疑問を残させない。
+
 ## セットアップ手順（Supabase案件開始時）
 
 ### Step 1: Supabase CLI のインストール
@@ -77,7 +105,9 @@ psql "$DATABASE_URL" -c "SELECT version();"
 | 操作種別 | 第一推奨 | 補助 | 受講生に渡すときの一言 |
 |---------|---------|------|---------------------|
 | **データ操作**（SELECT / INSERT / UPDATE / DELETE）| **Supabase Studio の SQL Editor**（ブラウザ） | psql | 「ブラウザで Supabase Dashboard → 左サイドバー SQL Editor を開いてください」 |
+| **テスト SQL / 回帰テスト**（BEGIN ... ROLLBACK で囲まれた検証スクリプト） | **Supabase Studio の SQL Editor**（ブラウザ） | `psql -f` | 「テスト SQL ファイル（`supabase/tests/xxx.test.sql`）の中身を全選択コピー → SQL Editor に貼って Run。`NOTICE: Test N PASS:` の出力が見られます」 |
 | **スキーマ変更**（CREATE TABLE / ALTER TABLE 等） | `supabase migration new` + `supabase db push` | — | 「ターミナルで `supabase migration new <名前>` を実行 → 生成されたファイルに SQL を書く → `supabase db push`」 |
+| **migration 適用 + テスト実行を一気に**（時短目的） | `supabase db push && psql -f tests/xxx.test.sql` を CLI 一発 | — | 「migration 適用は CLI 必須なので、テストも一緒に CLI で走らせる方が早いです」と理由を添えて案内 |
 | **CSV ダンプ・大量データ・スクリプト処理** | psql 直接接続 | — | 「ターミナルで `psql "$DATABASE_URL"` を実行 → 対話プロンプトで SQL 貼り付け」 |
 
 ### IMPORTANT: 受講生向け SQL は Supabase Studio SQL Editor を第一推奨
@@ -151,6 +181,7 @@ supabase inspect db long-running-queries --linked
 - **`apply_migration` でスキーマ変更**: 履歴がぐちゃぐちゃになる。`db query` または直接 psql で iterate → 完成したら `migration new` でファイル化
 - **コピペ先を曖昧にする**（v1.11.1〜追加）: 「以下を実行してください」だけでは受講生は「どこに？」で詰まる。**必ず「ブラウザで Supabase Dashboard → SQL Editor」or「ターミナルで psql プロンプト」**を最初に明示する
 - **受講生にいきなり psql を勧める**（v1.11.1〜追加）: ターミナル不慣れな受講生は詰まる。データ操作は **SQL Editor を第一推奨**。psql は AI が自走する場合 or 大量データ処理の場合のみ
+- **テスト SQL を理由なく CLI で走らせる**（v1.14.1〜追加）: `psql -f tests/xxx.test.sql` を無条件で勧めるのは NG。テスト SQL は **SQL Editor のほうが結果が見やすい**（`NOTICE:` が画面で確認しやすい）。CLI を選ぶなら「migration 適用も同時にやるので一気に CLI で」のように**理由を一言添える**こと
 
 ## RLS（Row Level Security）必須チェック
 
