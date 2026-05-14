@@ -2,7 +2,10 @@
 /**
  * Hook 回帰テスト: warn-dangerous-prompts.js
  *
- * 実行: `npm run test:hooks` または `node plugins/school-starter/scripts/warn-dangerous-prompts.test.js`
+ * 実行: `npm run test:hooks` または `node --test plugins/school-starter/scripts/warn-dangerous-prompts.test.js`
+ *
+ * 前提:
+ *   - Node 18+ 必須（`node:test` 利用のため）。Node 14/16 では `node: bad option: --test` で落ちる
  *
  * 目的:
  *   - v1.16.0 で Codex 独立レビューが発見した偽陰性（「消したい」「ですか？」）の再発防止
