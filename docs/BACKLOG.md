@@ -12,17 +12,19 @@
 
 ## 次リリース候補（v1.18+・教材作成と並行で追加していく）
 
-### 🟠 0. statusline.py の `/plugin update` 反映問題（v1.17.0 リリース直後に発覚）
+### 🔴 0. rules / skills / commands 全体の「コピー → 直参照」全面再設計（v1.17.1 で statusline のみ対応済み・残り全部 v1.18 で）
 
-- **発見元**: 2026-05-15 学生環境で v1.17.0 リリース後 `/plugin update school-starter` → reset 表示されない事象
-- **問題**: 現状の setup スクリプトは `~/.claude/plugins/marketplaces/.../scripts/statusline.py` を `~/.claude/scripts/statusline.py` に**コピー**して、settings.json は `~/.claude/scripts/statusline.py` を参照する設計。**コピー後の同期はされない**ため、`/plugin update` で新版がプラグインキャッシュに来ても `~/.claude/scripts/statusline.py` は旧版のまま → setup 再実行しないと反映されない罠
-- **影響範囲**: statusline.py に限らず、setup でコピー対象のスキル / コマンド / rules ファイル全般。本件は statusline が一番顕在化しやすい
-- **対応案 A（推奨・採用）**: setup スクリプトを変更し、settings.json の `statusLine.command` を**プラグイン配下を直接参照する形**に書き換える。`~/.claude/plugins/marketplaces/palpunte-school-plugins/plugins/school-starter/scripts/statusline.py` を直接指定 → `/plugin update` で勝手に最新化される
-- **対応案 B**（却下）: post-update Hook → Claude Code 側に仕組みがなさそう
-- **対応案 C**（却下）: docstring に「setup 再実行が必要」と明記 → 受講生が忘れる
-- **移行時の注意**: 既存ユーザー（v1.17.0 までで `~/.claude/scripts/statusline.py` にコピー済み）は setup 再実行で settings.json が書き換わってプラグイン直参照に切り替わる。旧ファイルは残るが無害
-- **工数見積もり**: 15-20 分（setup.md 修正 + 動作確認）
-- **位置づけ**: 教材作成と並行で 1〜2 日中に v1.17.1 patch リリース推奨
+- **発見元**: 2026-05-15 v1.17.0 学生環境観察で statusline.py の同期罠が顕在化（v1.17.1 で statusline のみ即対応済み）
+- **問題**: setup スクリプトが `~/.claude/rules/`・`~/.claude/skills/`・`~/.claude/commands/`・`~/.claude/agents/`・`~/.claude/docs/` にプラグイン配下からファイルを**コピー**する設計。`/plugin update` で最新化されてもコピー先は古いまま → 受講生は setup 再実行しないと最新版が反映されない**全体罠**
+- **影響範囲**: statusline 以外の全コピー対象（rules / skills / commands / agents / docs）。第1回開講後に受講生が「新しいスキルが発火しない」「新しいルールが効かない」が頻発する地雷
+- **対応案（v1.17.1 で statusline のみ実施済み・横展開）**:
+  - rules / skills / commands / agents / docs も settings.json or CLAUDE.md でプラグイン配下を直接参照する方式に統一
+  - `~/.claude/rules/` 配下: Claude Code が rules を自動ロードする仕組みを直接プラグイン配下にする方法を要調査
+  - skills / commands: プラグイン名前空間で発火するため設計変更不要の可能性（要確認）
+  - agents: `~/.claude/agents/security-auditor.md` → `~/.claude/plugins/marketplaces/...` 経由参照
+- **設計調査が必要**: Claude Code が `~/.claude/rules/` や `~/.claude/agents/` 配下しか自動ロードしない仕様だと、直参照が技術的に不可能 → その場合は post-update Hook の代替案（symlink / setup の自動再実行案内 等）を検討
+- **工数見積もり**: 設計調査 30 分 + 実装 1-2h（v1.18 MINOR）
+- **位置づけ**: 教材作成が一段落した後（5/18 開講後）に v1.18 で全面対応推奨
 
 ### 🔴 1. カリキュラムスコープ vs 案件スコープの分離問題
 
@@ -135,6 +137,7 @@
 
 ## リリース済み（参考・詳細は palpunte-school 側 `docs/plugin-changelog.md`）
 
+- v1.17.1 (2026-05-15): statusline.py をプラグイン直参照に切替・`/plugin update` 同期罠を構造的に解消（statusline のみ・rules/skills/commands は v1.18 で）
 - v1.17.0 (2026-05-15): statusline.py Pattern 5 Fine Bar 昇格・reset 時刻表示対応
 - v1.16.1 (2026-05-14): Hook 偽陰性修正 + 回帰テスト基盤 + Node 18+ 要件明記
 - v1.16.0 (2026-05-14): 地雷塞ぎ 6 連発 + マスタープレイブック新設

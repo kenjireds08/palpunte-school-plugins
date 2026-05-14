@@ -418,57 +418,69 @@ denyリストは大きく4カテゴリ:
 
 **v1.15.0 の変更理由**: v1.14.x までは `./plans` を推奨していたが、`check-md-creation.js` Hook の許可ディレクトリ（`docs/` 等）に `plans/` が含まれず、Plan Mode で `.md` を新規作成すると Hook にブロックされる自己矛盾があった。v1.15.0 で ① Hook に `plans/` を追加 + ② 推奨値を `./docs/plans` に変更（既存の docs/ に集約） の二重対策で解決。
 
-### 1-11. ステータスライン（コンテキスト・5h・7d 使用率の常時可視化）
+### 1-11. ステータスライン（コンテキスト・5h・7d 使用率 + reset 時刻の常時可視化）
 
-Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、チャット欄下部にコンテキスト/5時間/7日間の使用率を常時表示する Python スクリプトを配置する。
+Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、チャット欄下部にコンテキスト/5時間/7日間の使用率 + reset 時刻 + ブランチ + 行差分を 2 行表示する Python スクリプト（Pattern 5 Fine Bar・v1.17.0〜）を配置する。
 
-**配置内容:**
+**配置内容（v1.17.1〜「プラグイン直参照」方式に変更）:**
 
-1. プラグインの `scripts/statusline.py` を `~/.claude/scripts/statusline.py` にコピーする
-   - `~/.claude/scripts/` ディレクトリがなければ作成
-   - 既存の `statusline.py` がある場合は上書きしない（受講生が記事URL方式でカスタマイズ済みの可能性があるため）。「既に statusline.py が配置されています。記事URL方式でカスタマイズした場合は上書きを避けます」と報告
-2. 実行権限を付与: `chmod +x ~/.claude/scripts/statusline.py`
-3. `~/.claude/settings.json` の `statusLine` 項目を以下のように設定（既存設定がない場合のみ追加）:
+1. `~/.claude/settings.json` の `statusLine` 項目を以下のように設定（既存設定があれば**上書きする**・v1.17.1 で挙動変更）:
    ```json
    {
      "statusLine": {
        "type": "command",
-       "command": "~/.claude/scripts/statusline.py",
+       "command": "~/.claude/plugins/marketplaces/palpunte-school-plugins/plugins/school-starter/scripts/statusline.py",
        "padding": 1
      }
    }
    ```
-   - 既存の `statusLine` 設定がある場合は上書きしない（受講生のカスタマイズを尊重）
+   - **プラグイン配下を直接参照**するため、`/plugin update school-starter` で構造的に最新化される
+   - 既存の `~/.claude/scripts/statusline.py` カスタマイズ版がある受講生も、settings.json を一度プラグイン直参照に切り替えれば、`/plugin update` だけで Pattern 5 → 将来の Pattern X に追従できる
+   - プラグイン同梱の `scripts/statusline.py` 自体は v1.17.0 で Pattern 5 Fine Bar 昇格済み
+
+**旧設計（v1.10.0〜v1.17.0）からの移行ポイント:**
+- 旧: `~/.claude/scripts/statusline.py` にコピーする方式 → setup 再実行しないと反映されない（v1.17.0 リリース直後に学生環境で発覚）
+- 新: プラグイン配下を直接参照 → `/plugin update` で構造的に同期
+- 移行時の動作: 既存 `~/.claude/scripts/statusline.py` ファイルは残るが参照されなくなる（無害な残骸）
+- ⚠️ **既存設定の上書き判断**: v1.17.0 以前で配置済みの `~/.claude/scripts/statusline.py` を**自分でカスタマイズした受講生**は、本 setup 再実行で settings.json がプラグイン直参照に切り替わると自分のカスタムが効かなくなる → setup 完走メッセージで「カスタマイズ版を使い続けたい場合は settings.json を手動で書き戻してください」と案内
 
 **受講生への案内（完走メッセージで伝える）:**
 
 ```
-📊 ステータスライン配置完了（Pattern 1: Minimal Dots フォールバック版）
+📊 ステータスライン配置完了（Pattern 5 Fine Bar・v1.17.1〜プラグイン直参照方式）
 
-Claude Code を再起動すると、チャット欄の下にこんな感じで表示されるよ:
-  Claude  ·  ctx ● 23%  ·  5h ● 42%  ·  7d ● 67%
+Claude Code を再起動すると、チャット欄の下にこんな感じで 2 行表示されるよ:
+  Line 1: Opus 4.7 | ctx ▍▍▎ 30% | +100/-20 | main
+  Line 2: 5h ▌▌▌▌▌ 50% reset 6:20 | 7d ▎▎▎ 30% reset 5/19 6:06
 
 各数字の意味:
 - ctx: 今のセッションのコンテキスト使用率（30〜40% で /clear-prep のサイン）
-- 5h:  直近5時間の使用量（100% で5時間使えなくなる）
-- 7d:  直近7日間の使用量（100% で1週間使えなくなる）
+- 5h:  直近5時間の使用量（100% で5時間使えなくなる）+ reset 時刻
+- 7d:  直近7日間の使用量（100% で1週間使えなくなる）+ reset 時刻
+- branch: 現在の Git ブランチ（main 直接編集事故予防に効く）
+- +N/-N: 未コミット変更の行差分（溜まりすぎたら commit のサイン）
+
+【v1.17.1〜の改善ポイント】
+プラグイン更新（/plugin update school-starter）だけで自動的に最新版に追従するようになった。
+以前は setup を再実行しないと反映されなかった罠が構造的に解消。
 
 【他のデザイン（5パターン）に変えたい場合】
 記事URLとPattern番号を Claude Code に貼るだけで自動で差し替えてくれます:
-  https://nyosegawa.com/posts/claude-code-statusline-rate-limits/ これを入れたい. Pattern5
+  https://nyosegawa.com/posts/claude-code-statusline-rate-limits/ これを入れたい. Pattern2
 
 5パターンの紹介:
-- Pattern 1: Minimal Dots（今配置済み）
+- Pattern 1: Minimal Dots（v1.16.x まで配布版・最軽量）
 - Pattern 2: Sparkline Gauge（縦ブロックゲージ）
 - Pattern 3: Ring Meter（円グラフ風・最コンパクト）
-- Pattern 4: Fine Bar + Gradient（細密プログレスバー・情報量最強）
-- Pattern 5: Braille Dots（点字パターン・著者推奨・レトロかわいい）
+- Pattern 4: Braille Dots（点字パターン・レトロかわいい）
+- Pattern 5: Fine Bar + reset 時刻表示（今配置済み・v1.17.0〜デフォルト）
 ```
 
-**設計方針:**
-- フォールバック用に Pattern 1（Minimal Dots）を同梱。もっとも軽量で初心者向け
+**設計方針（v1.17.1〜）:**
+- デフォルト: Pattern 5 Fine Bar + reset 時刻（情報量最強・受講生のリミット管理を支援）
 - 受講生は第1回ハンズオンで「記事URLを Claude に渡して 5パターンから選ぶ」体験を推奨（Claude Code の本領発揮を体感する教材）
-- 詰まったら配布済みの Pattern 1 がそのまま動くので安心
+- 詰まったら配布済みの Pattern 5 がそのまま動くので安心
+- プラグイン直参照 = `/plugin update` で勝手に最新化される運用罠ゼロ設計
 
 ---
 
@@ -477,7 +489,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで�
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.17.0）
+## セットアップ結果（v1.17.1）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
