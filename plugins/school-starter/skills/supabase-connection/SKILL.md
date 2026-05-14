@@ -88,6 +88,29 @@ DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-ap-northeast-1
 
 **パスワードに特殊文字（`*/%?@&` 等）が含まれる場合は URL エンコード必須。**
 
+### YOU MUST: 環境変数追加時は 3 箇所同期（v1.16.0〜）
+
+新しい環境変数（`DATABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` 等）を追加したら、**`.env.local` だけ更新して終わらない**。以下 3 箇所を必ず同期する:
+
+1. **`.env.local`**: 実値を追記（別ターミナルでちーけんさんが手動）
+2. **`.env.example`**: ダミー値で追記し git にコミット（引き継ぎ用変数一覧）
+3. **Vercel ダッシュボード**: 本番デプロイ前に登録（Sensitive ON）
+
+**Claude が SQL や migration 案内とセットで変数を追加するときの定型文**:
+```
+今追加する環境変数: <NAME>=<例値>
+
+別ターミナルで以下を実行してください:
+----ここから----
+echo '<NAME>=<実値>' >> .env.local
+echo '<NAME>=<ダミー値>' >> .env.example
+----ここまで----
+
+本番デプロイ時は Vercel Dashboard → Settings → Environment Variables にも同じキーで登録してください（Sensitive ON）。
+```
+
+理由: `.env.example` 漏れは引き継ぎ・別 PC 環境構築・pre-delivery-check 項目 8（引き渡しパッケージ）のすべてで再発する構造的問題。**新しい変数を追加する瞬間に同期を案内する**のが唯一の予防策。
+
 ### Step 4: psql 接続テスト
 
 ```bash

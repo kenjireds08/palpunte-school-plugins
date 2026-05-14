@@ -346,11 +346,12 @@ Claude Code は `.env*` ファイルを作成できないため、以下を表�
 
 ```
 ─────────────────────────────────────────────
-🔐 .env.local の作成について
+🔐 .env.local と .env.example の作成について
 
 セキュリティ上の理由で、Claude Code は .env ファイルを作成できません。
-別ターミナルで以下を実行してください:
+別ターミナルで以下を実行してください（コピペ対象は ----ここから---- ----ここまで---- の中）:
 
+----ここから----
 cat > .env.local << 'EOF'
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
@@ -365,11 +366,32 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 EOF
+----ここまで----
 
 ※ .env.local には実際の値を入れる（git には上がらない）
-※ .env.example はダミー値（git に上げる）
+※ .env.example はダミー値（git に上げる・引き継ぎ用の「変数一覧」）
 ─────────────────────────────────────────────
 ```
+
+### 4-4b. 環境変数の 3 箇所同期ルール（IMPORTANT・v1.16.0〜）
+
+新しい環境変数を追加するときは、**必ず以下 3 箇所を同時に更新**する。1 箇所でも漏れると引き継ぎや本番デプロイで詰まる。
+
+| 同期先 | 何を入れるか | 役割 |
+|--------|-----------|------|
+| **`.env.local`** | 実際の値（API キー本物） | 開発者本人のローカル開発用・git 管理外 |
+| **`.env.example`** | ダミー値・プレースホルダー | git にコミット・引き継ぎ時の「変数一覧」 |
+| **Vercel ダッシュボード**（Settings → Environment Variables） | 本番用の実値（Sensitive ON） | 本番デプロイで参照される |
+
+**Claude が変数を追加するとき必ず案内すること**:
+```
+新しい環境変数 `XXX_YYY` を追加します。以下 3 箇所を順に更新してください:
+1. ローカル: 別ターミナルで .env.local に追記（実値）
+2. リポジトリ: .env.example に追記（ダミー値・git にコミット）
+3. 本番: Vercel ダッシュボード → Settings → Environment Variables で登録（Sensitive 化を忘れずに）
+```
+
+**「自分が踏んだ地雷をルール化する」原則**: `.env.example` 漏れは引き継ぎ・別 PC 環境構築・pre-delivery-check のすべてで再発する構造的問題。新しい変数を追加する瞬間に 3 箇所同期を案内するのが唯一の予防策。
 
 ## Step 5: project-flow スキルへ引き継ぎ
 
