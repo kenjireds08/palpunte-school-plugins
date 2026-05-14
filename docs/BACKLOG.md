@@ -12,6 +12,18 @@
 
 ## 次リリース候補（v1.18+・教材作成と並行で追加していく）
 
+### 🟠 0. statusline.py の `/plugin update` 反映問題（v1.17.0 リリース直後に発覚）
+
+- **発見元**: 2026-05-15 学生環境で v1.17.0 リリース後 `/plugin update school-starter` → reset 表示されない事象
+- **問題**: 現状の setup スクリプトは `~/.claude/plugins/marketplaces/.../scripts/statusline.py` を `~/.claude/scripts/statusline.py` に**コピー**して、settings.json は `~/.claude/scripts/statusline.py` を参照する設計。**コピー後の同期はされない**ため、`/plugin update` で新版がプラグインキャッシュに来ても `~/.claude/scripts/statusline.py` は旧版のまま → setup 再実行しないと反映されない罠
+- **影響範囲**: statusline.py に限らず、setup でコピー対象のスキル / コマンド / rules ファイル全般。本件は statusline が一番顕在化しやすい
+- **対応案 A（推奨・採用）**: setup スクリプトを変更し、settings.json の `statusLine.command` を**プラグイン配下を直接参照する形**に書き換える。`~/.claude/plugins/marketplaces/palpunte-school-plugins/plugins/school-starter/scripts/statusline.py` を直接指定 → `/plugin update` で勝手に最新化される
+- **対応案 B**（却下）: post-update Hook → Claude Code 側に仕組みがなさそう
+- **対応案 C**（却下）: docstring に「setup 再実行が必要」と明記 → 受講生が忘れる
+- **移行時の注意**: 既存ユーザー（v1.17.0 までで `~/.claude/scripts/statusline.py` にコピー済み）は setup 再実行で settings.json が書き換わってプラグイン直参照に切り替わる。旧ファイルは残るが無害
+- **工数見積もり**: 15-20 分（setup.md 修正 + 動作確認）
+- **位置づけ**: 教材作成と並行で 1〜2 日中に v1.17.1 patch リリース推奨
+
 ### 🔴 1. カリキュラムスコープ vs 案件スコープの分離問題
 
 - **発見元**: lesson-09-notes 2026-05-14（PWA 実機テスト）
