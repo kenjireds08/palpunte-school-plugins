@@ -137,6 +137,7 @@
 
 ## リリース済み（参考・詳細は palpunte-school 側 `docs/plugin-changelog.md`）
 
+- v1.17.2 (2026-05-15): statusline.py の実行ビット穴を `git update-index --chmod=+x` で永続化（三部作完結）
 - v1.17.1 (2026-05-15): statusline.py をプラグイン直参照に切替・`/plugin update` 同期罠を構造的に解消（statusline のみ・rules/skills/commands は v1.18 で）
 - v1.17.0 (2026-05-15): statusline.py Pattern 5 Fine Bar 昇格・reset 時刻表示対応
 - v1.16.1 (2026-05-14): Hook 偽陰性修正 + 回帰テスト基盤 + Node 18+ 要件明記
