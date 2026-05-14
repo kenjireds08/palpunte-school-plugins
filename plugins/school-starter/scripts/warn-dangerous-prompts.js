@@ -75,13 +75,15 @@ process.stdin.on('end', () => {
       skipOnMeta: true,
     },
     {
-      regex: /(本番|production|prod)[^。\n]*?(削除|消して|drop|truncate|destroy|消去|wipe)/u,
+      regex:
+        /(本番|production|prod)[^。\n]*?(削除|消して|消したい|消す|消し|消去|drop|truncate|destroy|wipe)/u,
       message:
         'IMPORTANT: 受講生の発話に「本番 DB / production データを削除する」依頼パターンを検知しました。実行前に必ず受講生本人に「本当に本番か」「バックアップは取ってあるか」「ステージングで先に試したか」を確認し、AskUserQuestion で承認を取ってから動いてください。',
-      // 「本番デプロイ前に削除フラグの動作確認」のような会話的発話を弾くため、対象語を必須化 + 否定/質問でスキップ
+      // 「本番デプロイ前に削除フラグの動作確認」のような会話的発話を弾くため、対象語を必須化 + 否定/メタでスキップ
+      // skipOnQuestion: false — 「本番 DB を削除していいですか？」のような確認質問でも警告は出す（実害が大きいため・v1.16.1 で偽陰性修正）
       requireTarget: true,
       skipOnNegation: true,
-      skipOnQuestion: true,
+      skipOnQuestion: false,
       skipOnMeta: true,
     },
     {

@@ -1,0 +1,9 @@
+{
+  "name": "palpunte-school-plugins",
+  "private": true,
+  "description": "未来AI学院 上級コース受講生向け Claude Code プラグイン群（開発用ワークスペース・配布は marketplace.json 経由）",
+  "scripts": {
+    "test:hooks": "node --test plugins/school-starter/scripts/warn-dangerous-prompts.test.js",
+    "test": "npm run test:hooks"
+  }
+}
