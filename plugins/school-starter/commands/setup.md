@@ -29,8 +29,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 3. **scope の選択を聞かれたら `user` を選ぶ**（全プロジェクトで使えるようにするため）
 4. `/reload-plugins` を実行（"Installed school-starter. Run /reload-plugins to apply." と表示されるため必須）
 5. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
-3. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
-4. setup 後に `/school-starter:check` を1回走らせて、deny リスト・Hook・rules が全部配置されたことを確認
+6. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
 
 **注意（多層防御の前提）**: このプラグインの防御機構は「Hook（3種）+ deny リスト + rules + sandbox + 受講生自身の判断」の**多層で構成**されている。どれか1つを完璧に頼るのではなく、**全層で拾う前提**:
 
@@ -487,10 +486,12 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 
 ## 結果レポート
 
-すべての確認結果を以下の形式でまとめて報告:
+すべての確認結果を以下の形式で報告する。
+
+**【出力厳守ルール】** 下記テンプレートの「📌 次にやること」セクション（手順 1〜8）は、**省略・要約・項目の統合・番号の変更・項目の追加を一切せず、8 項目すべてをそのまま出力する**こと。とくに「5. Codex CLI をインストール」「6. Node.js をインストール」「8. Claude Code を再起動」は OS レベルの必須ステップであり、脱落すると受講生が第2回以降で詰む。テンプレートに無いステップ（`/school-starter:check` 等）を足さないこと。「報告」は確認結果サマリー部分の話であり、次にやることリストを短縮してよいという意味ではない。
 
 ```
-## セットアップ結果（v1.17.3）
+## セットアップ結果（v1.17.4）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
