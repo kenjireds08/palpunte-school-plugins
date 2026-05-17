@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js; fi"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/check-md-creation.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/check-md-creation.js; fi"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js --hook"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js --hook; fi"
           }
         ]
       }
@@ -36,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/warn-dangerous-prompts.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/warn-dangerous-prompts.js; fi"
           }
         ]
       }
@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js; fi"
           }
         ]
       },
@@ -56,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js; fi"
           }
         ]
       }
@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/compact-reminder.js"
+            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/compact-reminder.js; fi"
           }
         ]
       }

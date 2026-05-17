@@ -348,7 +348,7 @@ denyリストは大きく4カテゴリ:
 
 **Anthropic 公式の設計支援プラグイン 2 種を案内する**。AskUserQuestion は出さず、コマンドを表示して受講生自身に打ってもらう。理由: `/plugin install` は Claude Code の入力欄でユーザー自身が実行するコマンドであり、Bash 経由の自動実行はできない。setup でエラーを出すと受講生が不安になるため、**最初から「自分でこのコマンドを打ってください」と案内するだけにする**。
 
-**重要**: feature-dev と frontend-design は **両方とも `claude-plugins-official` マーケットに集約**されている（v1.8.4 で発覚・v1.6.1〜v1.8.3 では frontend-design を `claude-code-plugins` と誤記していた）。`claude-plugins-official` は Claude Code に**組み込みでプリ登録**されているため `/plugin marketplace add` 不要・`/plugin install` 一発で入る。
+**重要**: feature-dev と frontend-design は **両方とも `claude-plugins-official` マーケットに集約**されている（v1.8.4 で発覚・v1.6.1〜v1.8.3 では frontend-design を `claude-code-plugins` と誤記していた）。**`claude-plugins-official` はフレッシュな環境では未登録**のため、`/plugin install` の前に `/plugin marketplace add anthropics/claude-plugins-official` でマーケットを追加する必要がある（v1.17.2 まで「組み込みプリ登録済み・追加不要」と誤記していた・2026-05-17 テストランで判明）。
 
 以下のパスで既にインストールされているかを確認:
 
@@ -364,10 +364,11 @@ denyリストは大きく4カテゴリ:
 ```
 📝 feature-dev / frontend-design プラグイン（要セルフインストール）
 
-両方とも Anthropic 公式の claude-plugins-official マーケットに含まれており、
-このマーケットは Claude Code に組み込みプリ登録されているため、
-追加のマーケット add は不要です。Claude Code の入力欄に以下を順に打ってください:
+両方とも Anthropic 公式の claude-plugins-official マーケットに含まれます。
+このマーケットはフレッシュな環境では未登録なので、まずマーケットを追加して
+から、Claude Code の入力欄に以下を順に打ってください:
 
+  /plugin marketplace add anthropics/claude-plugins-official
   /plugin install feature-dev@claude-plugins-official
   /plugin install frontend-design@claude-plugins-official
 
@@ -489,7 +490,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 すべての確認結果を以下の形式でまとめて報告:
 
 ```
-## セットアップ結果（v1.17.2）
+## セットアップ結果（v1.17.3）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -524,23 +525,28 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 📌 次にやること（この順序で進めてください）:
 
 【重要】軽い作業（プラグインインストール = Claude Code 内で完結する数十秒）を
-先に終えてから、重い作業（Codex CLI = OS レベルインストール）→ sandbox 有効化、
-の順で進めます。sandbox は brew install / npm install -g 等を OS 層でブロックする
-可能性があるため必ず最後にします。
+先に終えてから、重い作業（Codex CLI・Node.js = OS レベルインストール）→
+sandbox 有効化、の順で進めます。sandbox は brew install / npm install -g 等を
+OS 層でブロックする可能性があるため必ず最後にします。
 
-1. feature-dev プラグインをインストール（要セルフ実行・約30秒）:
+1. 公式マーケットプレイスを追加（要セルフ実行）:
+     /plugin marketplace add anthropics/claude-plugins-official
+
+   → これを飛ばすと次の install が「Marketplace not found」になります。
+
+2. feature-dev プラグインをインストール（要セルフ実行・約30秒）:
      /plugin install feature-dev@claude-plugins-official
 
    → scope を聞かれたら user を選択（全プロジェクトで使えるようにするため）
 
-2. frontend-design プラグインをインストール（要セルフ実行・約30秒）:
+3. frontend-design プラグインをインストール（要セルフ実行・約30秒）:
      /plugin install frontend-design@claude-plugins-official
 
    → scope を聞かれたら user を選択
 
-3. /reload-plugins （feature-dev / frontend-design を反映）
+4. /reload-plugins （feature-dev / frontend-design を反映）
 
-📋 受講生環境チェックリスト（M1 / Apple Silicon ユーザー向け・次の 4. に進む前に）
+📋 受講生環境チェックリスト（M1 / Apple Silicon ユーザー向け・次の 5. に進む前に）
 
    M1 Mac 実機検証で「ここで詰まる」と判明した 3 つの罠を、Claude Code に
    質問して事前に潰してから Codex CLI のインストールに進んでください。
@@ -553,7 +559,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
       → 出力に自分のユーザー名がなければ標準ユーザーです。
         その Mac のメイン管理者に頼んで管理者に昇格してから次へ進んでください。
 
-   b. Homebrew インストール: 2 つの罠（パスワード入力 + Next steps 3 行）
+   b. Homebrew インストール: 2 つの罠（パスワード入力 + Next steps）
 
       【罠 1: インストール途中で Password を聞かれる】
         Homebrew のインストール中に「Password:」と表示されます。これは
@@ -562,30 +568,30 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
            でもちゃんと入力されています）。落ち着いて打って Enter。
         → 「打てない・壊れた」と勘違いして詰むのが受講生 No.1 の罠。
 
-      【罠 2: インストール後の Next steps 3 行】
-        Claude Code に↓を貼り付け:
-        「brew install 後に表示された ==> Next steps の PATH 設定 3 行
-         （eval "$(/opt/homebrew/bin/brew shellenv)" を ~/.zprofile に
-          追記する手順）を実行したか確認して」
+      【罠 2: インストール後の Next steps】
+        インストール後に「==> Next steps」が表示されます。そこに PATH 設定の
+        コマンド（eval "$(/opt/homebrew/bin/brew shellenv)" 等）が含まれていたら
+        実行してください。
+        ※ 管理者ユーザー＋最近の Homebrew では /etc/paths.d/ に自動登録され、
+          PATH 設定行が出ないこともあります（2026-05-17 テストランで確認）。
+          その場合は新しいターミナルを開けば brew コマンドが使えます。
 
-      → これを飛ばすと brew コマンドが PATH に通らず、
-        Codex CLI のインストールで「brew: command not found」が出ます。
-        Homebrew は brew.sh のコピーアイコンから取得し、貼った直後に
-        矢印キーで「最後の行が中途半端に切れていないか」を目視確認してください。
+      → brew が使えない時は Claude Code に「brew: command not found に
+        なる、PATH を通して」と聞けば解決します。
 
    c. コピペの罠（自分で気をつける運用ポイント）:
-      - チャット欄からコマンドをコピペするとき、行末に余計な改行が
-        混入することがあります。貼った直後に矢印キーで「最後の行が
-        中途半端でないか」を目視確認してください。
+      - チャット欄に表示された長いコマンドは画面幅で 2 行に折り返されて
+        見えることがあります。貼った直後に Enter を押す前に「1 行に
+        なっているか・最後が切れていないか」を目視確認してください
+        （2026-05-17 テストランで実際に発生）。
       - ターミナルからコマンドをコピーするとき、% や $ より左
         （ユーザー名@ホスト名）まで一緒にコピーすると command not found
         になります。コマンド本体だけを選択する習慣をつけてください。
 
-4. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
-   Claude Code の入力欄に以下のように打ってください:
-     「Codex CLI を入れて。macOS なら brew、Windows なら winget で。
-      私の OS を判定してインストール手順を案内して」
-   → Claude が brew install --cask codex（macOS）/
+5. Codex CLI をインストール（受講生自身が Claude Code に聞いて自走）
+   Claude Code の入力欄に以下を貼り付けてください:
+     「ターミナルでCodexを起動させたいからCodex CLIを導入して」
+   → Claude が OS を判定し、brew install codex（macOS）/
      winget install OpenAI.Codex（Windows）等を案内してくれます
    → 認証は別ターミナルで `codex login`
 
@@ -595,7 +601,16 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
    ※ 6 エリア構成（中央に Codex CLI 常駐）が最も推奨ですが、まず CLI を試して
      ダメなら拡張機能でという順序
 
-5. sandbox を有効化（最後・必ずここまで完了してから）:
+6. Node.js をインストール（要セルフ実行）
+   Codex CLI で Homebrew が入ったので、つづけて Node.js も入れます。
+   Claude Code の入力欄に以下を貼り付けてください:
+     「Node.js を導入して。Homebrew はもう入っています。」
+   → Node.js は第2回からのアプリ開発で必須です。さらに school-starter の
+     Hook（セキュリティ機能）は Node.js で動くため、ここで入れて初めて
+     Hook が正しく働くようになります（Node 導入前は Hook が静かにスキップ
+     される設計）。
+
+7. sandbox を有効化（最後・必ずここまで完了してから）:
      /sandbox
 
    → 3 択 UI が出ます。矢印キーで以下を選んで Enter:
@@ -614,10 +629,10 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
    の二重メリット。「Hook + deny + rules + sandbox + 受講生判断」の多層防御と整合する。
 
    ※ ここで初めて OS 層の防御を ON にする。これ以降は brew/npm の
-     全システム書き換えが制限される可能性があるが、Codex CLI と
+     全システム書き換えが制限される可能性があるが、Codex CLI・Node.js と
      プラグインは既に入っているので影響なし。
 
-6. Claude Code を再起動（クリーンな context で次のステップに進むため）
+8. Claude Code を再起動（クリーンな context で次のステップに進むため）
    ※ ステータスライン（ctx / 5h / 7d）は再起動しなくても /reload-plugins で既に反映されています。
      再起動の真の価値は「会話 context のクリーンスタート」です。
 
