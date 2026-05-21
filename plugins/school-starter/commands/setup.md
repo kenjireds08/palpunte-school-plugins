@@ -31,7 +31,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 5. **他の作業を挟まず即座に** `/school-starter:setup` を実行（install と setup の間に新規 Read/Write 指示を挟まない）
 6. setup 完走メッセージを確認するまで別の Claude Code 操作をしない
 
-**注意（多層防御の前提）**: このプラグインの防御機構は「Hook（3種）+ deny リスト + rules + sandbox + 受講生自身の判断」の**多層で構成**されている。どれか1つを完璧に頼るのではなく、**全層で拾う前提**:
+**注意（多層防御の前提）**: このプラグインの防御機構は「Hook（3種）+ deny リスト + rules + sandbox（有効化は任意・第1回では必須にしない）+ 受講生自身の判断」の**多層で構成**されている。どれか1つを完璧に頼るのではなく、**全層で拾う前提**（sandbox 未使用でも残りの層で守る）:
 
 - Hook は Bash tool / Edit 系 tool だけを対象にしており、**MCP 経由のコマンド実行はブロックできない**
 - deny リストは shell alias 経由や、Edit/Write でスクリプトを書き出してから実行する経路には効かない
@@ -322,22 +322,21 @@ denyリストは大きく4カテゴリ:
 - `bypassPermissions` が必要になるのは基本的に「隔離された VM・Docker コンテナ・devcontainer」で使うとき。普段のローカル開発では使わない
 - もし使いたくなったら `~/.claude/settings.json` の `disableBypassPermissionsMode` を `"disable"` から外す（削除または値変更）
 
-### 1-7. sandbox 有効化の案内（v1.8.5〜 settings.json 検査を諦め、一律で完走メッセージに案内する設計）
+### 1-7. sandbox の案内（第1回では任意・参考紹介のみ / v1.18.0〜 必須ステップから除外）
 
-**このプラグインのレビュー運用はサンドボックス ON と両立するように設計されている。**
-コードレビューは `review` スキル（`feature-dev:code-reviewer` サブエージェント + 最終サマリーを Codex別タブにコピペ）で行うため、Codex CLI/プラグインとネットワーク層で競合しない。
+**第1回開講方針（v1.18.0〜）**: sandbox は第1回では**必須ステップにしない**。完走メッセージの番号ステップ（1〜7）から外し、末尾の **💡【参考】ブロック**で「こういう機能がある」と紹介するだけにする。理由: Windows そのままの環境では sandbox に WSL2（Linux 環境）が必要で、有効化すると環境構築のやり直しが発生し、初回受講生の負担が大きい。第1回 HTML 教材（`palpunte-school-html` の `cheatsheet/lesson-01.html` / `lessons/01-mindset/06-school-starter.html`）も同じ「知っておこう枠」扱いで統一済み。
 
-**なぜ deny リストだけでは不十分で sandbox が必要か**:
+**このプラグインのレビュー運用はサンドボックス ON と両立するように設計されている**（将来有効化する受講生向けの担保）。コードレビューは `review` スキル（`feature-dev:code-reviewer` サブエージェント + 最終サマリーを Codex別タブにコピペ）で行うため、Codex CLI/プラグインとネットワーク層で競合しない。
 
-公式仕様として、`permissions.deny` の `Read(...)` / `Edit(...)` ルールは **Claude の組み込み Read / Edit tool にのみ適用**される。Bash サブプロセスには適用されないため、`Read(./.env)` deny を設定していても **`Bash(cat .env)` では秘密を読み取れてしまう**。サンドボックスは **OS レベルでプロセス単位のファイル・ネットワーク境界を強制**するため、Bash・Bash サブプロセス・MCP 経由の bash 実行ツールを含む全てのプロセスに対して一律のガードをかけられる。
+**sandbox を使うとどう守れるか（参考ブロックの背景・必須ではない）**:
 
-**処理（v1.8.5〜 settings.json 検査廃止）**:
+公式仕様として、`permissions.deny` の `Read(...)` / `Edit(...)` ルールは **Claude の組み込み Read / Edit tool にのみ適用**される。Bash サブプロセスには適用されないため、`Read(./.env)` deny を設定していても **`Bash(cat .env)` では秘密を読み取れてしまう**。サンドボックスは **OS レベルでプロセス単位のファイル・ネットワーク境界を強制**するため、Bash・Bash サブプロセス・MCP 経由の bash 実行ツールを含む全てのプロセスに対して一律のガードをかけられる。第1回では Hook + deny リスト + rules + 受講生判断の多層で守り、sandbox は余裕が出てきた受講生の追加の壁と位置づける。
 
-ノート PC 実機検証（2026-05-07）で判明した事実: **Claude Code は `/sandbox` 設定を `~/.claude/settings.json` には書き込まない**。sandbox 状態は Claude Code 内部で管理されており、ファイルベースで検出できない。`grep -i "sandbox" ~/.claude/settings.json` / `ls ~/.claude/ | grep -i sandbox` / `find ~/.claude -name "*sandbox*"` のいずれもヒットしない。
+**sandbox 状態の検出について（参考）**:
 
-したがって setup スクリプトは **sandbox 状態を検出しようとせず、一律で完走メッセージに `/sandbox` 実行を案内する**。受講生が既に有効化済みでも `/sandbox` 再実行は冪等（再度 3 択 UI が出るだけで害なし）なので、検出して分岐する意味がない。
+ノート PC 実機検証（2026-05-07）で判明した事実: **Claude Code は `/sandbox` 設定を `~/.claude/settings.json` には書き込まない**。sandbox 状態は Claude Code 内部で管理されており、ファイルベースで検出できない。したがって setup スクリプトは sandbox 状態を検出しようとせず、参考ブロックで紹介するだけにする。
 
-- 結果レポートには「sandbox: 完走後に `/sandbox` で有効化を案内（auto-allow 推奨）」と一律で記載する
+- 結果レポートには「sandbox: 第1回では任意。完走メッセージ末尾の【参考】ブロックで紹介のみ」と記載する
 
 **自分で確認したい受講生向けの案内**:
 - `/sandbox` を再実行 → `(current)` がどこに付くかを目視確認
@@ -488,10 +487,10 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 
 すべての確認結果を以下の形式で報告する。
 
-**【出力厳守ルール】** 下記テンプレートの「📌 次にやること」セクション（手順 1〜8）は、**省略・要約・項目の統合・番号の変更・項目の追加を一切せず、8 項目すべてをそのまま出力する**こと。とくに「5. Codex CLI をインストール」「6. Node.js をインストール」「8. Claude Code を再起動」は OS レベルの必須ステップであり、脱落すると受講生が第2回以降で詰む。テンプレートに無いステップ（`/school-starter:check` 等）を足さないこと。「報告」は確認結果サマリー部分の話であり、次にやることリストを短縮してよいという意味ではない。
+**【出力厳守ルール】** 下記テンプレートの「📌 次にやること」セクション（手順 1〜7）は、**省略・要約・項目の統合・番号の変更・項目の追加を一切せず、7 項目すべてと末尾の【参考】sandbox ブロックをそのまま出力する**こと。とくに「5. Codex CLI をインストール」「6. Node.js をインストール」「7. Claude Code を再起動」は OS レベルの必須ステップであり、脱落すると受講生が第2回以降で詰む。sandbox は第1回では必須にしないため番号ステップから外し末尾の【参考】ブロックに置いている（省略しないこと）。テンプレートに無いステップ（`/school-starter:check` 等）を足さないこと。「報告」は確認結果サマリー部分の話であり、次にやることリストを短縮してよいという意味ではない。
 
 ```
-## セットアップ結果（v1.17.4）
+## セットアップ結果（v1.18.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新
@@ -510,7 +509,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 - settings.json $schema: 追加 / 設定済み
 - denyリスト: 設定済み / N項目追加（Bash経路塞ぎ `cat/grep/head/tail/less/more *.env*` 含む）
 - defaultMode / disableBypassPermissionsMode: 追加 / 設定済み / 既存設定を尊重
-- sandbox: 完走後に `/sandbox` で有効化を案内（auto-allow 推奨・settings.json では状態検出不可のため一律案内）
+- sandbox: 第1回では任意。完走メッセージ末尾の【参考】ブロックで紹介のみ（Mac は任意でおすすめ / Windows は WSL2 必要なため後日・必須ステップにはしない）
 - feature-dev プラグイン（内部レビュー用・必須・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - frontend-design プラグイン（UI生成フォールバック用・推奨・要セルフインストール）: 利用可能 / 要 `/plugin install`
 - agents/security-auditor.md（セキュリティ監査用・第7回で使用）: 作成 / 更新 / 最新
@@ -526,9 +525,9 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 📌 次にやること（この順序で進めてください）:
 
 【重要】軽い作業（プラグインインストール = Claude Code 内で完結する数十秒）を
-先に終えてから、重い作業（Codex CLI・Node.js = OS レベルインストール）→
-sandbox 有効化、の順で進めます。sandbox は brew install / npm install -g 等を
-OS 層でブロックする可能性があるため必ず最後にします。
+先に終えてから、重い作業（Codex CLI・Node.js = OS レベルインストール）の
+順で進めます。
+（sandbox は第1回では必須にしません。最後の【参考】ブロックを参照）
 
 1. 公式マーケットプレイスを追加（要セルフ実行）:
      /plugin marketplace add anthropics/claude-plugins-official
@@ -611,31 +610,26 @@ OS 層でブロックする可能性があるため必ず最後にします。
      Hook が正しく働くようになります（Node 導入前は Hook が静かにスキップ
      される設計）。
 
-7. sandbox を有効化（最後・必ずここまで完了してから）:
-     /sandbox
-
-   → 3 択 UI が出ます。矢印キーで以下を選んで Enter:
-     1. Sandbox BashTool, with auto-allow      ← これを選ぶ（推奨）
-     2. Sandbox BashTool, with regular permissions
-     3. No Sandbox (current)                   ← デフォルト・選ばない
-
-   → 「✓ Sandbox enabled with auto-allow for bash commands」と出れば成功
-
-   【auto-allow の安全性について】
-   auto-allow は「sandbox 内のコマンドだけ permission prompt をスキップする」モード。
-   ask/deny ルールは常に尊重されるため、school-starter の deny リスト
-   （Bash(curl *) / Bash(rm -rf .) / Read(~/.ssh/**) 等）はそのまま機能する。
-   - 安全性は維持される（deny リストが効く + sandbox が OS 層で守る）
-   - permission prompts が減る（受講生体験が良くなる）
-   の二重メリット。「Hook + deny + rules + sandbox + 受講生判断」の多層防御と整合する。
-
-   ※ ここで初めて OS 層の防御を ON にする。これ以降は brew/npm の
-     全システム書き換えが制限される可能性があるが、Codex CLI・Node.js と
-     プラグインは既に入っているので影響なし。
-
-8. Claude Code を再起動（クリーンな context で次のステップに進むため）
+7. Claude Code を再起動（クリーンな context で次のステップに進むため）
    ※ ステータスライン（ctx / 5h / 7d）は再起動しなくても /reload-plugins で既に反映されています。
      再起動の真の価値は「会話 context のクリーンスタート」です。
+
+💡【参考】sandbox という追加の安全機能（第1回では必須ではありません）
+   Claude Code には「sandbox」という、もう一段上の安全機能があります。
+   Claude が実行するコマンドを「隔離された箱の中」だけで動かす OS 層の壁です。
+   第1回では必須にしません——「こういう機能がある」と知っておけば十分です。
+
+   ・Mac の方: 有効化は任意でおすすめ。やりたい場合は Codex CLI・Node.js を
+     入れ終わってから（先に ON にすると brew / npm install が OS 層で
+     ブロックされるため）/sandbox を実行し、3択UIで「auto-allow」を選ぶと、
+     deny リストを尊重したまま permission prompt が減ります。
+   ・Windows をそのまま使っている方: sandbox には WSL2（Windows 上の
+     Linux 環境）が必要なので、今回はスキップで構いません。
+   ・どちらの場合も、慣れてきたら Claude に「sandbox を入れたい」と
+     相談しながら後日有効化できます。
+
+   sandbox がなくても、school-starter の Hook + deny リスト + rules の
+   防御は全員に効いているので、学習を進めるうえで支障はありません。
 
 【授業で扱う内容】
 - GitHub CLI: 第4回（Git/GitHub 回）で授業内で導入

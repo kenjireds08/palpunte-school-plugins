@@ -10,7 +10,9 @@
 
 ---
 
-## 次リリース候補（v1.18+・教材作成と並行で追加していく）
+## 次リリース候補（v1.19+・教材作成と並行で追加していく）
+
+> ⚠️ **v1.18.0 は sandbox 全回任意化で使用済み（2026-05-21）**。下記の 🔴0 等の本文中「v1.18 で」という記述は **v1.19 以降**に読み替えること。
 
 ### 🔴 0. rules / skills / commands 全体の「コピー → 直参照」全面再設計（v1.17.1 で statusline のみ対応済み・残り全部 v1.18 で）
 
@@ -137,6 +139,9 @@
 
 ## リリース済み（参考・詳細は palpunte-school 側 `docs/plugin-changelog.md`）
 
+- v1.18.0 (2026-05-21): sandbox を全回任意化（setup 完走メッセージのステップ 8→7・sandbox を末尾の【参考】ブロックへ・出力厳守ルール 8→7 項目・第1回差し替え動画収録方針を反映）
+- v1.17.4 (2026-05-17): setup 出力の手順脱落防止【出力厳守ルール】+ check の sandbox 誤判定修正 + 第1回フローから check 除外
+- v1.17.3 (2026-05-17): claude-plugins-official マーケット未登録の誤記修正 + hook の Node.js fail-silent 化 + Node.js 導入ステップ追加
 - v1.17.2 (2026-05-15): statusline.py の実行ビット穴を `git update-index --chmod=+x` で永続化（三部作完結）
 - v1.17.1 (2026-05-15): statusline.py をプラグイン直参照に切替・`/plugin update` 同期罠を構造的に解消（statusline のみ・rules/skills/commands は v1.18 で）
 - v1.17.0 (2026-05-15): statusline.py Pattern 5 Fine Bar 昇格・reset 時刻表示対応
