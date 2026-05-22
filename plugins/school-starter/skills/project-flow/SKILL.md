@@ -48,9 +48,19 @@ Phase A1.5: 要件の軽量定義（interview --light）
   → 完了したら次へ提案
   → スキップも可（小規模・スピード重視の案件向け）
 
+Phase A1.7: デザイン設計図（DESIGN.md）作成 ← モックの「前」に必ず置く
+  → 「モックアップの前に、まずデザインの設計図（DESIGN.md）を作りましょう。awesome デザインカタログから、今回作るアプリに合うデザイン案を3つ案内しますか？」と提案
+  → awesome-design-md-jp カタログから、spec-light の業種・トーンに合う3案（顧客側×管理側のペア）を提示
+  → ユーザーが1案を選ぶ。または「全面ダークにしたい」「明るく温かく」等の狙いがあれば、3案を選ばず雰囲気を直接指定してもらう
+    （カタログは実在ブランド準拠で明るい背景が多い。強い狙い＝特に全面ダーク等がある場合は直接指定が確実）
+  → docs/DESIGN.md を生成（顧客側・管理側で別プロファイルを宣言）
+  → 完了したら次へ提案
+
 Phase A2: モックアップ作成
   → 「モックアップを作りますか？」と提案
-  → docs/spec-light-*.md があれば、それを読み込んで作成
+  → ⚠️ DESIGN.md が未作成なら、先に Phase A1.7（デザイン設計図作成）へ誘導する。
+    DESIGN.md 無しで具体的なモック依頼を受けるとデザイン選択フェーズが飛ばされ、味気ない仕上がりになる（モック先行の事故）
+  → docs/DESIGN.md と docs/spec-light-*.md を読み込んで作成
   → mockups/pattern-a/ にHTMLで作成（複数案も可）
   → 完了したら次へ提案
 
@@ -166,7 +176,7 @@ Phase B7: 実装開始準備完了
 ```markdown
 ---
 mode: undecided | order_won | consultation | personal
-current_phase: phase_0 | phase_a1 | phase_a15 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7
+current_phase: phase_0 | phase_a1 | phase_a15 | phase_a17 | phase_a2 | phase_a3 | phase_a4 | phase_a5 | phase_b1 | phase_b2 | phase_b3 | phase_b4 | phase_b5 | phase_b6 | phase_b7
 phase_status: in_progress | completed
 last_updated: YYYY-MM-DD
 total_tasks: N        # v1.11.0〜：3 階層自動展開で生成された総タスク数
@@ -189,8 +199,10 @@ completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進む�
 | consultation | phase_a1 | in_progress | クライアント情報・要望のヒアリング継続。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a1 | completed | 「`/interview --light` で要件をざっくり固めますか？モックアップの精度が上がります（スピード重視ならスキップしてphase_a2へ）」を提案 |
 | consultation | phase_a15 | in_progress | `/interview --light` 実行中。docs/spec-light-*.md の生成を待つ |
-| consultation | phase_a15 | completed | 「モックアップを作りますか？docs/spec-light-*.md を読み込んで作成します」を提案。OKなら `current_phase: phase_a2` に更新 |
-| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（spec-light-*.md があれば参照） |
+| consultation | phase_a15 | completed | 「モックの前にデザインの設計図（DESIGN.md）を先に作りましょう。awesome カタログから今回のアプリに合う3案を案内しますか？」を提案。OKなら `current_phase: phase_a17` に更新 |
+| consultation | phase_a17 | in_progress | DESIGN.md 作成中。awesome から3案提示（顧客×管理ペア）→ ユーザーが選択 or 雰囲気を直接指定（全面ダーク等）→ docs/DESIGN.md 生成。完了したら `phase_status: completed` に更新して提案 |
+| consultation | phase_a17 | completed | 「モックアップを作りますか？DESIGN.md と spec-light に沿って作ります」を提案。OKなら `current_phase: phase_a2` に更新 |
+| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（DESIGN.md と spec-light-*.md を参照）。**DESIGN.md が未作成なら先に phase_a17 へ戻す** |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
 | consultation | phase_a3 | completed | 「Google Docs に貼り付ける手順を案内します（マークダウンから貼り付け方式）」を提案 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
