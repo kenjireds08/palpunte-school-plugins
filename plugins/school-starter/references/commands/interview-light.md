@@ -1,5 +1,5 @@
 ---
-description: 【受注前・モックアップ用】要件をざっくり固める軽量ヒアリング（5問完結）。冒頭でHobby or work?を確認し、business文脈・ユーザー・MVP・モックアップ範囲・制約を聞く
+description: 【受注前・モックアップ用】要件をざっくり固める軽量ヒアリング（6問完結）。冒頭でHobby or work?を確認し、business文脈・ユーザー・MVP・モックアップ範囲・制約を聞く
 argument-hint: [作りたい機能や要件の概要（例: 予約管理アプリ、ECカート機能など）]
 allowed-tools: AskUserQuestion, Write, Read, Glob, Grep, Bash
 ---

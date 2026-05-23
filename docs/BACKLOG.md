@@ -190,6 +190,16 @@
   - (d) 見積もり HTML テンプレに「発行者の連絡先を埋める」「実案件はインフラ実費を計上（#19）」の注意書きを組み込む
 - **重要度**: 🔴 最重要（ちーけん方針確定・第2回ゴールの成果物品質に直結）
 
+### 🟠 22. interview スキルの二重ファイル運用を1ファイル化（根治）
+
+- **発見元**: v1.20.0 内部レビュー（2026-05-23）
+- **問題**: interview スキルが `skills/interview/SKILL.md`（プラグイン直結）と `references/skills/interview/SKILL.md`（setup が `~/.claude/skills/interview/` にコピーする配備版）の **2ファイルで重複管理**されている。更新を片方に入れ忘れると乖離する（実際 v1.19→v1.20 で乖離が発生し、v1.20.0 で union 同期して応急対応済み）。project-flow は references コピーが無くプラグイン直結のみで動いているため、interview だけ二重化している
+- **対応案**:
+  - (A) setup.md の「1-3. interviewスキル配置」をやめ、`/interview-light` `/interview-full` ラッパーが**プラグイン直結スキル（`school-starter:interview`）を直接呼ぶ**ように変更 → references/skills/interview を削除して1ファイル化
+  - (B) または逆に、プラグイン直結 `skills/interview` を廃し references コピー方式に一本化（ただしプラグインスキルとしての自然言語発火は失う）
+  - **要検証**: `/interview-light` 実行時に実際どちらのファイルが解決されているか（プラグイン直結 vs ~/.claude コピー）を lesson-test3 で特定してから方式決定
+- **重要度**: 🟠 高（次回 dry-run 前に方式を決めて根治したい・乖離の再発防止）
+
 ---
 
 ## 検討中（future・v1.18 以降）

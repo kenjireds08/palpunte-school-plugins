@@ -123,7 +123,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 | ファイル | テンプレート元 | 役割 |
 |---------|-------------|------|
-| `~/.claude/commands/interview-light.md` | `${CLAUDE_PLUGIN_ROOT}/references/commands/interview-light.md` | 受注前・モックアップ用の軽量ヒアリング（5問完結） |
+| `~/.claude/commands/interview-light.md` | `${CLAUDE_PLUGIN_ROOT}/references/commands/interview-light.md` | 受注前・モックアップ用の軽量ヒアリング（6問完結） |
 | `~/.claude/commands/interview-full.md` | `${CLAUDE_PLUGIN_ROOT}/references/commands/interview-full.md` | 受注後・本実装用の詳細ヒアリング（9観点） |
 
 これらのコマンドは内部で `~/.claude/skills/interview/` のスキルを呼び出すラッパー。
