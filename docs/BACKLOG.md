@@ -206,6 +206,11 @@
 
 v1.20.0 を実機適用（update+reload+setup）して第2回を**最後まで**通したら、SKILL.md に書いただけの改修が**実際には守られない**ことが判明。仕組みでの担保が必要。
 
+> ✅ **#23 / #15再 / #16再 / #21再 / #19再 / #24 / #25 は v1.20.1（2026-05-24）でリリース済み**。新 Hook `flow-gate.js`（PostToolUse / Write）でファイル生成を決定論的に検知し、節目で「**自由入力で問いかけて待て**」を inject する方式で担保（AskUserQuestion は節目に挟まない＝コピペシートの長文プロンプトを貼れるように）。詳細は `palpunte-school/docs/plugin-changelog.md` の v1.20.1 エントリ参照。
+> ⬜ **#21追補（`references/commands/new-project.md` の次ステップ案内に Google Docs 残存 / DESIGN.md 欠落）は未対応**。次リリースへ持ち越し。
+> ⬜ **#22（interview 二重ファイルの1ファイル化・根治）も未対応**。今回も skills/ ↔ references/ を cp で union 同期して応急対応。
+> 🔁 **次回 dry-run（新フォルダ `lesson-test5` 等）で flow-gate Hook が実機で効くか検証**する（v1.20.1 の効果確認）。
+
 > **【親テーマ・最重要】project-flow 駆動の仕組み担保**: #15（next-step 3択）/ #18（モック前停止）/ #19（見積もりインフラ実費）/ #21（HTML→PDF 自動提案）が**全部「効いていない」のは同じ根本原因** = project-flow の Phase 提案・停止・自動提案を SKILL.md の文章で書いても、フェーズ進行が駆動しないと発火しない。**一方 AskUserQuestion を挟むと確実に止まる**（実証）。→ **対策の本命 = project-flow の節目（DESIGN.md 後・見積もりドラフト後 等）を AskUserQuestion / Hook で強制ゲート化する**。下記 #23 #19再 #21再 #15再 はすべてこれにぶら下がる。
 
 ### 🔴 23. #18 停止ガードが効かない + A1.7 カタログ3案提示の必須化（DESIGN.md→モック突っ走りが v1.20.0 でも再現・最重要）

@@ -37,7 +37,9 @@ process.stdin.on('end', () => {
     }
 
     // 標準ドキュメントの allowlist
-    const ALLOWED_NAMES = /(README|CLAUDE|AGENTS|CONTRIBUTING|000_PROJECT_STATUS)\.md$/;
+    // DESIGN.md は frontend-workflow が「プロジェクトルートに DESIGN.md があれば UI 生成時に必ず読む」
+    // とルート決め打ちで参照するため、ルート直下の新規作成を許可する（#25・2026-05-24）。
+    const ALLOWED_NAMES = /(README|CLAUDE|AGENTS|CONTRIBUTING|000_PROJECT_STATUS|DESIGN)\.md$/;
     if (ALLOWED_NAMES.test(p)) {
       process.stdout.write(d);
       return;
