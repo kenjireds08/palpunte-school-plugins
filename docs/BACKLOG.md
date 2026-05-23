@@ -246,6 +246,15 @@ v1.20.0 を実機適用（update+reload+setup）して第2回を通したら、S
   - #23（A1.7 を仕組みで必ず通す）とセットで実装 = 「interview でデザインを聞かない → A1.7 で必ずカタログ3案 → DESIGN.md → 停止 → モック」の一直線フローが完成する
 - **重要度**: 🟠 高（#23 と一体・v1.20.1 で一括）
 
+### 🟠 25. DESIGN.md のルート配置を Hook の allowlist で許可する（規約衝突・ちーけん決定 2026-05-23）
+
+- **発見元**: lesson-test4 dry-run（2026-05-23）
+- **問題（バグではなく規約衝突）**: `check-md-creation.js` の allowlist（`README|CLAUDE|AGENTS|CONTRIBUTING|000_PROJECT_STATUS`）に **DESIGN.md が無い**ため、ルート直下の `DESIGN.md` 新規作成がブロックされ `docs/DESIGN.md` に逃げる。Hook の「雑多な .md をルートに散らかさせない」制御は正しいが、**DESIGN.md は標準ドキュメントなので allowlist に入れるべきだった漏れ**
+- **実害**: paths（`**/DESIGN.md`）の自動ロードは docs/ でもマッチするが、**frontend-workflow.md L33「プロジェクトルートに DESIGN.md があれば UI 生成時に必ず読み込む」がルート決め打ち** + design-md-template も「ルートに配置」前提 → `docs/DESIGN.md` だと UI 実装時に参照されないリスク
+- **ちーけん決定**: **ルート許可**（docs/ 統一ではなくルート配置を許可する）
+- **対応**: `scripts/check-md-creation.js` の `ALLOWED_NAMES` を `/(README|CLAUDE|AGENTS|CONTRIBUTING|000_PROJECT_STATUS|DESIGN)\.md$/` に変更（`design-tokens.md` も frontend-workflow paths にあるので合わせて許可するか検討）。回帰防止のため check-md-creation のテストがあれば1ケース追加
+- **重要度**: 🟠 高（DESIGN.md 参照はデザイン品質に直結・v1.20.1）
+
 ### 🟡 21-追補. `/new-project` 直後の次ステップ案内に Google Docs が残存
 
 - **発見元**: lesson-test4（2026-05-23）
