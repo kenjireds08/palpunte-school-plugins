@@ -44,7 +44,7 @@ Phase A1: ヒアリング
 Phase A1.5: 要件の軽量定義（interview --light）
   → 「モックアップを精度高く作るために、interviewスキルで要件をざっくり固めますか？」と提案
   → ユーザーがOKなら `/interview --light` を案内
-  → docs/spec-light-[機能名].md が生成される
+  → docs/NNN_spec-light-[機能名].md が生成される
   → 完了したら次へ提案
   → スキップも可（小規模・スピード重視の案件向け）
 
@@ -62,7 +62,7 @@ Phase A2: モックアップ作成
   → 「モックアップを作りますか？」と提案
   → ⚠️ DESIGN.md が未作成なら、先に Phase A1.7（デザイン設計図作成）へ誘導する。
     DESIGN.md 無しで具体的なモック依頼を受けるとデザイン選択フェーズが飛ばされ、味気ない仕上がりになる（モック先行の事故）
-  → docs/DESIGN.md と docs/spec-light-*.md を読み込んで作成
+  → docs/DESIGN.md と docs/*spec-light-*.md を読み込んで作成
   → mockups/pattern-a/ にHTMLで作成（複数案も可）
   → 完了したら次へ提案
 
@@ -111,7 +111,7 @@ Phase B1: 資料収集
 
 Phase B2: 要件定義の作り込み（interview --full）
   → 「`/interview --full` で要件定義を詰めましょう」と提案
-  → docs/spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリング
+  → docs/*spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリング
   → 商談での追加要望・制約も組み込む
   → 9観点でヒアリング: ユーザー体験 / データ / 技術 / エッジケース / 優先順位 / コスト / 法令 / LLMリスク / 性能
   → docs/spec-[機能名].md に出力（実装前提セクション含む）
@@ -197,16 +197,18 @@ completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進む�
 | undecided | phase_0 | * | 「案件の状態を教えてください（受注確定 / 相談段階 / 個人）」を AskUserQuestion で確認 → ステータス更新 |
 | consultation | phase_a1 | in_progress | クライアント情報・要望のヒアリング継続。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a1 | completed | 「`/interview --light` で要件をざっくり固めますか？モックアップの精度が上がります（スピード重視ならスキップしてphase_a2へ）」を提案 |
-| consultation | phase_a15 | in_progress | `/interview --light` 実行中。docs/spec-light-*.md の生成を待つ |
+| consultation | phase_a15 | in_progress | `/interview --light` 実行中。docs/*spec-light-*.md の生成を待つ |
 | consultation | phase_a15 | completed | 「モックの前にデザインの設計図（DESIGN.md）を先に作りましょう。awesome カタログから今回のアプリに合う3案を案内しますか？」を提案。OKなら `current_phase: phase_a17` に更新 |
 | consultation | phase_a17 | in_progress | DESIGN.md 作成中。awesome から3案提示（顧客×管理ペア）→ ユーザーが選択 or 雰囲気を直接指定（全面ダーク等）→ docs/DESIGN.md 生成。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a17 | completed | 🛑 **モックは即作らない。** 「DESIGN.md ができました。次はモック作成です。**どの画面を・どんなフローで作るか（モック作成プロンプト）を送ってください**」と伝えてユーザー入力を待つ。プロンプトを受け取ってから `current_phase: phase_a2` に更新して着手（DESIGN.md → モックを無言で連続実行しない＝lesson-test2 で予約完了画面・コース選択が抜けた事故の防止） |
-| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（DESIGN.md と spec-light-*.md を参照）。**DESIGN.md が未作成なら先に phase_a17 へ戻す** |
+| consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（DESIGN.md と *spec-light-*.md を参照）。**DESIGN.md が未作成なら先に phase_a17 へ戻す** |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
-| consultation | phase_a3 | completed | 「クライアントに渡せるよう **HTML 御見積書として清書して PDF でダウンロードできるようにしますか？**」を自動提案（#21 デフォルト）。Google Docs は「相手と擦り合わせたい場合の代替」として案内 |
+| consultation | phase_a3 | in_progress | 見積もりドラフト作成中（`docs/NNN_estimate.md`・ランニングコストは3層で明示・実案件はインフラ実費を計上 #19）。完了したら `phase_status: completed` に更新して提案 |
+| consultation | phase_a3 | completed | 「クライアントに渡せるよう **HTML 御見積書として清書して PDF でダウンロードできるようにしますか？**」を自動提案（#21 デフォルト）。OKなら `current_phase: phase_a4` に更新。Google Docs は「相手と擦り合わせたい場合の代替」として案内 |
+| consultation | phase_a4 | in_progress | 🛑 **無言で突っ走らない。** HTML 御見積書（`docs/NNN_estimate_for_client.html`）を生成中。**発行者の連絡先が未記入なら、出力前に「発行者名・連絡先」を確認してユーザー入力を待つ**。生成後「印刷→PDF に保存」を案内。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
 | order_won | phase_b1 | in_progress | 議事録・資料の収集継続 |
-| order_won | phase_b1 | completed | 「`/interview --full` で要件定義を詰めましょう（spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリングします）」 |
+| order_won | phase_b1 | completed | 「`/interview --full` で要件定義を詰めましょう（*spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリングします）」 |
 | order_won | phase_b2 | completed | 「DB設計を提案します」 |
 | order_won | phase_b3 | completed | 「Codex CLI で要件定義とDB設計を第三者レビューしますか？強く推奨します」 |
 | order_won | phase_b4 | completed | **【v1.11.0〜・3 階層自動展開メッセージ】**「要件定義が完成しました 🎉 次は、この要件定義をもとに『プロジェクトステータス』でやることを管理し、作業内容を『タスクバックログ』や『個別の詳細メモ』にまとめて、プロジェクトステータスと互いにリンクさせる段階です。これをやるとセッションをクリアしても『今どこまで進んでて、次は何やる』がすぐわかる状態になります。このまま進めていいですか？」 → OK で「3 階層自動展開ロジック」実行 |
