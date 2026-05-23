@@ -52,7 +52,9 @@ DB詳細設計・セキュリティ実装詳細・パフォーマンス最適化
 
 #### Q2: エンドユーザー
 - 利用者の年齢層・技術リテラシー
-- 利用デバイス（スマホ中心 / PC中心 / 混在）
+- **予約する会員の主な利用デバイス**（スマホ中心 / PC中心 / 混在）
+  - ⚠️ 選択肢を動的生成するとき、**label には必ず主語を入れる**（「アプリ自体が何か」と誤読されるのを防ぐ）。例: 「会員はスマホで予約する」「会員は PC で予約する」「スマホ・PC 混在」
+  - description には**効果を明示**する。例: 「→ モックをスマホファーストで作る」「→ PC 画面幅前提で作る」
 - 利用シーン（事前予約 / 当日利用 / リマインド前提など）
 
 #### Q3: 機能スコープ（MVP）
@@ -76,7 +78,9 @@ DB詳細設計・セキュリティ実装詳細・パフォーマンス最適化
 - おおまかな納期感
 - 技術的な希望・制約（既存システム連携、特定サービス指定など）
 
-### 出力: `docs/spec-light-[機能名].md`
+### 出力: `docs/NNN_spec-light-[機能名].md`（連番付き）
+
+> **採番ルール（#16/#20）**: `docs/` の空き番号を Claude が採番してファイル名の先頭に付ける（例: `000_PROJECT_STATUS.md` 〜 `003_client_request.md` が既にあれば `004_spec-light-予約管理.md`）。連番なしの `spec-light-*.md` だとソート順が崩れるため必ず番号を付ける。後続の見積もりも同じ採番の続き番号にする（例: spec-light=004 なら estimate=005）。
 
 ```markdown
 # [機能名] 軽量仕様書（モックアップ・商談用）
@@ -124,10 +128,21 @@ DB詳細設計・セキュリティ実装詳細・パフォーマンス最適化
 - 技術的希望・制約: 
 
 ## 次のアクション
-- HTMLでモックアップ作成（mockups/pattern-a/ 配下）
-- 見積もりドラフト作成（docs/006_estimate.md）
-- 受注後: `/interview --full` でこの仕様書を補完して詳細化
+1. **デザイン設計図（DESIGN.md）を先に作る**（Recommended・モックの「前」に必ず置く）
+2. HTMLでモックアップ作成（mockups/pattern-a/ 配下・DESIGN.md と spec-light を読み込んで）
+3. 見積もりドラフト作成（docs/NNN_estimate.md・spec-light の続き番号）
+4. 受注後: `/interview --full` でこの仕様書を補完して詳細化
 ```
+
+### ⚠️ spec-light 完成後の「次のステップ」案内（#15・厳守）
+
+spec-light を生成し終えたら、その場で出す「次のステップ」提案で、**必ず「① デザイン設計図（DESIGN.md）を先に作る」を Recommended で先頭に置く**。
+
+- ❌ 旧（やってはいけない）: 「① HTMLモックアップ ② 見積もり ③ 仕様修正」の3択（DESIGN.md が抜けるとモックがダサくなる事故 = lesson-test2 で再現）
+- ⭕ 新: 「① デザイン設計図（DESIGN.md）を作る（Recommended）／ ② 見積もりドラフト ／ ③ 仕様を修正」
+
+理由: project-flow の Phase A1.7（DESIGN.md 先行）と接続させるため。モックをいきなり選ぶと味気ない仕上がりになる。**モックは DESIGN.md ができてから**。
+あわせて、可能なら `docs/000_PROJECT_STATUS.md` のフロントマターを `current_phase: phase_a15 / phase_status: completed` に更新し、project-flow 側の「phase_a15 completed → DESIGN.md 提案」が確実に発火するようにする。
 
 ---
 
@@ -243,11 +258,13 @@ AskUserQuestionツールを使い、設計ツリーの各分岐を1つずつ歩�
 
 ```
 [商談前]
-/interview --light → docs/spec-light-*.md 生成
+/interview --light → docs/NNN_spec-light-*.md 生成（連番付き）
+  ↓
+DESIGN.md 作成（モックの前に必ず・Recommended）
   ↓
 HTMLモックアップ作成（mockups/pattern-a/）
   ↓
-見積もりドラフト（docs/006_estimate.md）
+見積もりドラフト（docs/NNN_estimate.md・spec-light の続き番号）
   ↓
 商談・受注
 
@@ -270,5 +287,5 @@ DB設計（docs/004_database_schema.md）
 設計ツリーの各分岐を1つずつ歩き、依存関係を解決しながら共通理解に達するまで質問を続けてください。コードベースを探索すれば答えが出る質問は、ユーザーに聞かずに自分で調べてください。
 
 インタビュー完了後、モードに応じたテンプレートに従って仕様書を出力してください:
-- --light → `docs/spec-light-[機能名].md`
+- --light → `docs/NNN_spec-light-[機能名].md`（docs/ の空き番号を採番）
 - --full → `docs/spec-[機能名].md`

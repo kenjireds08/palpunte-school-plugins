@@ -127,7 +127,9 @@
   - 未着手バックログを `~/Obsidian/Projects/ai-school/lecture-materials.md` に追記
 - **位置づけ**: v1.18 以降の目玉機能候補
 
-### 🟠 15. interview-light 完了時の「次のステップ」に DESIGN.md が出ない（v1.19.0 バトン未接続）
+> ✅ **#15〜#21 は v1.20.0（2026-05-23）でリリース済み**。詳細は `palpunte-school/docs/plugin-changelog.md` の v1.20.0 エントリ参照。以下は記録として残置（次回 dry-run で効果検証する）。
+
+### 🟠 15. interview-light 完了時の「次のステップ」に DESIGN.md が出ない（v1.19.0 バトン未接続）✅ v1.20.0
 
 - **発見元**: lesson-02-notes 2026-05-23（`lesson-test2` dry-run）
 - **問題**: v1.19.0 で project-flow に Phase A1.7（DESIGN.md 先行）を入れたが、`/interview-light` 完了 → spec-light 生成直後の「次のステップ」が **①HTMLモックアップ ②見積もり ③仕様修正** の古い3択を出し、**DESIGN.md 作成を Recommended で案内しない**。interview-light 完了 → project-flow（phase_a15 completed → phase_a17 提案）の phase バトンが繋がっていない

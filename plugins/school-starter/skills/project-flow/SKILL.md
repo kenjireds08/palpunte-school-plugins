@@ -54,6 +54,8 @@ Phase A1.7: デザイン設計図（DESIGN.md）作成 ← モックの「前」
   → ユーザーが1案を選ぶ。または「全面ダークにしたい」「明るく温かく」等の狙いがあれば、3案を選ばず雰囲気を直接指定してもらう
     （カタログは実在ブランド準拠で明るい背景が多い。強い狙い＝特に全面ダーク等がある場合は直接指定が確実）
   → docs/DESIGN.md を生成（顧客側・管理側で別プロファイルを宣言）
+  → 🛑 **DESIGN.md を生成したら、そこで必ず一旦停止する。続けてモックアップを作らない。**
+    「DESIGN.md ができました。次はこれをもとにモックアップを作ります。**モック作成プロンプト（どの画面を・どんなフローで作るか）を送ってください。**」と伝えてユーザーの入力を待つ
   → 完了したら次へ提案
 
 Phase A2: モックアップ作成
@@ -66,34 +68,31 @@ Phase A2: モックアップ作成
 
 Phase A3: 見積もりドラフト
   → 「見積もりドラフトを作りますか？」と提案
-  → docs/006_estimate.md にmdで作成
-  → 完了したら次へ提案
+  → docs/NNN_estimate.md にmdで作成（spec-light の続き番号・#16/#20 採番ルール）
+  → 💰 **ランニングコストは3層で明示する（#19・実案件で抜けやすい）**:
+      ① 初期費用（開発費・一括）
+      ② 月額インフラ実費 … スクール題材は無料枠スタートでOK。ただし**実案件では必ず実費を計上**:
+         Supabase Pro $25 + Vercel Pro $20 ≈ 月$45（約7,000円）
+         理由: 無料枠は7日非アクティブで pause / Vercel Hobby は商用利用が規約違反
+         「無料枠スタート可」とだけ書くとクライアントに誤解を与えるので、実案件では
+         「※実案件ではインフラ実費を計上」の注釈を必ず出す（クライアント名義 or 講師管理代行の2パターンも案内可）
+      ③ 月額保守費（任意・運用代行込みなら②と合算）
+  → 完了したら → Phase A4 を自動提案:
+      「見積もりがまとまりました。**クライアントに渡せるよう、HTML 御見積書として清書して PDF でダウンロードできるようにしますか？**」
 
-Phase A4: Google Docs化（コピペ方式）
-  → 「クライアント提示用に Google Docs にしましょう。手順を案内します」と伝える
-  → 以下の3ステップを表示:
+Phase A4: HTML 御見積書 → PDF（デフォルト・2026-05-23 ちーけん方針確定）
+  → docs/NNN_estimate.md の内容を、クライアント提示用の HTML 御見積書に清書する
+  → docs/NNN_estimate_for_client.html を生成（A4印刷レイアウト・以下を含む）:
+      - 発行日・見積番号・宛名（御中）・**発行者（連絡先を埋める）**
+      - 金額の大表示・内訳テーブル・A/B案があればカード比較
+      - ランニングコスト3層（Phase A3 の①②③をそのまま反映）
+  → 「ブラウザでこの HTML を開く → 印刷（Cmd+P）→ 送信先を『PDF に保存』で御見積書 PDF が出来ます」と案内
+  → ⚠ 発行者の連絡先が未記入なら、出力前に「発行者名・連絡先（会社名/担当/メール等）を教えてください」と確認する
 
-      📝 Google Docs への貼り付け手順
-
-      【初回のみ：マークダウン設定を有効化】
-      1. https://docs.google.com/ で新規ドキュメントを作成
-      2. メニューバーから ツール → 設定
-      3. 「全般」タブの「マークダウンを有効にする」にチェック
-      4. OK を押す
-      ※ この設定は1回やれば次回以降不要です
-
-      【見積もりmdをGoogle Docsに貼り付け】
-      1. docs/006_estimate.md をエディタで開いて全選択 → コピー（Cmd+A → Cmd+C）
-      2. Google Docs のドキュメント本文を右クリック
-      3. メニューから「マークダウンから貼り付け」を選択
-      4. 見出し・太字・箇条書きが自動でフォーマットされます
-
-      ⚠ 普通の Cmd+V や「貼り付け」だとマークダウン記法のままになります。
-        必ず「マークダウンから貼り付け」を使ってください。
-
-      【完了したら】
-      Google Docs 右上の「共有」ボタンからリンクを取得して
-      クライアントに送ってください。
+  【補足：Google Docs で渡したい場合（相手と共同編集・コメントしたいとき）】
+  → 「相手と擦り合わせながら詰めたい場合は Google Docs も使えます。手順を案内します」と伝える（任意の代替）
+  → docs/NNN_estimate.md を全選択コピー → Google Docs で右クリック →「マークダウンから貼り付け」
+     （初回のみ ツール → 設定 →「マークダウンを有効にする」にチェック）
 
 Phase A5: 商談・受注
   → 「商談頑張ってください！受注できたら教えてください」
@@ -201,10 +200,10 @@ completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進む�
 | consultation | phase_a15 | in_progress | `/interview --light` 実行中。docs/spec-light-*.md の生成を待つ |
 | consultation | phase_a15 | completed | 「モックの前にデザインの設計図（DESIGN.md）を先に作りましょう。awesome カタログから今回のアプリに合う3案を案内しますか？」を提案。OKなら `current_phase: phase_a17` に更新 |
 | consultation | phase_a17 | in_progress | DESIGN.md 作成中。awesome から3案提示（顧客×管理ペア）→ ユーザーが選択 or 雰囲気を直接指定（全面ダーク等）→ docs/DESIGN.md 生成。完了したら `phase_status: completed` に更新して提案 |
-| consultation | phase_a17 | completed | 「モックアップを作りますか？DESIGN.md と spec-light に沿って作ります」を提案。OKなら `current_phase: phase_a2` に更新 |
+| consultation | phase_a17 | completed | 🛑 **モックは即作らない。** 「DESIGN.md ができました。次はモック作成です。**どの画面を・どんなフローで作るか（モック作成プロンプト）を送ってください**」と伝えてユーザー入力を待つ。プロンプトを受け取ってから `current_phase: phase_a2` に更新して着手（DESIGN.md → モックを無言で連続実行しない＝lesson-test2 で予約完了画面・コース選択が抜けた事故の防止） |
 | consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（DESIGN.md と spec-light-*.md を参照）。**DESIGN.md が未作成なら先に phase_a17 へ戻す** |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
-| consultation | phase_a3 | completed | 「Google Docs に貼り付ける手順を案内します（マークダウンから貼り付け方式）」を提案 |
+| consultation | phase_a3 | completed | 「クライアントに渡せるよう **HTML 御見積書として清書して PDF でダウンロードできるようにしますか？**」を自動提案（#21 デフォルト）。Google Docs は「相手と擦り合わせたい場合の代替」として案内 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
 | order_won | phase_b1 | in_progress | 議事録・資料の収集継続 |
 | order_won | phase_b1 | completed | 「`/interview --full` で要件定義を詰めましょう（spec-light-*.md があれば自動で読み込み、不足分のみ追加ヒアリングします）」 |
