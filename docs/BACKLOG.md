@@ -202,9 +202,11 @@
 
 ---
 
-## 🔴 v1.20.1 候補（v1.20.0 dry-run `lesson-test4` で「効かなかった」改修・2026-05-23）
+## 🔴 v1.20.1 候補（v1.20.0 dry-run `lesson-test4` で「効かなかった」改修・2026-05-23〜24）
 
-v1.20.0 を実機適用（update+reload+setup）して第2回を通したら、SKILL.md に書いただけの改修が**実際には守られない**ことが判明。仕組みでの担保が必要。
+v1.20.0 を実機適用（update+reload+setup）して第2回を**最後まで**通したら、SKILL.md に書いただけの改修が**実際には守られない**ことが判明。仕組みでの担保が必要。
+
+> **【親テーマ・最重要】project-flow 駆動の仕組み担保**: #15（next-step 3択）/ #18（モック前停止）/ #19（見積もりインフラ実費）/ #21（HTML→PDF 自動提案）が**全部「効いていない」のは同じ根本原因** = project-flow の Phase 提案・停止・自動提案を SKILL.md の文章で書いても、フェーズ進行が駆動しないと発火しない。**一方 AskUserQuestion を挟むと確実に止まる**（実証）。→ **対策の本命 = project-flow の節目（DESIGN.md 後・見積もりドラフト後 等）を AskUserQuestion / Hook で強制ゲート化する**。下記 #23 #19再 #21再 #15再 はすべてこれにぶら下がる。
 
 ### 🔴 23. #18 停止ガードが効かない + A1.7 カタログ3案提示の必須化（DESIGN.md→モック突っ走りが v1.20.0 でも再現・最重要）
 
@@ -254,6 +256,21 @@ v1.20.0 を実機適用（update+reload+setup）して第2回を通したら、S
 - **ちーけん決定**: **ルート許可**（docs/ 統一ではなくルート配置を許可する）
 - **対応**: `scripts/check-md-creation.js` の `ALLOWED_NAMES` を `/(README|CLAUDE|AGENTS|CONTRIBUTING|000_PROJECT_STATUS|DESIGN)\.md$/` に変更（`design-tokens.md` も frontend-workflow paths にあるので合わせて許可するか検討）。回帰防止のため check-md-creation のテストがあれば1ケース追加
 - **重要度**: 🟠 高（DESIGN.md 参照はデザイン品質に直結・v1.20.1）
+
+### 🔴 21-再. #21 HTML→PDF 自動提案が出ない（見積もりドラフト後）
+
+- **発見元**: lesson-test4 dry-run（2026-05-24・第2回最後まで通した）
+- **問題**: 見積もりドラフト（`docs/004_estimate.md`）後の選択肢が「①金額調整 ②整形（Google Docs / PDF / メール本文）③完了」で、**「HTML 御見積書として清書→PDF でダウンロードできるようにしますか？」の自動提案が出ない**。受講生がコピペシートのプロンプトを手動で貼って初めて HTML→PDF になる。Phase A4 のデフォルト変更が project-flow 駆動なしでは発火しない（親テーマ参照）
+- **対応案**: 見積もりドラフト完成を node 等で検知し AskUserQuestion で「HTML 御見積書として PDF 化しますか？（Recommended）/ Google Docs / このまま」を強制提示。または interview 完了時と同様の明示ゲート
+- **収穫**: コピペシート手動経由で出た PDF 御見積書の品質は最高（#21 方針の正しさ再確認）
+- **重要度**: 🔴 高（第2回ゴールの成果物・親テーマにぶら下がる）
+
+### 🟠 19-再. #19 見積もりインフラ実費が「無料枠前提」のまま
+
+- **発見元**: lesson-test4 dry-run（2026-05-24）
+- **問題**: 生成 PDF の前提事項が「サーバー費用（Supabase / Vercel）は無料枠を前提・実費は別途」のまま。#19 で狙った3層（初期費用/月額インフラ実費/月額保守）+「実案件は Supabase Pro $25 + Vercel Pro $20 を計上」の明示になっていない。project-flow Phase A3 の改修が駆動なしでは発火しない（親テーマ参照）
+- **対応案**: 見積もりテンプレ（references の見積もりひな型 or estimate 生成プロンプト）に3層を**構造として**埋め込む（文章ガイドでなくテンプレの行として）。spec-light の用途（個人/production）で「無料枠スタート可」と「実費計上」を出し分け
+- **重要度**: 🟠 高
 
 ### 🟡 21-追補. `/new-project` 直後の次ステップ案内に Google Docs が残存
 
