@@ -435,29 +435,29 @@ denyリストは大きく4カテゴリ:
 
 ### 1-11. ステータスライン（コンテキスト・5h・7d 使用率 + reset 時刻の常時可視化）
 
-Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、チャット欄下部にコンテキスト/5時間/7日間の使用率 + reset 時刻 + ブランチ + 行差分を 2 行表示する Python スクリプト（Pattern 5 Fine Bar・v1.17.0〜）を配置する。
+Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、チャット欄下部にコンテキスト/5時間/7日間の使用率 + reset 時刻 + ブランチ + 行差分を 2 行表示する **Node.js スクリプト**（Pattern 5 Fine Bar・v1.21.0〜 Node 製に移行）を配置する。
 
-**配置内容（v1.17.1〜「プラグイン直参照」方式に変更）:**
+**配置内容（v1.17.1〜「プラグイン直参照」方式・v1.21.0〜 Node.js 製）:**
 
-1. `~/.claude/settings.json` の `statusLine` 項目を以下のように設定（既存設定があれば**上書きする**・v1.17.1 で挙動変更）:
+1. `~/.claude/settings.json` の `statusLine` 項目を以下のように設定（既存設定があれば**上書きする**・v1.17.1 で挙動変更）。**`<ホームの絶対パス>` は Claude が OS とホームディレクトリを判定して実際の絶対パスに展開して書く**（Mac は `/Users/ユーザー名`・Windows は `C:\\Users\\ユーザー名`）:
    ```json
    {
      "statusLine": {
        "type": "command",
-       "command": "~/.claude/plugins/marketplaces/palpunte-school-plugins/plugins/school-starter/scripts/statusline.py",
+       "command": "node \"<ホームの絶対パス>/.claude/plugins/marketplaces/palpunte-school-plugins/plugins/school-starter/scripts/statusline.js\"",
        "padding": 1
      }
    }
    ```
-   - **プラグイン配下を直接参照**するため、`/plugin update school-starter` で構造的に最新化される
-   - 既存の `~/.claude/scripts/statusline.py` カスタマイズ版がある受講生も、settings.json を一度プラグイン直参照に切り替えれば、`/plugin update` だけで Pattern 5 → 将来の Pattern X に追従できる
-   - プラグイン同梱の `scripts/statusline.py` 自体は v1.17.0 で Pattern 5 Fine Bar 昇格済み
+   - **🔴 重要（v1.21.0〜 Node 製の理由）**: 旧 `statusline.py` は Python 製で、**新品 Windows は本物の Python が未インストール**（Microsoft Store のダミー stub だけ）のため、受講生がステータスラインを表示できない問題が頻発した。Node.js は第1回で全受講生が必ず導入するので、Node 製にすれば**追加インストール不要**で全 OS で動く。あわせて reset 時刻フォーマットを OS 非依存化し、**Windows でも reset 時刻が表示される**ようにした
+   - **`~` ではなく絶対パスで書く理由**: settings.json の `statusLine.command` は `~` が確実に展開されない（特に Windows）。Claude が OS 判定してホームを絶対パスに展開して書く。`node` 自体は PATH 解決なので、**Node のバージョンを上げてもパスが壊れない**（旧 Python 版で `python.exe` の絶対パスを直書きしてバージョン依存になっていた脆さを解消）
+   - **プラグイン配下を直接参照**するため、`/plugin update school-starter` で構造的に最新化される（スクリプト本体 `scripts/statusline.js` が更新される）
 
-**旧設計（v1.10.0〜v1.17.0）からの移行ポイント:**
-- 旧: `~/.claude/scripts/statusline.py` にコピーする方式 → setup 再実行しないと反映されない（v1.17.0 リリース直後に学生環境で発覚）
-- 新: プラグイン配下を直接参照 → `/plugin update` で構造的に同期
-- 移行時の動作: 既存 `~/.claude/scripts/statusline.py` ファイルは残るが参照されなくなる（無害な残骸）
-- ⚠️ **既存設定の上書き判断**: v1.17.0 以前で配置済みの `~/.claude/scripts/statusline.py` を**自分でカスタマイズした受講生**は、本 setup 再実行で settings.json がプラグイン直参照に切り替わると自分のカスタムが効かなくなる → setup 完走メッセージで「カスタマイズ版を使い続けたい場合は settings.json を手動で書き戻してください」と案内
+**旧設計からの移行ポイント:**
+- v1.10.0〜v1.17.0: `~/.claude/scripts/statusline.py` にコピーする方式 → setup 再実行しないと反映されない罠（v1.17.0 直後に学生環境で発覚）
+- v1.17.1〜v1.20.x: プラグイン配下の `statusline.py` を直接参照 → `/plugin update` で同期。ただし Python 依存は残存（Windows で表示不可問題）
+- v1.21.0〜: **Node.js 製 `statusline.js` を直接参照**。Python 依存を撤廃。旧 `scripts/statusline.py` は後方互換のためリポに残置（参照されなくなる無害な残骸）
+- ⚠️ **既存設定の上書き判断**: 旧版で `statusline.py` を**自分でカスタマイズした受講生**は、本 setup 再実行で settings.json が `statusline.js` 直参照に切り替わると自分のカスタムが効かなくなる → 完走メッセージで「カスタマイズ版を使い続けたい場合は settings.json を手動で書き戻してください」と案内
 
 **受講生への案内（完走メッセージで伝える）:**
 
@@ -475,9 +475,9 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 - branch: 現在の Git ブランチ（main 直接編集事故予防に効く）
 - +N/-N: 未コミット変更の行差分（溜まりすぎたら commit のサイン）
 
-【v1.17.1〜の改善ポイント】
-プラグイン更新（/plugin update school-starter）だけで自動的に最新版に追従するようになった。
-以前は setup を再実行しないと反映されなかった罠が構造的に解消。
+【改善ポイント】
+・プラグイン更新（/plugin update school-starter）だけで自動的に最新版に追従する（v1.17.1〜）。
+・Node.js 製になり（v1.21.0〜）、Python のインストールが不要に。Windows でも reset 時刻が表示されるようになった。
 
 【他のデザイン（5パターン）に変えたい場合】
 記事URLとPattern番号を Claude Code に貼るだけで自動で差し替えてくれます:
@@ -506,7 +506,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 **【出力厳守ルール】** 下記テンプレートの「📌 次にやること」セクション（手順 1〜7）は、**省略・要約・項目の統合・番号の変更・項目の追加を一切せず、7 項目すべてと末尾の【参考】sandbox ブロックをそのまま出力する**こと。とくに「5. Codex CLI をインストール」「6. Node.js をインストール」「7. Claude Code を再起動」は OS レベルの必須ステップであり、脱落すると受講生が第2回以降で詰む。sandbox は第1回では必須にしないため番号ステップから外し末尾の【参考】ブロックに置いている（省略しないこと）。テンプレートに無いステップ（`/school-starter:check` 等）を足さないこと。「報告」は確認結果サマリー部分の話であり、次にやることリストを短縮してよいという意味ではない。
 
 ```
-## セットアップ結果（v1.20.2）
+## セットアップ結果（v1.21.0）
 
 ### グローバル設定（全プロジェクト共通）
 - rules/env-security.md: 作成 / 更新 / 最新

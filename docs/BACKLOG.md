@@ -14,6 +14,18 @@
 
 > ⚠️ **v1.18.0 は sandbox 全回任意化で使用済み（2026-05-21）**。下記の 🔴0 等の本文中「v1.18 で」という記述は **v1.19 以降**に読み替えること。
 
+### ✅ W3. ステータスラインを Python → Node.js 製に移行（v1.21.0 完了）
+
+- **発見元**: 2026-05-24 ちーけん別室の新品 Windows デスクトップ実機
+- **問題**: `statusline.py`（Python 製）が、新品 Windows の Python 未インストール（Store ダミー stub）で表示できない。Windows 受講生ほぼ全員。reset 時刻も `%-H:%M` が Linux/Mac 専用で Windows 非表示
+- **完了（v1.21.0）**: `statusline.js`（Node 製）に移行。Node は第1回で全員導入＝追加インストール不要・他 Hook と一貫・reset 時刻 OS 非依存化。settings.json は `node "<絶対パス>/statusline.js"`。Python 版と出力完全一致を確認。旧 `.py` は後方互換で残置
+
+### 🟢 W2. Codex CLI（winget）の `codex` エイリアス作成漏れ（様子見）
+
+- **発見元**: 2026-05-24 同実機。winget の `OpenAI.Codex` が `codex` 短縮エイリアスを作り損ねる（portable install でたまに発生）
+- **現状**: Claude が `codex.cmd` 自作で自己解決できる（スクール方針の実証例）。コピペシート Codex プロンプトを「動作確認まで含める」に差し替え済み → Claude が最初の一発で完走しやすくなった
+- **恒久検討（優先度低）**: Codex を npm 経由（Node 導入後）に変える案。ただし現状の自己解決で十分機能するため様子見。第2回以降の実機で頻発したら再検討
+
 ### 🟠 W1. Windows 新品環境の Git 未インストール対策（setup / 教材に恒久組み込み）
 
 - **発見元**: 2026-05-24 ちーけん別室の新品 Windows デスクトップ実機（`palpunte-school/docs/lesson-notes/lesson-02-notes.md` 参照）
