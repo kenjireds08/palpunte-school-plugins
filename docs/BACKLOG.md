@@ -14,6 +14,14 @@
 
 > ⚠️ **v1.18.0 は sandbox 全回任意化で使用済み（2026-05-21）**。下記の 🔴0 等の本文中「v1.18 で」という記述は **v1.19 以降**に読み替えること。
 
+### 🟠 W1. Windows 新品環境の Git 未インストール対策（setup / 教材に恒久組み込み）
+
+- **発見元**: 2026-05-24 ちーけん別室の新品 Windows デスクトップ実機（`palpunte-school/docs/lesson-notes/lesson-02-notes.md` 参照）
+- **問題**: 新品 Windows は Git 未インストールが標準 → `/plugin marketplace add` が `Failed to clone marketplace repository: Command 'git' not found` で失敗。macOS は git 初回実行で Xcode CLT 案内が自動で出るが Windows は出ない → **Windows 受講生はほぼ全員踏む**。さらに Git 導入後は **VS Code 全体の再起動**が必要（Claude Code 拡張が VS Code プロセスの古い PATH を継承するため、統合ターミナルの開き直しでは効かない）
+- **応急対応済み**: コピペシート `palpunte-school-html/cheatsheet/lesson-01.html` ステップ3冒頭に「Git 確認 → `winget install --id Git.Git` → VS Code 完全再起動」を追加（2026-05-24・第2回に間に合わせ）
+- **恒久対策案**: (a) `setup.md` の M1 チェックリストに「Git 入ってる？ → 無ければ winget install + VS Code 再起動」を1項目追加 / (b) 教材ページ 01-mindset 環境構築章に Git 説明を恒久掲載
+- **重要度根拠**: 全 Windows 受講生に必ず出る環境構築ブロッカーだが、コピペシートで応急対応済みのため 🟠
+
 ### 🔴 0. rules / skills / commands 全体の「コピー → 直参照」全面再設計（v1.17.1 で statusline のみ対応済み・残り全部 v1.18 で）
 
 - **発見元**: 2026-05-15 v1.17.0 学生環境観察で statusline.py の同期罠が顕在化（v1.17.1 で statusline のみ即対応済み）
