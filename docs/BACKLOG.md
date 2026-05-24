@@ -207,7 +207,7 @@
 v1.20.0 を実機適用（update+reload+setup）して第2回を**最後まで**通したら、SKILL.md に書いただけの改修が**実際には守られない**ことが判明。仕組みでの担保が必要。
 
 > ✅ **#23 / #15再 / #16再 / #21再 / #19再 / #24 / #25 は v1.20.1（2026-05-24）でリリース済み**。新 Hook `flow-gate.js`（PostToolUse / Write）でファイル生成を決定論的に検知し、節目で「**自由入力で問いかけて待て**」を inject する方式で担保（AskUserQuestion は節目に挟まない＝コピペシートの長文プロンプトを貼れるように）。詳細は `palpunte-school/docs/plugin-changelog.md` の v1.20.1 エントリ参照。
-> ⬜ **#21追補（`references/commands/new-project.md` の次ステップ案内に Google Docs 残存 / DESIGN.md 欠落）は未対応**。次リリースへ持ち越し。
+> ✅ **#21追補（`references/commands/new-project.md` の次ステップ案内）は v1.20.2（2026-05-24）で対応済み**（DESIGN.md ステップ追加 + 「Google Docs に変換」→「HTML 御見積書として清書→PDF」+ 「003 貼り付けで迷う」問題に補足追加・lesson-test5 dry-run で確認）。
 > ⬜ **#22（interview 二重ファイルの1ファイル化・根治）も未対応**。今回も skills/ ↔ references/ を cp で union 同期して応急対応。
 > 🔁 **次回 dry-run（新フォルダ `lesson-test5` 等）で flow-gate Hook が実機で効くか検証**する（v1.20.1 の効果確認）。
 
