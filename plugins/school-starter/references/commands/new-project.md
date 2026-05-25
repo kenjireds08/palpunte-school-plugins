@@ -340,16 +340,14 @@ README には以下が含まれる:
 
 この README は**受講生が後から読んで自分でルールを書き出す際のガイド**として機能する。最初は `.md` ルールファイルは配置しない（上級機能なので必要になるまで空のまま）。
 
-### 4-4. .env の案内（重要）
+### 4-4. .env の案内（重要・OS を判定して出す）
 
-Claude Code は `.env*` ファイルを作成できないため、以下を表示:
+Claude Code は `.env*` ファイルを作成できないため、受講生が別ターミナルで作る。**YOU MUST: 受講生の OS を判定し、その OS で動くコマンドだけを表示する。** bash の heredoc（`cat > ... << 'EOF'`）は **Windows の PowerShell では動かない**（`>>` で固まる）ため、Windows には PowerShell 用の1行コマンドを出す。OS が不明なら 1 問だけ「Windows ですか？Mac ですか？」と確認する。
+
+**Mac / Linux の場合**（VS Code のターミナルにそのまま貼り付け）:
 
 ```
-─────────────────────────────────────────────
-🔐 .env.local と .env.example の作成について
-
-セキュリティ上の理由で、Claude Code は .env ファイルを作成できません。
-別ターミナルで以下を実行してください（コピペ対象は ----ここから---- ----ここまで---- の中）:
+🔐 .env.local と .env.example を作ります。下を別ターミナルに貼り付けてください。
 
 ----ここから----
 cat > .env.local << 'EOF'
@@ -357,8 +355,6 @@ cat > .env.local << 'EOF'
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-
-# その他のサービス（必要に応じて追加）
 EOF
 
 cat > .env.example << 'EOF'
@@ -367,11 +363,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 EOF
 ----ここまで----
-
-※ .env.local には実際の値を入れる（git には上がらない）
-※ .env.example はダミー値（git に上げる・引き継ぎ用の「変数一覧」）
-─────────────────────────────────────────────
 ```
+
+**Windows の場合**（PowerShell に**1行ずつ**貼り付け。heredoc は使わない）:
+
+```
+🔐 .env.local と .env.example を作ります。下を PowerShell に 1 行ずつ貼り付けてください。
+
+----ここから----
+Set-Content .env.local -Encoding utf8 -Value "# Supabase`nNEXT_PUBLIC_SUPABASE_URL=`nNEXT_PUBLIC_SUPABASE_ANON_KEY=`nSUPABASE_SERVICE_ROLE_KEY="
+----ここまで----
+
+----ここから----
+Set-Content .env.example -Encoding utf8 -Value "NEXT_PUBLIC_SUPABASE_URL=your_supabase_url`nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key`nSUPABASE_SERVICE_ROLE_KEY=your_service_role_key"
+----ここまで----
+```
+
+**共通の注意**:
+- `.env.local` = 実際の値（git に上がらない）/ `.env.example` = ダミー値（git にコミット・引き継ぎ用の変数一覧）
+- 確認: Mac/Linux は `ls -la .env*` / Windows は `Get-ChildItem -Force -Filter ".env*" | Select-Object Name`。2 ファイル出れば成功（中身は表示しない）
+- **Windows で誤って bash heredoc を貼り `>>` が出て止まったら**: `Ctrl+C` で抜けてから、上の PowerShell コマンドを実行し直す（`` `n `` は PowerShell の改行記号）
 
 ### 4-4b. 環境変数の 3 箇所同期ルール（IMPORTANT・v1.16.0〜）
 
