@@ -48,11 +48,15 @@ process.stdin.on('end', () => {
     // 許可ディレクトリ配下（ファイルの親ディレクトリのどこかに含まれていれば OK）
     // v1.14.0: プラグイン構造の必須パス（skills / commands / agents / hooks / scripts / .claude-plugin / plugins）を追加
     // v1.15.0: plans/ を追加（setup.md が plansDirectory を推奨しているのに Hook でブロックする自己矛盾を解消）
+    // v1.21.6: rules/ を追加（setup が ~/.claude/rules/*.md を書くのに許可リストに無く、
+    //          rules/ が空の「初回 setup」で全 .md がブロックされる致命バグを修正。
+    //          既存ファイルがある環境では編集扱いで通っていたため発覚が遅れた）
     const ALLOWED_DIRS = [
       /[\\/]Obsidian[\\/]/,
       /[\\/]docs[\\/]/,
       /[\\/]curriculum[\\/]/,
       /[\\/]references[\\/]/,
+      /[\\/]rules[\\/]/,
       /[\\/]plans[\\/]/,
       /[\\/]plugins[\\/]/,
       /[\\/]skills[\\/]/,
