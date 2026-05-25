@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "palpunte-school-plugins",
-  "version": "1.21.3",
+  "version": "1.21.4",
   "description": "未来AI学院上級コース用プラグイン。セキュリティ・開発ルール・ドキュメント管理・通知音・2段階コードレビュー・要件定義4フェーズインタビュー（技術者向け+クライアント向け2段階出力）・新規プロジェクト初期化・Supabase接続標準・自動学び還元（/learn スキル）・週次チェックリスト・DESIGN.md カタログ + UI禁止パターン + ステータスライン（ctx/5h/7d 常時可視化）+ 納品前総合チェック（10項目 YES/NO・環境・運用・引き渡し）をワンインストールで提供",
   "owner": {
     "name": "菊池健司（ちーけん）",
@@ -11,7 +11,7 @@
     {
       "name": "school-starter",
       "description": "スクール受講生向けスターターキット（セキュリティ・開発ルール・通知音・2段階コードレビュー・要件定義4フェーズインタビュー・新規プロジェクト初期化・Supabase接続標準（SQL操作の優先順位3段階明文化）・自動学び還元・週次チェックリスト・DESIGN.mdカタログ + UI禁止パターン + ステータスライン Pattern 5 Fine Bar（reset 時刻 + バーグラフ + ブランチ + 行差分を 2 行表示）+ 納品前総合チェック10項目 + Supabase Data API デフォルト変更対応 GRANT 必須ルール）",
-      "version": "1.21.3",
+      "version": "1.21.4",
       "author": {
         "name": "菊池健司（ちーけん）",
         "email": "kli@k-lifeinnovation.com"
