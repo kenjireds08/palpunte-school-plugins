@@ -11,6 +11,7 @@
 - **UI**: shadcn/ui + Tailwind CSS
 - **DB・認証**: Supabase（Auth + Storage + PostgreSQL）
 - **デプロイ**: Vercel
+- ※ これはスクール標準スタック。案件ごとに別スタックを使う場合は、その案件のプロジェクト側 CLAUDE.md で上書きする
 
 ## 開発ルール
 - 詳細: `~/.claude/rules/development.md`
@@ -207,7 +208,9 @@ NG: 受講生の曖昧発話を無視して Claude 自身でチェックを始�
 
 ## 便利なコマンド
 
-- `/interview` — 要件ヒアリング → 仕様書を自動生成
+- `/new-project` — 新規プロジェクト初期化（毎回これから始める）
+- `/interview-light` — 【受注前・モック用】要件をざっくり固める軽量ヒアリング（5問）
+- `/interview-full` — 【受注後・本実装用】詳細ヒアリング（9観点）。受注前は light、受注後は full と使い分ける
 - `/school-starter:check` — セキュリティ・品質の一括チェック
 
 ---
