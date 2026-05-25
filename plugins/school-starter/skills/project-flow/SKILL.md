@@ -81,6 +81,11 @@ Phase A2: モックアップ作成
 Phase A3: 見積もりドラフト
   → 「見積もりドラフトを作りますか？」と提案
   → docs/NNN_estimate.md にmdで作成（spec-light の続き番号・#16/#20 採番ルール）
+  → 📋 **A案・B案の 2 案併記をデフォルトにする（受注率を上げる工夫①）**:
+      A案＝最小構成（MVP・安め）/ B案＝しっかり構成（フル機能・高め）を並べる
+      → クライアントの判断が「やる/やらない」から「A案かB案か」に変わり受注に近づく
+      あわせて 相場感（金額レンジ）と Phase 2（将来足せる機能：顧客管理・決済連携等）も添える
+      （受講生が1案だけで進めようとしたら、この2案併記を提案する）
   → 💰 **ランニングコストは3層で明示する（#19・実案件で抜けやすい）**:
       ① 初期費用（開発費・一括）
       ② 月額インフラ実費 … スクール題材は無料枠スタートでOK。ただし**実案件では必ず実費を計上**:
@@ -96,7 +101,7 @@ Phase A4: HTML 御見積書 → PDF（デフォルト・2026-05-23 ちーけん�
   → docs/NNN_estimate.md の内容を、クライアント提示用の HTML 御見積書に清書する
   → docs/NNN_estimate_for_client.html を生成（A4印刷レイアウト・以下を含む）:
       - 発行日・見積番号・宛名（御中）・**発行者（連絡先を埋める）**
-      - 金額の大表示・内訳テーブル・A/B案があればカード比較
+      - 金額の大表示・内訳テーブル・A/B案のカード比較（Phase A3 の 2 案を反映）
       - ランニングコスト3層（Phase A3 の①②③をそのまま反映）
   → 「ブラウザでこの HTML を開く → 印刷（Cmd+P）→ 送信先を『PDF に保存』で御見積書 PDF が出来ます」と案内
   → ⚠ 発行者の連絡先が未記入なら、出力前に「発行者名・連絡先（会社名/担当/メール等）を教えてください」と確認する
@@ -215,7 +220,7 @@ completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進む�
 | consultation | phase_a17 | completed | 🛑 **モックは即作らない。** 「DESIGN.md ができました。次はモック作成です。**どの画面を・どんなフローで作るか（モック作成プロンプト）を送ってください**」と伝えてユーザー入力を待つ。プロンプトを受け取ってから `current_phase: phase_a2` に更新して着手（DESIGN.md → モックを無言で連続実行しない＝lesson-test2 で予約完了画面・コース選択が抜けた事故の防止） |
 | consultation | phase_a2 | in_progress | mockups/ で HTML 作成継続（DESIGN.md と *spec-light-*.md を参照）。**DESIGN.md が未作成なら先に phase_a17 へ戻す** |
 | consultation | phase_a2 | completed | 「見積もりドラフトを作りますか？」を提案 |
-| consultation | phase_a3 | in_progress | 見積もりドラフト作成中（`docs/NNN_estimate.md`・ランニングコストは3層で明示・実案件はインフラ実費を計上 #19）。完了したら `phase_status: completed` に更新して提案 |
+| consultation | phase_a3 | in_progress | 見積もりドラフト作成中（`docs/NNN_estimate.md`・**A/B案の2案併記がデフォルト**・ランニングコストは3層で明示・実案件はインフラ実費を計上 #19）。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a3 | completed | 「クライアントに渡せるよう **HTML 御見積書として清書して PDF でダウンロードできるようにしますか？**」を自動提案（#21 デフォルト）。OKなら `current_phase: phase_a4` に更新。Google Docs は「相手と擦り合わせたい場合の代替」として案内 |
 | consultation | phase_a4 | in_progress | 🛑 **無言で突っ走らない。** HTML 御見積書（`docs/NNN_estimate_for_client.html`）を生成中。**発行者の連絡先が未記入なら、出力前に「発行者名・連絡先」を確認してユーザー入力を待つ**。生成後「印刷→PDF に保存」を案内。完了したら `phase_status: completed` に更新して提案 |
 | consultation | phase_a4 | completed | 「商談頑張ってください！受注できたら教えてください。受注確定したら mode を order_won に切り替えます」 |
