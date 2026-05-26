@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js\"; fi"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/check-md-creation.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-md-creation.js\"; fi"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js --hook; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js\" --hook; fi"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/flow-gate.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/flow-gate.js\"; fi"
           }
         ]
       }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/warn-dangerous-prompts.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/warn-dangerous-prompts.js\"; fi"
           }
         ]
       }
@@ -56,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js\"; fi"
           }
         ]
       },
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-tips.js\"; fi"
           }
         ]
       }
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v node >/dev/null 2>&1; then node ${CLAUDE_PLUGIN_ROOT}/scripts/compact-reminder.js; fi"
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/compact-reminder.js\"; fi"
           }
         ]
       }
