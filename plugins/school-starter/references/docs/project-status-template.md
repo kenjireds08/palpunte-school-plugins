@@ -29,6 +29,12 @@ completed_tasks: 0
 - セキュリティ: [{NNN}_security_design.md]({NNN}_security_design.md) ※該当時のみ
 - API 設計: [{NNN}_api_design.md]({NNN}_api_design.md) ※該当時のみ
 
+<!-- HANDOVER-START -->
+## 📨 前回セッションからの引き継ぎ
+
+（/clear-prep がここを**毎回上書き**する。15行以内・最新1回分のみ。手動で追記しない）
+<!-- HANDOVER-END -->
+
 ---
 
 ## 双方向リンク構造図
@@ -92,6 +98,7 @@ completed_tasks: 0
 ### /clear 耐性
 - 「📍 現在地」と「次のアクション」を必ず最新化する
 - /clear 後の新セッション Claude はこのファイルを最初に読む
+- 「📨 前回セッションからの引き継ぎ」は /clear-prep が自動で上書きする（最新1回分のみ・15行以内）。手動編集や追記はしない
 
 ### タスク完了時
 - 該当チェックボックスを `[x]` に

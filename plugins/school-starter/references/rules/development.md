@@ -69,3 +69,12 @@ IMPORTANT: 受講生（GAS / Excel 経験者レベル・非エンジニア前提
 3. **Vercel ダッシュボード**: 本番デプロイ前に登録（Sensitive ON）
 
 **根拠**: `.env.example` 漏れは引き継ぎ・別 PC 環境構築・pre-delivery-check のすべてで再発する構造的問題。新しい変数を追加する瞬間に同期を案内するのが唯一の予防策。
+
+## git push は VS Code の「↑」ボタンを案内する（v1.23.0〜・YOU MUST）
+
+- **Claude は `git push` を自分で実行しない・「git push 一発です」と提案しない**。push が必要な場面では「**VS Code 左側のソース管理ビューの「↑」ボタン（変更の同期）**を押してください」と案内する
+- 理由: school-starter のサンドボックスでは push に必要な credential helper（macOS Keychain / Windows 資格情報マネージャー）へのアクセスが deny されており、Claude が実行すると**必ず認証エラーで失敗**して受講生が混乱する
+- `git add` / `git commit` / `git status` / `git diff` / `git log` は Claude 内で OK（push / pull / `gh` 系だけが対象外）
+- VS Code のボタンで push された結果は Claude のセッションからは見えない。**push 済みかどうかを報告するときは `git status -sb` で実測してから**書く（記憶で「未 push」と書かない）
+
+**根拠**: 第4回通し検証（2026-06-11）で、commit 直後に Claude が「push する場合は言ってください（git push 一発です）」と提案 → 受講生が従うと sandbox deny で失敗する事故パターンを確認。コピペシートの「push は VS Code の ↑ ボタン」と案内を一致させる。
