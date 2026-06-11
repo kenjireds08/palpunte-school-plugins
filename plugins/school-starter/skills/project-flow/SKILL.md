@@ -212,8 +212,9 @@ completed_tasks: N    # v1.11.0〜：完了したタスク数（実装が進む�
 ### 判定の手順
 
 1. `docs/000_PROJECT_STATUS.md` を読む
-2. フロントマターから `mode` と `current_phase` と `phase_status` を取得
-3. 下表に従って次のアクションを決定
+2. 「📨 前回セッションからの引き継ぎ」セクション（`<!-- HANDOVER-START -->` マーカー間）があれば**最初に読む**——/clear-prep が保存した最新の現在地・次の一手・保留事項が入っている（v1.23.1〜）
+3. フロントマターから `mode` と `current_phase` と `phase_status` を取得
+4. 下表に従って次のアクションを決定
 
 | mode | current_phase | phase_status | 次のアクション |
 |------|--------------|------------|--------------|
