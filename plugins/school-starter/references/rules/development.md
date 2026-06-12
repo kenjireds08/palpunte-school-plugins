@@ -80,3 +80,22 @@ IMPORTANT: 受講生（GAS / Excel 経験者レベル・非エンジニア前提
 - VS Code のボタンで push された結果は Claude のセッションからは見えない。**push 済みかどうかを報告するときは `git status -sb` で実測してから**書く（記憶で「未 push」と書かない）
 
 **根拠**: 第4回通し検証（2026-06-11）で「git push 一発です」提案 → sandbox オン環境では失敗する事故パターンを確認。2巡目（2026-06-12・sandbox オフ）では gh repo create / push とも成功を実測し、**可否は環境依存**と確定。だからこそ案内は「↑ ボタン」に統一し、実行は明示依頼時の1回試行に限定する。
+
+## 実装プランは plans/ にファイル化して Codex ゲートを通す（v1.24.0〜・YOU MUST）
+
+タスクバックログ（`docs/{NNN}_task_backlog.md`）があるプロジェクトで実装タスクに着手するときの標準フロー:
+
+1. **プラン作成**: `docs/000_PROJECT_STATUS.md` と task_backlog の該当タスクを読んでから、Plan Mode 等で実装計画を立てる
+2. **書き出し**: 承認されたプランを、実装に入る前に**プロジェクト直下の `plans/<タスクID>-plan.md`** に保存する（例: `plans/T-02-supabase-setup-plan.md`）。`~/.claude/plans/` などプロジェクト外には置かない（同じフォルダで開いている Codex から読めなくなるため）
+3. **Codex ゲート**: 次の依頼文をコピペ用に案内する:
+   「`plans/<ファイル名>` を読んで、`docs/000_PROJECT_STATUS.md` と `docs/{NNN}_task_backlog.md` の該当タスクと突き合わせて、実装計画として妥当かレビューしてください。指摘には severity（critical/high/medium/low）を付け、問題なければ approve と明言してください」
+4. **実装**: Codex approve 後に実装 → 完了後は 2 段階コードレビュー（review スキル）
+5. **後片付け**: タスク完了時にプランを `plans/archive/` へ移動し、PROJECT_STATUS / task_backlog を更新する
+
+- `plans/` は **git 管理に含める**（履歴・引き継ぎ・別 PC で効く）。`.claude/plans/`（内部用・gitignore 対象）とは別物
+- **スキップ条件**: 1〜2 ファイル・数十行以内の軽微な修正はプランファイル不要（Plan Mode の承認だけで実装してよい）。Phase 規模・複数ファイル・DB 変更を伴うタスクで使う
+- これで Codex ゲートは「要件定義 → **実装プラン** → 実装後コード」の3箇所に揃う（作る前に2回・作った後に1回）
+
+## create-next-app が生成する AGENTS.md は削除を勧めない（v1.24.0〜）
+
+- AGENTS.md は「Next.js 16 は AI の学習データから変わった部分がある」という AI 向け注意書きで、CLAUDE.md から `@AGENTS.md` で参照する設計。**「CLAUDE.md と役割が重複するので削除しても OK」と提案しない**（コピペシートの案内「消さずにそのままで OK」と矛盾して受講生が混乱する。第4回検証で2回連続発生）

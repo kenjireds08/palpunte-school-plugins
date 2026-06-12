@@ -183,6 +183,9 @@ Phase B6: 【チェックポイント②】Codex 最終ゲート
 Phase B7: 実装開始準備完了
   → 「準備完了です！Phase B3 環境構築の最初のタスクから実装を始めましょう」
   → 以降は docs/000_PROJECT_STATUS.md を見ながら、リンク先の詳細を読みつつ実装
+  → 各タスクは plans/ 方式で進める（v1.24.0〜）: プラン作成 → plans/<タスクID>-plan.md に保存
+    → Codex プランレビュー → approve 後に実装 → review スキルで2段階レビュー → 完了時に
+    plans/archive/ へ移動（詳細: ~/.claude/rules/development.md「実装プランは plans/ に〜」）
 ```
 
 ## フェーズ判定ロジック（明示ステータスベース）
