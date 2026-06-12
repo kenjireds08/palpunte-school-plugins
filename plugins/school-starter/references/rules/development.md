@@ -72,9 +72,11 @@ IMPORTANT: 受講生（GAS / Excel 経験者レベル・非エンジニア前提
 
 ## git push は VS Code の「↑」ボタンを案内する（v1.23.0〜・YOU MUST）
 
-- **Claude は `git push` を自分で実行しない・「git push 一発です」と提案しない**。push が必要な場面では「**VS Code 左側のソース管理ビューの「↑」ボタン（変更の同期）**を押してください」と案内する
-- 理由: school-starter のサンドボックスでは push に必要な credential helper（macOS Keychain / Windows 資格情報マネージャー）へのアクセスが deny されており、Claude が実行すると**必ず認証エラーで失敗**して受講生が混乱する
-- `git add` / `git commit` / `git status` / `git diff` / `git log` は Claude 内で OK（push / pull / `gh` 系だけが対象外）
+- **Claude は `git push` を自分から提案・実行しない**（「git push 一発です」と言わない）。push が必要な場面では「**VS Code 左側のソース管理ビューの「↑」ボタン（変更の同期）**を押してください」と案内する
+- 理由①（主）: 受講生が「何が GitHub に公開されるか」を**自分の指で押して意識する習慣づけ**（第8回の Vercel 本番公開への伏線）＋ コピペシートの案内（↑ ボタン）と Claude の案内を**一致**させるため
+- 理由②（技術）: **sandbox をオンにしている環境**では credential helper（macOS Keychain / Windows 資格情報マネージャー）へのアクセスが deny され認証エラーになる。sandbox オフ（auto mode 等）では通ることもあるが、**通る/通らないが環境依存**なので案内は ↑ ボタンに統一する
+- **例外**: ユーザーが**明示的に**「push して」「gh でリポジトリを作って push まで」と頼んだ場合は、**1回だけ試してよい**（「環境によっては認証エラーになります」と前置きし、失敗したら無理に回避せず別ターミナル用コマンドを提示する）。リポジトリ新規作成（`gh repo create --source=. --push` 等の初回セットアップ）はこの例外の典型
+- `git add` / `git commit` / `git status` / `git diff` / `git log` は Claude 内で常に OK
 - VS Code のボタンで push された結果は Claude のセッションからは見えない。**push 済みかどうかを報告するときは `git status -sb` で実測してから**書く（記憶で「未 push」と書かない）
 
-**根拠**: 第4回通し検証（2026-06-11）で、commit 直後に Claude が「push する場合は言ってください（git push 一発です）」と提案 → 受講生が従うと sandbox deny で失敗する事故パターンを確認。コピペシートの「push は VS Code の ↑ ボタン」と案内を一致させる。
+**根拠**: 第4回通し検証（2026-06-11）で「git push 一発です」提案 → sandbox オン環境では失敗する事故パターンを確認。2巡目（2026-06-12・sandbox オフ）では gh repo create / push とも成功を実測し、**可否は環境依存**と確定。だからこそ案内は「↑ ボタン」に統一し、実行は明示依頼時の1回試行に限定する。

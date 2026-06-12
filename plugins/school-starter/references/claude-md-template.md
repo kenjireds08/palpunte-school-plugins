@@ -120,7 +120,7 @@ IMPORTANT: 受講生（GAS / Excel 経験者・非エンジニア前提）にハ
 - `git push --force` は禁止（main / master はツールレベルで deny 済み、その他ブランチも非推奨）
 - 代わりに `git push --force-with-lease` を使う（同僚のコミットが上書きされる事故を予防）
 - コミット前に `git status` で意図したファイルだけステージされているか確認
-- **push は Claude が実行せず、VS Code のソース管理「↑」ボタンを案内する**（sandbox の認証保護で Claude からの push は失敗するため。詳細: `~/.claude/rules/development.md` の同名セクション）
+- **push は Claude が自分から提案・実行せず、VS Code のソース管理「↑」ボタンを案内する**（公開を自分で意識する習慣づけ＋環境により認証エラーになるため。ユーザーが明示的に頼んだ場合のみ1回だけ試行可。詳細: `~/.claude/rules/development.md` の同名セクション）
 
 ## セキュリティ
 
