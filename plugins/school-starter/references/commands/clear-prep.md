@@ -60,6 +60,7 @@ git log --oneline -3    # 最後のコミット
 - **理由**: 受講生は push を VS Code の「↑」ボタンで行うため、**push はセッションの外で起きる**。会話の記憶だけで書くと「未 push」が古い情報になり、次セッションの Claude が誤った最優先タスク（push）を実行しようとする
 - `git status -sb` の `ahead` 表記がなければ push 済み。`ahead N` なら未 push N 件
 - remote（origin）が未設定のプロジェクトでは ahead/behind は出ないので「remote 未設定」と書く
+- 注: この判定は**同一マシンで push した場合に正確**（push 成功時にローカルの origin 参照も更新される）。別マシンからの push までは反映されないが、`git fetch` は**実行しない**（sandbox オン環境では認証で失敗し得るため。受講生運用は同一マシンなので実用上十分）
 
 ## 手順2: 000_PROJECT_STATUS.md に要約版を上書き保存
 
