@@ -35,7 +35,7 @@
 |---------|---------|---------|---------|
 | **0. 要件定義** | 何を作るかを言葉で固める | `/interview-light` / `/interview-full` + Codex 4-7R | 要件定義書「確定」+ Codex Critical 0 |
 | **1. 進捗管理 3 階層構築** | 「動かせる単位」に分解 | `/school-starter:project-flow` 自動展開 | 30-50 タスク + 個別 md + Codex 最終ゲート通過 |
-| **2. タスク実装ループ** | 1 タスクずつ プラン → Codex ゲート → 実装 → レビュー → 動作確認 | Plan Mode（プランは `plans/<タスクID>-plan.md` にファイル化）/ `/feature-dev:feature-dev` / `review` / Codex / 実機検証 | 全タスク ✅ + 各 Phase 集約レビュー通過 |
+| **2. タスク実装ループ** | 1 タスクずつ プラン → Codex ゲート → 実装 → レビュー → 動作確認 | Plan Mode（プランは `docs/plans/<タスクID>-plan.md` にファイル化）/ `/feature-dev:feature-dev` / `review` / Codex / 実機検証 | 全タスク ✅ + 各 Phase 集約レビュー通過 |
 | **3. 納品前総合チェック** | 設定・運用・引き渡しの最終ゲート | `@agent-security-auditor` + `/school-starter:pre-delivery-check`（10 項目 + 実機検証 5 項目） | FAIL 0 件 |
 
 **鉄則**:
@@ -45,7 +45,7 @@
 4. 必須最小限を判断して提示
 5. 自分が踏んだ地雷をルール化する（`/school-starter:learn`）
 6. 環境変数追加時は 3 箇所同期（`.env.local` / `.env.example` / Vercel）
-7. 実装プランは**プロジェクト直下の `plans/`** にファイル化して Codex ゲートを通す（完了後は `plans/archive/` へ。詳細: `~/.claude/rules/development.md` の同名セクション）
+7. 実装プランは **`docs/plans/`** にファイル化して Codex ゲートを通す（plansDirectory 設定で自動保存・完了後は `docs/plans/archive/` へ。詳細: `~/.claude/rules/development.md` の同名セクション）
 
 **プラグイン全体像を 1 枚で把握したい時 / 受講生から「全部教えて」と言われた時**: `${CLAUDE_PLUGIN_ROOT}/references/docs/ai-driven-development-flow.md` を読む（フェーズ 0→1→2→3 の順で 1 フェーズずつ説明）。
 
