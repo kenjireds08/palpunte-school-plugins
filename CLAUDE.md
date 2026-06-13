@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 - **GitHub**: kenjireds08/palpunte-school-plugins
-- **現在のバージョン**: v1.6.1
+- **現在のバージョン**: v1.24.2
 - **バージョン管理**: `plugins/school-starter/.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` の両方をバンプ
 
 ## 機能追加の判断フロー（Anthropic公式「Seeing like an agent」より）
@@ -46,7 +46,7 @@
 ## 更新手順
 
 1. ファイル修正（上記「判断フロー」に沿って）
-2. plugin.json + marketplace.json のバージョンバンプ
+2. plugin.json + marketplace.json + この CLAUDE.md「現在のバージョン」のバンプ
 3. コミット & プッシュ
 4. Notionガイドページの更新履歴に追記（下記構造を参照）
 
@@ -57,6 +57,13 @@
 **URL**: https://www.notion.so/school-starter-339af2ccb9b5812aaa63e25efa68468c
 **親ページ**: `31aaf2cc-b9b5-81ec-af75-e99eac61dd33`（上級コース カリキュラム設計）
 
+### ⚠️ Notion 操作は Python（直 REST）で行う・Composio は使わない（2026-06-13 方針確定）
+
+読み書きとも **`~/.claude/scripts/notion.py`（環境変数 `NOTION_API_KEY` を使う直 REST）** で行う。**Composio MCP は調子が悪いため使わない**。トークンの値は絶対に標準出力・チャット・ログに出さない。
+
+- 書き込み: `notion.py raw --method PATCH --path <APIパス> --body-file <JSON>`（body は `json.dump` で生成し手書き構文エラーを避ける）
+- 読み取り: notion.py に読み取りコマンドは無いので、`NOTION_API_KEY` を `os.environ` から読む使い捨て Python（`GET /v1/blocks/{id}/children`・ページネーション＋`has_children` 再帰でトグル内も辿る）で取得する
+
 ### 主要セクションのブロックID
 
 | セクション | タイプ | ブロックID |
@@ -66,34 +73,29 @@
 | コマンド一覧 | heading_1 | `339af2cc-b9b5-81d4-9bcc-de3f26b630ca` |
 | プラグインの更新方法 | heading_1 | `339af2cc-b9b5-81a2-9185-db598d05d8de` |
 | おすすめ MCPサーバー | heading_1 | `33faf2cc-b9b5-813b-9ec9-f4f94291af72` |
-| 更新履歴 | heading_1 | `339af2cc-b9b5-81e2-b8ba-e9a8919e9e43` |
+| 更新履歴 | heading_1（トグル見出し） | `339af2cc-b9b5-81e2-b8ba-e9a8919e9e43` |
+| 最新アップデート callout | callout | `374af2cc-b9b5-81a5-b99f-f28ef16033e9` |
 
-### 更新履歴の追記パターン
+### 更新履歴の追記パターン（Python・直 REST／2026-06-13 実態確認）
 
-更新履歴セクションは時系列順（古い順）。新バージョン追記時は最後の bulleted_list_item の `after` に追加する。
+更新履歴は **heading_1「更新履歴」（`339af2cc-b9b5-81e2-b8ba-e9a8919e9e43`）がトグル見出し**で、その子に **各バージョンが toggle ブロック**で時系列（古い順）に並ぶ。各 toggle の中身は変更内容の `bulleted_list_item`。
+※ かつての「paragraph 形式」の記述は誤り。実態は toggle 構造。
 
 ```
-構造:
-heading_1: 更新履歴
-  paragraph: v1.0.0（日付）— 初回リリース
-  paragraph: v1.1.0（日付）
-  paragraph: v1.2.0（日付）
-    bulleted_list_item: 変更内容
-  paragraph: v1.3.0（日付）
+更新履歴 (heading_1・トグル見出し)
+  toggle: 「v1.23.0」(bold) +「（2026-06-11）— 概要」(通常)
     bulleted_list_item: 変更内容
     ...
-  paragraph: v1.4.0（日付）
+  toggle: 「v1.24.2」(bold) +「（日付）— 概要」   ← 最新
     bulleted_list_item: 変更内容
-    ...
-  paragraph: v1.5.0（日付）   ← 最新
-    bulleted_list_item: 変更内容
-    ...
 ```
 
-**追記手順:**
-1. `NOTION_FETCH_BLOCK_CONTENTS` でページの最後のブロックIDを取得
-2. `NOTION_ADD_MULTIPLE_PAGE_CONTENT` で `parent_block_id=ページID`, `after=最後のブロックID` で追加
-3. paragraphブロック（バージョン+日付、太字）→ bulleted_list_itemブロック（変更内容）の順
+**追記手順（すべて notion.py 直 REST。Composio は使わない）:**
+1. 使い捨て Python（`GET /v1/blocks/339af2cc-b9b5-81e2-b8ba-e9a8919e9e43/children`）で **最新バージョンの toggle ID** を特定（＝`after`）
+2. `json.dump` で body を生成（`after` ＋ `children`=toggle 配列。各 toggle に `rich_text`＝バージョン番号 `bold:true`＋「（日付）— 概要」、`children`＝`bulleted_list_item`）
+3. 追記: `python3 ~/.claude/scripts/notion.py raw --method PATCH --path /v1/blocks/339af2cc-b9b5-81e2-b8ba-e9a8919e9e43/children --body-file <body.json>`
+4. **冒頭 callout（`374af2cc-b9b5-81a5-b99f-f28ef16033e9`）も「最新アップデート（最新版）」に更新**: `python3 ~/.claude/scripts/notion.py raw --method PATCH --path /v1/blocks/374af2cc-b9b5-81a5-b99f-f28ef16033e9 --body-file <callout.json>`
+5. 再取得して反映を検証（最新版が末尾に並ぶ／callout が更新されている）
 
 ### 新セクション追加パターン
 
