@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-chained-commands.js\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/guard-env-access.js\"; fi"
           }
         ]
       },
