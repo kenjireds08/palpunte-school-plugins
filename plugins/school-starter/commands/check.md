@@ -9,11 +9,10 @@ allowed-tools: Bash, Read, Glob, Grep
 
 ### セキュリティ
 1. `.env*` ファイルが `.gitignore` に含まれているか
-2. `.claudeignore` が存在するか
-3. `service_role` キーがコード内にハードコードされていないか（grep で確認）
-4. APIキーらしき文字列がコード内にないか
-5. `~/.claude/settings.json` にdenyリスト（`~/.ssh/**` 等）が設定されているか
-6. sandbox の状態（※ Claude Code は sandbox 状態を settings.json 等のファイルに書き込まない仕様のため、検出はできない。OK/NG 判定はせず案内のみ行う）
+2. `service_role` キーがコード内にハードコードされていないか（grep で確認）
+3. APIキーらしき文字列がコード内にないか
+4. `~/.claude/settings.json` にdenyリスト（`~/.ssh/**`・`Read(./.env*)`・`Bash(* .env*)` 等）が設定されているか（**機密ファイルを Claude に読ませない本当の壁はここ**）
+5. sandbox の状態（※ Claude Code は sandbox 状態を settings.json 等のファイルに書き込まない仕様のため、検出はできない。OK/NG 判定はせず案内のみ行う）
 
 ### コード品質
 1. `npm run lint` が通るか（package.json にあれば）
@@ -32,7 +31,6 @@ allowed-tools: Bash, Read, Glob, Grep
 
 ### セキュリティ
 - .gitignore に .env*: OK/NG
-- .claudeignore: OK/NG
 - ハードコードされたキー: なし/あり（ファイル名）
 - denyリスト: OK/不足あり
 - sandbox: ファイルから検出不可（仕様）。`/sandbox` 実行時に `✓ Sandbox enabled` を見ていればOK
@@ -54,7 +52,6 @@ allowed-tools: Bash, Read, Glob, Grep
 | 項目 | OK の意味 | NG の意味・対応 |
 |------|-----------|----------------|
 | `.gitignore` に `.env*` | `.env` 系が git 管理外 | **即対応**: `.gitignore` に `.env*` を追記。既にコミット済みなら `git rm --cached .env*` |
-| `.claudeignore` | Claude が `.env*` を読まない設定あり | **即対応**: プロジェクト直下に `.claudeignore` を作成（`.env*` / `*.pem` / `*.key` / `credentials/` を記載） |
 | ハードコードされたキー | `service_role` / API key がコード内に直書きされていない | **即対応**: そのキーを `.env.local` に移動。既に GitHub に push 済みの場合はキーを **ローテート**（新しい値を発行して古いものを無効化） |
 | deny リスト | `~/.claude/settings.json` の deny に `~/.ssh/**` 等の基本項目あり | **対応**: `/school-starter:setup` を再実行して最新 deny リストを適用 |
 | sandbox | ファイルから状態を検出できない仕様（Claude Code は settings.json に書かない）。`/sandbox` 実行時に `✓ Sandbox enabled` を見ていればOK | **対応**: 未確認なら `/sandbox` を実行（既に有効でも冪等＝3択UIが出るだけで害なし）。コードレビュー運用はこれ前提で設計されている |

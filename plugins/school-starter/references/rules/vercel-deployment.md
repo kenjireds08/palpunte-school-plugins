@@ -47,7 +47,7 @@ vercel rm
 
 - **シークレット系（API key / token / DB credential 等）は Vercel ダッシュボードで必ず "Sensitive" フラグ ON**
 - "Sensitive" 化漏れがあると、Vercel 側のセキュリティインシデント時に値が読み取られるリスクがあります（2026年4月実例あり）
-- ローカル `.env*` ファイルは決してコミットしない（`.claudeignore` と `.gitignore` で二重防御済み）
+- ローカル `.env*` ファイルは決してコミットしない（`.gitignore` でコミット防止 + `permissions.deny` の `Read(./.env*)`／`Bash(* .env*)` で Claude の読み取りを防止）
 
 ## 関連ルール
 

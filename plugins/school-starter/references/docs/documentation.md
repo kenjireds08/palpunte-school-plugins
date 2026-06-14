@@ -68,7 +68,7 @@ STATUS.mdが200行を超えたら、以下の手順で圧縮する:
 
 1. **CLAUDE.md**（最優先）
 2. **docs/000_PROJECT_STATUS.md** → テンプレート: `~/.claude/docs/project-status-template.md`
-3. **`.claudeignore`**（`.env*`, `*.pem`, `*.key`, `credentials/` を記載）
+3. **`.env*` を `.gitignore` に追記**（機密ファイルを Claude に読ませない壁は `/school-starter:setup` が配置する `permissions.deny` が担当。`.claudeignore` は公式機能でなく置いても無効）
 
 ## セッション開始時チェックリスト
 

@@ -170,7 +170,7 @@ NG: 受講生の曖昧発話を無視して Claude 自身でチェックを始�
 
 1. CLAUDE.md 作成（最優先）
 2. docs/000_PROJECT_STATUS.md 作成 → テンプレート: `~/.claude/docs/project-status-template.md`
-3. `.claudeignore` 作成（`.env*`, `*.pem`, `*.key`, `credentials/` を記載）
+3. `.env*` を `.gitignore` に追記（機密ファイルを Claude に読ませない壁は `/school-starter:setup` が配置する `permissions.deny` が担当。`.claudeignore` は公式機能でなく置いても無効）
 
 ## 便利なコマンド
 

@@ -120,9 +120,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### 三層防御（lesson-04 で確立）
 
 `.env.local` を守る 3 つの壁:
-1. **`.gitignore`**: GitHub に上げない
-2. **`.claudeignore`**: Claude が読み取らない
-3. **sandbox denyRead**: Bash 経由でも読み取らない
+1. **`.gitignore`**: GitHub に上げない（コミット・push を防ぐ）
+2. **`permissions.deny`（Read + Bash）**: Claude に読ませない。`Read(./.env*)` で Read ツールを、`Bash(* .env*)` で `cat .env` 等の Bash 経路を**両方**塞ぐ（Read deny だけだと Bash で読めてしまう公式仕様の穴を埋める）
+3. **sandbox**: OS レベルで Bash サブプロセス・MCP 経由まで一律に遮断
+
+> ⚠️ かつて `.claudeignore` を「Claude が読み取らない壁」として挙げていたが、**`.claudeignore` は Claude Code の公式機能ではなく置いても完全に無視される**（公式ドキュメントの `.claude` ディレクトリ構成表に存在しない）。機密ファイルを読ませない本当の壁は `permissions.deny` であり、`.gitignore` はあくまで git 用でセキュリティ境界ではない。
 
 ---
 

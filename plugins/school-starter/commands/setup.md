@@ -299,7 +299,7 @@ denyリストは大きく4カテゴリ:
 **補足:**
 - rules/のルールファイルはClaudeが「やるべきでない」と理解して自制する仕組み。denyリストはツールレベルでブロックするため、プロンプトインジェクションでも突破できない。両方あることで防御が二重化される
 - `Bash(curl *)` 等は**Claude Code が自動で使うときに限ってブロック**する。受講生が別ターミナルで手動実行する分には影響しない。**ただし、受講生が Claude Code のチャットに「curl で API 叩いて」と頼んでも Claude が実行するときにブロックされる**（AI 経由での外部送信を一律で止める設計のため）。Webhook テスト・API 動作確認は**ターミナル側で直接実行**してもらう運用
-- `Read(./.env)` / `Read(./.env.*)` は `.claudeignore` と役割が重なるが、denyはツールレベルで強制力が強い。二重に設定することで防御を厚くする
+- `Read(./.env)` / `Read(./.env.*)` は Read ツール経路を塞ぐ。`Bash(* .env*)`（`cat`/`grep` 等）と組み合わせて Read・Bash の両経路を二重に塞ぐ（Read deny だけだと `cat .env` で読めてしまう公式仕様の穴を埋める）。※ `.claudeignore` は公式機能でなく無効なので使わない
 - `rm -rf ~*` / `rm -rf .*` は即時deny（ホームディレクトリや隠しファイル全削除の事故防止）
 - `rm -rf *` は `ask`（確認プロンプト）。`build/`掃除などの正規用途は残しつつ、パスミスをユーザーが気づける
 - `git push --force` のdenyは main / master 限定。個人のトピックブランチへのforce pushは通常通り可能
@@ -534,7 +534,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 ✅ セットアップ完了！
 グローバル設定は今後作成するすべてのプロジェクトに自動で適用されます。
 
-📌 プロジェクト固有のセットアップ（.gitignore / .claudeignore / CLAUDE.md / 000_PROJECT_STATUS.md）は
+📌 プロジェクト固有のセットアップ（.gitignore / CLAUDE.md / 000_PROJECT_STATUS.md）は
    新規プロジェクトを作るときに `/new-project` で一括処理されます。
    `/school-starter:setup` はグローバル環境（`~/.claude/` 配下）の整備に専念する設計です。
 

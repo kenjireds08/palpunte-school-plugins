@@ -14,7 +14,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 |---------|------|----------|
 | `CLAUDE.md` | **ヒアリング結果から生成**（AI が案件情報を反映） | ✅ 案件固有情報なので受講生が編集 |
 | `docs/000_PROJECT_STATUS.md` | **テンプレートから生成**（進捗を記録） | ✅ 進捗に合わせて更新 |
-| `.gitignore` / `.claudeignore` | **テンプレートからコピー配置**（内容は共通） | ⚠ 既に存在すれば上書きしない |
+| `.gitignore` | **テンプレートからコピー配置** | ⚠ 既に存在すれば上書きしない |
 | `.claude/rules/README.md` | **グローバル `~/.claude/rules/` の同内容を複製配置** | プロジェクト側の追加ルールだけ編集（グローバル版は触らない） |
 
 受講生には「グローバル `~/.claude/rules/` とプロジェクト `.claude/rules/` は同じ内容の2箇所配置で、プロジェクト側が優先される」ことを明示する（「自動生成」と呼ぶと「AI が賢く案件に合わせて作った」と誤解されるため、**配置方法を具体的に伝える**）。
@@ -63,7 +63,6 @@ project-flow スキルが現在のフェーズを判定して次のアクショ�
 **どちらも無い場合**: 次のステップへ進む。
 - `package.json` などが既に存在する場合は **既存コードあり初期化モード** として動作:
   - `.gitignore` が既にあれば**上書きしない**（既存内容を尊重）
-  - `.claudeignore` が既にあれば上書きしない
   - その他の生成ファイルは通常通り作成
   - Step 5 のメッセージで「既存のコードベースに追加する形で初期化しました」と一言添える
 
@@ -116,7 +115,7 @@ options:
 
 ### 4-1. ルートファイル
 
-**注意**: `.gitignore` と `.claudeignore` は **既にファイルが存在する場合は上書きしない**。
+**注意**: `.gitignore` は **既にファイルが存在する場合は上書きしない**。
 既存コードあり初期化モード（例: `create-next-app` 後）では、雛形が既に正しい内容を持っているため。
 `CLAUDE.md` も既存があればスキップ（普通は Step 2 で弾かれるが念のため）。
 
@@ -158,14 +157,7 @@ options:
 - 節目で Codex による第三者レビューを入れる
 ```
 
-#### `.claudeignore`
-```
-.env*
-*.pem
-*.key
-credentials/
-.DS_Store
-```
+> **機密ファイルを Claude に読ませない設定について**: かつてここで `.claudeignore` を作成していたが、**`.claudeignore` は Claude Code の公式機能ではなく、置いても完全に無視される**（公式 `.claude` ディレクトリ構成表に存在しない）。機密ファイルの読み取り防止は `/school-starter:setup` が `~/.claude/settings.json` に配置する `permissions.deny`（`Read(./.env*)` ＋ `Bash(* .env*)`）が担う。`.env*` はこの後の `.gitignore` で git 管理からも除外する。
 
 #### `.gitignore`
 ```
@@ -413,7 +405,7 @@ Set-Content .env.example -Encoding utf8 -Value "NEXT_PUBLIC_SUPABASE_URL=your_su
 
 【作成したファイル】
 - CLAUDE.md（プロジェクト基本情報）
-- .claudeignore / .gitignore
+- .gitignore
 - docs/000_PROJECT_STATUS.md
 - docs/001_requirements.md
 - docs/002_meeting_notes.md
