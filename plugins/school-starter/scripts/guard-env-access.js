@@ -66,7 +66,16 @@ const READ_PATTERNS = [
   /<\s*[^\s;&|]*\.env\b/i,
 ];
 
+// .gitignore への除外確認 / git の追跡状況確認は「.env の中身を読む」のではなく
+// 「.env が除外・未追跡か確認する」正規のセキュリティ操作なので許可する。
+// 第4回ハンズオンで「.gitignore に .env* があるか」「git に .env が乗っていないか」の
+// 確認（grep '\.env' .gitignore / git ls-files | grep .env 等）を多用するため必須の除外
+// （誤爆防止・本番前チェックで発見・2026-06-15）。
+const IGNORE_CHECK_CONTEXT =
+  /(\.gitignore|git\s+check-ignore|git\s+ls-files|git\s+status|git\s+diff|git\s+log)/i;
+
 function detect(cmd) {
+  if (IGNORE_CHECK_CONTEXT.test(cmd)) return false; // 除外・追跡の確認は許可
   if (!hasSecretEnvRef(cmd)) return false; // .env.example だけ等は許可
   return READ_PATTERNS.some((p) => p.test(cmd));
 }

@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 - **GitHub**: kenjireds08/palpunte-school-plugins
-- **現在のバージョン**: v1.24.4
+- **現在のバージョン**: v1.24.5
 - **バージョン管理**: `plugins/school-starter/.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` の両方をバンプ
 
 ## 機能追加の判断フロー（Anthropic公式「Seeing like an agent」より）
@@ -86,7 +86,7 @@
   toggle: 「v1.23.0」(bold) +「（2026-06-11）— 概要」(通常)
     bulleted_list_item: 変更内容
     ...
-  toggle: 「v1.24.4」(bold) +「（日付）— 概要」   ← 最新
+  toggle: 「v1.24.5」(bold) +「（日付）— 概要」   ← 最新
     bulleted_list_item: 変更内容
 ```
 

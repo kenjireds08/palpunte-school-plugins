@@ -75,6 +75,13 @@ const PASS_CASES = [
   // inline スクリプトは読み書き判別不可のため対象外（Codex P2・deny/sandbox に委ねる）
   ['node -e "require(\'fs\').writeFileSync(\'.env.local\',\'KEY=x\')"', '書き込み inline は通す'],
   ['python -c "open(\'.env\').read()"', '読み取り inline も guard 対象外（deny に委ねる）'],
+  // .gitignore / git での「除外・追跡の確認」は読み取りでないので許可（第4回ハンズオン頻出・本番前チェックで発見）
+  ["grep '\\.env' .gitignore", '.gitignore に .env があるか確認'],
+  ['grep -n .env .gitignore', '.gitignore 確認（ドット付き検索）'],
+  ['git ls-files | grep .env', 'git に .env が乗ってないか確認'],
+  ["git ls-files | grep '\\.env'", '同上（ドット付き）'],
+  ['git check-ignore .env.local', '除外されているか公式確認'],
+  ['git status --short', 'status で .env の有無を確認'],
 ];
 
 test('detect(): ブロックすべきケース', () => {
