@@ -61,7 +61,7 @@ AI への指示書（CLAUDE.md / AGENTS.md / README.md）や、サードパー�
 4. 問題なければ `/plugin enable <plugin>` で再度有効化
 5. 初回起動は **隔離環境（devcontainer / VM / 新規 Dummy フォルダ）** でならなお良い
 
-このプラグイン（school-starter）自身も例外ではない。`/plugin update school-starter` 後に `docs/plugin-changelog.md` を読んで差分を納得してから使う。
+このプラグイン（school-starter）自身も例外ではない。`/plugin update school-starter` → `/school-starter:setup` 後に、更新時メッセージへ自動表示される「今回の更新で変わったこと」を読んで差分を納得してから使う。
 
 ## Vercel 等のクラウド環境変数
 

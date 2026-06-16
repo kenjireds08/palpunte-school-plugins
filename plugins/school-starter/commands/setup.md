@@ -58,7 +58,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 **サプライチェーン注意**: `/plugin marketplace add kenjireds08/palpunte-school-plugins` + `/plugin install school-starter@palpunte-school-plugins` は現状 GitHub のデフォルトブランチ最新コミットを拾う仕様。将来 GitHub アカウントが乗っ取られた場合、受講生の次回 setup で悪性コードが配布されるリスクがある。以下で軽減する:
 
-- 受講生には **`/plugin update school-starter` を実行するタイミングで `docs/plugin-changelog.md` を読んでもらう**（想定外の変更がないか確認）
+- 受講生には **`/plugin update school-starter` → `/school-starter:setup` のタイミングで、更新時メッセージに自動表示される「今回の更新で変わったこと」（`${CLAUDE_PLUGIN_ROOT}/references/plugin-changelog.md` 由来）を読んでもらう**（想定外の変更がないか確認）
 - 更新時に `/school-starter:setup` で置き換わるファイル一覧（rules/・commands/・agents/）は配置後に目視確認
 - 将来的にタグ固定運用（`@v1.15.0` 形式）が Claude Code の `/plugin install` で公式対応したら移行予定
 
@@ -75,14 +75,14 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 - **バージョンが同じ**: 「最新です」と報告し、Part 1のファイル配置をスキップ（Part 2は実行）
 - **バージョンが異なる（更新あり）**: 更新されたテンプレートで上書き配置
 
-配置完了後、`~/.claude/.school-starter-version` に現在のバージョンを書き込む。
+**⚠️ 上書き前に前回バージョンを控える**: `~/.claude/.school-starter-version` を**上書きする前に**、その時点の値を `PREV_VERSION` として記憶しておく（更新時メッセージで「どのバージョンから上がったか」の差分表示に使う）。ファイルが無ければ `PREV_VERSION = （なし）`。控えた後で、現在のバージョンを書き込む。
 
 **🔑 セットアップモードの確定（結果レポートの出し分けに使う・必ず判定する）**: このバージョン確認の結果を、最後の「結果レポート」で出すメッセージの出し分けに使う。
 
 - **`SETUP_MODE = 初回`** … `~/.claude/.school-starter-version` が**存在しなかった**場合（フレッシュ環境）
 - **`SETUP_MODE = 更新`** … バージョンファイルが**存在した**場合（バージョンが違う＝更新、同じ＝再実行/最新 のどちらも `更新` 扱い）
 
-結果レポートでは、`初回` ならフルの環境構築案内（Homebrew / Codex CLI / Node.js / 再起動 等）を、`更新` なら短縮サマリだけを出す。詳細は末尾「結果レポート」の出力厳守ルールに従う。
+結果レポートでは、`初回` ならフルの環境構築案内（Homebrew / Codex CLI / Node.js / 再起動 等）を、`更新` なら短縮サマリ＋`PREV_VERSION` 以降の変更点を出す。詳細は末尾「結果レポート」の出力厳守ルールに従う。
 
 ### 1-2. グローバルルール（~/.claude/rules/）
 
@@ -696,6 +696,13 @@ VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマン�
 
 `SETUP_MODE = 更新` のときは、上の「グローバル設定」確認結果サマリーの後ろに、**初回ブロック（手順 1〜7・sandbox 参考）の代わりに以下の短縮サマリだけ**を出力する。`（v1.22.0）` は現在のバージョンに置き換える。
 
+**「📋 今回の更新で変わったこと」の作り方（自動表示）**: ここはハードコードせず、以下の手順で changelog から動的に組み立てる。
+
+1. `${CLAUDE_PLUGIN_ROOT}/references/plugin-changelog.md` を Read する。
+2. 各バージョンの節（`## vX.Y.Z — 日付` 見出し）のうち、**1-1 で控えた `PREV_VERSION` より新しいバージョンの節をすべて**抜き出す（新しい順）。`PREV_VERSION` と現在バージョンが同じ（＝再実行/最新）の場合は、**現在バージョンの節だけ**を出す。
+3. 抜き出した各節の箇条書きを、バージョン見出しごとに整形して「📋 今回の更新で変わったこと」に並べる。
+4. changelog が読めない・現在バージョンの節が無い場合は、`（changelog 未整備のため変更点の詳細は git log / Notion 更新履歴を参照）` の1行に差し替える（エラーで止めない）。
+
 ```
 ✅ school-starter 更新完了！（v1.22.0）
 
@@ -703,8 +710,14 @@ VS Code のターミナル（Ctrl+` または Cmd+J）から `claude` コマン�
    → 配置・更新したファイルは上の「グローバル設定」セクションのとおりです
      （作成 / 更新 / 最新 のラベルで反映済み）
 
-📋 何が変わったかの詳細は changelog を確認してください:
-   docs/plugin-changelog.md
+📋 今回の更新で変わったこと（v<PREV_VERSION> → v<現在> の差分）:
+   ＜ここに changelog から抜き出した該当バージョンの箇条書きを挿入＞
+   例:
+   【v1.24.7】
+   - 更新時メッセージに「今回の更新で変わったこと」を自動表示する仕組みを追加
+   【v1.24.6】
+   - /school-starter:setup を初回／更新で出し分け（更新時は長文を出さない）
+
    （想定外の変更がないかの目視チェックも兼ねています）
 
 これでグローバル環境は最新版に揃いました。
