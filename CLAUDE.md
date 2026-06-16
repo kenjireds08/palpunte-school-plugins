@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 - **GitHub**: kenjireds08/palpunte-school-plugins
-- **現在のバージョン**: v1.24.7
+- **現在のバージョン**: v1.24.8
 - **バージョン管理**: `plugins/school-starter/.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` の両方をバンプ
 - **公開設定**: このリポは **public 必須**（受講生が `/plugin` で更新するため。private にすると全員が更新不能になる・2026-06-16 に private 化で障害発生 → public に戻して解決）
 - **BACKLOG（内部ロードマップ）の置き場所**: public 配布に含めないため、private 姉妹リポ `palpunte-school/docs/plugin-backlog.md` にある。**プラグイン作業の起点はそのファイルを開く**（旧 `docs/BACKLOG.md` は 2026-06-16 に移設・削除済み）
@@ -88,7 +88,7 @@
   toggle: 「v1.23.0」(bold) +「（2026-06-11）— 概要」(通常)
     bulleted_list_item: 変更内容
     ...
-  toggle: 「v1.24.7」(bold) +「（日付）— 概要」   ← 最新
+  toggle: 「v1.24.8」(bold) +「（日付）— 概要」   ← 最新
     bulleted_list_item: 変更内容
 ```
 

@@ -415,13 +415,12 @@ denyリストは大きく4カテゴリ:
 - **初回**: 新規作成
 - **更新時**: 最新版で上書き（ユーザーが手動で書き換えている場合も、プラグイン側の最新を優先。カスタマイズが必要なら別名で保存してもらう方針）
 
-受講生は `~/.claude/agents/security-auditor.md` が配置されると、以下のような明示呼び出しで利用できる:
+受講生は `~/.claude/agents/security-auditor.md` が配置されると、エージェントを明示的に呼び出して利用できる。呼び出し方は2通り:
 
-```
-@agent-security-auditor このフォルダの認証周りをレビューして、OWASP Top 10 観点でリスクがあれば指摘して
-```
+- チャットで `@agent-security-auditor`（先頭に `@agent-` を付ける）に続けて、レビューしたい内容（例:「このフォルダの認証周りを OWASP Top 10 観点でレビューして」）を書く
+- または `Agent` ツールに `subagent_type: "security-auditor"` を指定する
 
-または `Agent` ツールに `subagent_type: "security-auditor"` を指定することでも発動する。
+🔴 **重要（setup 実行時の厳守事項）**: 上記はあくまで**受講生への使い方の説明**である。**この `/school-starter:setup` の実行中に security-auditor を起動してはならない**（`@agent-security-auditor ...` を実行命令として解釈しないこと）。1-9 での setup の仕事は、エージェント定義ファイルを `~/.claude/agents/` に配置するだけ。監査の実行は受講生が第7回・第10回で自分で呼び出して行う。
 
 ### 1-10. Plan Mode 出力先の設定（plansDirectory）
 

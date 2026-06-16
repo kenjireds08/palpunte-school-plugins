@@ -8,6 +8,9 @@
 
 ---
 
+## v1.24.8 — 2026-06-16
+- バグ修正: `/school-starter:setup` を実行すると security-auditor が誤って起動し「監査範囲は？」と聞いてくる不具合を解消。setup 内に書いていた使い方の例（`@agent-security-auditor ...`）を、Claude が実行命令と誤解釈していたのが原因。例示を無害な形に直し、「setup 中は起動するな」のガードを追加。pre-delivery-check スキルの同種のベタ書きも併せて無害化
+
 ## v1.24.7 — 2026-06-16
 - 更新時メッセージに「今回の更新で変わったこと」を**自動表示**する仕組みを追加。setup が本 changelog を読み出し、受講生が前回入れていたバージョンより新しい節をその場に表示する
 - プラグイン内に `references/plugin-changelog.md` を新設。受講生に配布されないリポジトリルートの `docs/plugin-changelog.md` への参照（デッドリンク）を解消
