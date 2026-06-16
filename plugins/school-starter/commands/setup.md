@@ -58,7 +58,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Glob
 
 **サプライチェーン注意**: `/plugin marketplace add kenjireds08/palpunte-school-plugins` + `/plugin install school-starter@palpunte-school-plugins` は現状 GitHub のデフォルトブランチ最新コミットを拾う仕様。将来 GitHub アカウントが乗っ取られた場合、受講生の次回 setup で悪性コードが配布されるリスクがある。以下で軽減する:
 
-- 受講生には **`/plugin update school-starter` → `/school-starter:setup` のタイミングで、更新時メッセージに自動表示される「今回の更新で変わったこと」（`${CLAUDE_PLUGIN_ROOT}/references/plugin-changelog.md` 由来）を読んでもらう**（想定外の変更がないか確認）
+- 受講生には **プラグインを更新（`/plugin` → `Installed` タブ → `school-starter` を選択 → `Update now`）して `/reload-plugins` → `/school-starter:setup` を実行したタイミングで、更新時メッセージに自動表示される「今回の更新で変わったこと」（`${CLAUDE_PLUGIN_ROOT}/references/plugin-changelog.md` 由来）を読んでもらう**（想定外の変更がないか確認）。※ `/plugin update <名前>` というコマンド形式は存在しない（`/plugin` の UI から `Update now` で更新する）
 - 更新時に `/school-starter:setup` で置き換わるファイル一覧（rules/・commands/・agents/）は配置後に目視確認
 - 将来的にタグ固定運用（`@v1.15.0` 形式）が Claude Code の `/plugin install` で公式対応したら移行予定
 
@@ -458,7 +458,7 @@ Claude Code v2.1.80 で追加された `rate_limits` フィールドを使い、
    ```
    - **🔴 重要（v1.21.0〜 Node 製の理由）**: 旧 `statusline.py` は Python 製で、**新品 Windows は本物の Python が未インストール**（Microsoft Store のダミー stub だけ）のため、受講生がステータスラインを表示できない問題が頻発した。Node.js は第1回で全受講生が必ず導入するので、Node 製にすれば**追加インストール不要**で全 OS で動く。あわせて reset 時刻フォーマットを OS 非依存化し、**Windows でも reset 時刻が表示される**ようにした
    - **`~` ではなく絶対パスで書く理由**: settings.json の `statusLine.command` は `~` が確実に展開されない（特に Windows）。Claude が OS 判定してホームを絶対パスに展開して書く。`node` 自体は PATH 解決なので、**Node のバージョンを上げてもパスが壊れない**（旧 Python 版で `python.exe` の絶対パスを直書きしてバージョン依存になっていた脆さを解消）
-   - **プラグイン配下を直接参照**するため、`/plugin update school-starter` で構造的に最新化される（スクリプト本体 `scripts/statusline.js` が更新される）
+   - **プラグイン配下を直接参照**するため、`/plugin` の `Installed` タブから `Update now` でプラグインを更新すると構造的に最新化される（スクリプト本体 `scripts/statusline.js` が更新される）
 
 **旧設計からの移行ポイント:**
 - v1.10.0〜v1.17.0: `~/.claude/scripts/statusline.py` にコピーする方式 → setup 再実行しないと反映されない罠（v1.17.0 直後に学生環境で発覚）
@@ -483,7 +483,7 @@ Claude Code を再起動すると、チャット欄の下にこんな感じで 2
 - +N/-N: 未コミット変更の行差分（溜まりすぎたら commit のサイン）
 
 【改善ポイント】
-・プラグイン更新（/plugin update school-starter）だけで自動的に最新版に追従する（v1.17.1〜）。
+・プラグインを更新（/plugin → Installed タブ → Update now）するだけで自動的に最新版に追従する（v1.17.1〜）。
 ・Node.js 製になり（v1.21.0〜）、Python のインストールが不要に。Windows でも reset 時刻が表示されるようになった。
 
 【他のデザイン（5パターン）に変えたい場合】
