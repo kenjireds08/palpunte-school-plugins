@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  実装プランの「判断用要約」テンプレート（v1.25.0〜）
+
+  なぜこれがあるか:
+    実装プラン（docs/plans/*.md）は Codex にレビューさせる前提で書くので、
+    専門用語も分量も多くなる。人はそれを読み切れず「読めないから承認する」が起きる。
+    技術的な妥当性は Codex が担当するので、人が判断すべきなのは
+    「これは自分が求めているものか / いつやるか / クライアントに説明できるか」だけ。
+    このページはその判断だけのために作る。
+
+  使い方:
+    1. このファイルをコピーして docs/plans/<プランと同じ名前>.html にする
+    2. {{ }} の箇所を差し替える。CSS は触らない
+    3. ブラウザで開いてユーザーに見せ、判断を待つ
+
+  厳守事項:
+    - ライト固定。ダークモード対応を足さない（説明資料に例外を作らない）
+    - 専門用語・モデル名・ファイル名・ライブラリ名を書かない → それは .md 側の仕事
+    - 「決めてほしいこと」は最大3つ。多いと判断が止まる
+    - 1画面（スクロール1回以内）で読み終わる分量に収める
+    - 不要な節は削る。埋めるために内容を作らない
+    - 最後の「詳細を読む必要はありません」は消さない（読まない後ろめたさを消すため）
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プラン要約 — {{タスク名}}</title>
+<style>
+  /* 説明資料はライト固定。ダークモードには追従させない
+     広い画面での間延び対策として、body を「机」・中身を「紙」として置く */
+  :root {
+    color-scheme: light only;
+    --desk: #e8ecf2;
+    --sheet: #ffffff;
+    --panel: #f7f7f5;
+    --ink: #1a1a1a;
+    --sub: #6b6b6b;
+    --line: #e3e3e0;
+    --accent: #1a1a1a;
+    --mark: #f5c518;
+    --warn: #c0392b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.5rem 4rem;
+    background: var(--desk); color: var(--ink);
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    line-height: 1.75; font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 820px; margin: 0 auto;
+    background: var(--sheet); padding: 2.5rem 2.75rem 3rem;
+    border-radius: 6px; box-shadow: 0 2px 18px rgba(26,32,44,.10);
+  }
+  @media (max-width: 900px) {
+    body { background: var(--sheet); padding: 0; }
+    .wrap { margin: 0; border-radius: 0; box-shadow: none; padding: 1.75rem 1.15rem 3rem; }
+  }
+
+  header { border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.75rem; }
+  .kicker { font-size: .75rem; letter-spacing: .08em; color: var(--sub); text-transform: uppercase; }
+  h1 { margin: .3rem 0 .5rem; font-size: 1.5rem; line-height: 1.4; letter-spacing: -.01em; }
+  .oneline { font-size: 1rem; color: var(--ink); margin: 0; }
+  .meta { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .5rem; font-size: .8rem; }
+  .tag { border: 1px solid var(--line); border-radius: 999px; padding: .15rem .65rem; color: var(--sub); }
+  .tag.pending { border-color: var(--warn); color: var(--warn); }
+
+  h2 { font-size: 1.05rem; margin: 2rem 0 .75rem; padding-bottom: .35rem; border-bottom: 1px solid var(--line); }
+  h2 .n { color: var(--sub); font-weight: 400; margin-right: .4rem; }
+
+  .decide { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--mark);
+            border-radius: 4px; padding: 1rem 1.1rem; margin-bottom: .9rem; }
+  .decide .q { font-weight: 600; margin: 0 0 .6rem; }
+  .opt { display: flex; gap: .6rem; align-items: baseline; padding: .3rem 0; }
+  .opt .lbl { flex: 1; }
+  .rec { font-size: .72rem; border: 1px solid var(--accent); border-radius: 3px;
+         padding: .05rem .4rem; white-space: nowrap; }
+  .why { font-size: .85rem; color: var(--sub); margin: .5rem 0 0; }
+
+  ul { margin: 0; padding-left: 1.2rem; }
+  li { margin: .3rem 0; }
+  .flat { list-style: none; padding: 0; }
+  .flat li { padding-left: 1.1rem; position: relative; }
+  .flat li::before { content: "—"; position: absolute; left: 0; color: var(--sub); }
+
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--sub); font-weight: 500; width: 11rem; }
+
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line);
+           font-size: .82rem; color: var(--sub); }
+  code { font-family: ui-monospace, monospace; font-size: .85em; background: var(--panel);
+         border: 1px solid var(--line); border-radius: 3px; padding: .05rem .3rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">プラン要約 / {{案件名}}</div>
+  <h1>{{何をするかを、ひと目で分かる言葉で}}</h1>
+  <p class="oneline">{{1〜2文。なぜやるのか、使う人に何が起きるのか}}</p>
+  <div class="meta">
+    <!-- Codex レビュー前は class="tag pending" にする -->
+    <span class="tag">Codexレビュー: {{approve済み / まだ}}</span>
+    <span class="tag">作業見込み: {{半日 / 1日 / 3日}}</span>
+  </div>
+</header>
+
+<h2><span class="n">01</span>決めてほしいこと</h2>
+<!-- 最大3つ。「承認しますか」ではなく「どれにしますか」の形にする。
+     選択肢がない場合はこの節を削り、02 から始める -->
+
+<div class="decide">
+  <p class="q">{{決めてほしいことを疑問形で}}</p>
+  <div class="opt"><span class="lbl">{{選択肢1}}</span><span class="rec">おすすめ</span></div>
+  <div class="opt"><span class="lbl">{{選択肢2}}</span></div>
+  <p class="why">{{なぜそれをおすすめするか。判断に必要な事実だけ}}</p>
+</div>
+
+<h2><span class="n">02</span>何が変わるか</h2>
+<!-- 画面・機能・使う人の体験の言葉で書く。ファイル名やライブラリ名は書かない -->
+<ul class="flat">
+  <li>{{使う人から見て何が変わるか。変わらないなら「変わらない」と明記する}}</li>
+</ul>
+
+<h2><span class="n">03</span>触る範囲</h2>
+<table>
+  <tr><th>触るところ</th><td>{{機能名で書く}}</td></tr>
+  <tr><th>触らないところ</th><td>{{影響しないと保証できるもの。ここが安心材料になる}}</td></tr>
+</table>
+
+<h2><span class="n">04</span>リスクと備え</h2>
+<!-- 「何が壊れうるか」と「そのときどう戻すか」をペアで書く -->
+<table>
+  <tr><th>{{起きうること}}</th><td>{{備え・戻し方}}</td></tr>
+</table>
+
+<footer>
+  技術的な詳細（{{使う技術・該当箇所・検証手順}}）は
+  <code>docs/plans/{{ファイル名}}.md</code> 側に書いてあります。
+  そちらは Codex がレビューします。<br>
+  このページは判断用の要約です。詳細を読む必要はありません。
+</footer>
+
+</div>
+</body>
+</html>

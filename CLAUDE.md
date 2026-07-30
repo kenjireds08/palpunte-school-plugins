@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 - **GitHub**: kenjireds08/palpunte-school-plugins
-- **現在のバージョン**: v1.24.8
+- **バージョン（SSoT）**: `plugins/school-starter/.claude-plugin/plugin.json` が**唯一の真実**。CLAUDE.md 群（このファイル・palpunte-school・_knowledge-hub）には版数を書かない（2026-07-06 一本化。人力3箇所同期が三重ズレを起こしたため）
 - **バージョン管理**: `plugins/school-starter/.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` の両方をバンプ
 - **公開設定**: このリポは **public 必須**（受講生が `/plugin` で更新するため。private にすると全員が更新不能になる・2026-06-16 に private 化で障害発生 → public に戻して解決）
 - **BACKLOG（内部ロードマップ）の置き場所**: public 配布に含めないため、private 姉妹リポ `palpunte-school/docs/plugin-backlog.md` にある。**プラグイン作業の起点はそのファイルを開く**（旧 `docs/BACKLOG.md` は 2026-06-16 に移設・削除済み）
@@ -45,12 +45,29 @@
 
 これらは現在動作しているが、次回 Opus バージョンアップ後に「本当に必要か」実験ベースで検証する。
 
+## 新機能の置き場所（IMPORTANT・2026-07-31 確定）
+
+**新機能は `/plugin` の Update だけで受講生に届く場所に置く。**
+
+| 置き場所 | 受講生への届き方 |
+|---|---|
+| `skills/` `commands/` `hooks/` `scripts/` | **`/plugin update` で自動追従**（プラグイン配下を直接参照するため） |
+| `references/rules/` `references/skills/` | setup 時に `~/.claude/` へ**コピー**される。更新しても **`/school-starter:setup` を再実行するまで届かない** |
+
+ルール性の強い内容（「こういうときは必ずこうする」）でも、`references/rules/` に足すと既に setup 済みの受講生には届かない。
+**Hook の inject（`scripts/flow-gate.js` 方式）か、スキルの形に落として配置すること。**
+`references/` に置いてよいのは、Hook / スキルから `${CLAUDE_PLUGIN_ROOT}` 経由で読ませるテンプレート類（例: `plan-summary-template.html`）。これはプラグイン配下を直接読むので自動追従する。
+
+※ 根本解決（コピー方式の全廃）は `palpunte-school/docs/plugin-backlog.md` の 🔴0 として未着手。
+
 ## 更新手順
 
-1. ファイル修正（上記「判断フロー」に沿って）
-2. plugin.json + marketplace.json + この CLAUDE.md「現在のバージョン」のバンプ
-3. コミット & プッシュ
-4. Notionガイドページの更新履歴に追記（下記構造を参照）
+1. ファイル修正（上記「判断フロー」「新機能の置き場所」に沿って）
+2. plugin.json + marketplace.json のバンプ（版数の SSoT は plugin.json・CLAUDE.md には書かない）
+3. `plugins/school-starter/references/plugin-changelog.md` に受講生向けの言葉で追記
+4. `npm run test:hooks` を実行して全パスを確認
+5. コミット & プッシュ
+6. Notionガイドページの更新履歴に追記（下記構造を参照）
 
 ## Notionガイドページ構造
 

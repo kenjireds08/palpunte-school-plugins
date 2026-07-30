@@ -19,6 +19,7 @@
  *   - *spec-light*.md    → モックの前に DESIGN.md を先に作るよう誘導（+ 連番チェック）
  *   - *estimate*.md      → HTML 御見積書→PDF 化を問いかけて待つ（実案件はインフラ実費）
  *     （estimate_for_client.html は清書後なので対象外＝.md のみ）
+ *   - docs/plans/*.md    → Codex レビュー後に「判断用 HTML 要約」を作らせる（v1.25.0〜）
  *
  * inject 方式: 終了 0 + stdout に {"decision":"block","reason":"..."}（PostToolUse 公式サポート）。
  *   reason が Claude にフィードバックされ、次の行動を促す（ツールは実行済みなので
@@ -38,6 +39,7 @@ process.stdin.on('end', () => {
 
     const p = input.tool_input?.file_path || '';
     const base = p.split(/[\\/]/).pop() || '';
+    const dirs = p.split(/[\\/]/).slice(0, -1);
 
     let reason = null;
 
@@ -73,6 +75,37 @@ process.stdin.on('end', () => {
         'ブラウザで PDF として保存できるようにしますか？」と問いかけ、返答を待ってください。\n' +
         '実案件（production 運用）の場合は、ランニングコストを3層【① 初期費用 / ② 月額インフラ実費 / ③ 月額保守】で明示し、' +
         'Supabase Pro $25 + Vercel Pro $20 ≈ 月$45 の実費計上を確認すること（「無料枠スタート可」だけだと誤解を与える）。';
+    }
+    // ④ docs/plans/*.md → Codex レビュー後に「判断用 HTML 要約」を作る（v1.25.0〜）
+    //    背景: 実装プランの .md は分量も専門用語も多く、非エンジニアは読み切れずに
+    //    「読めないから承認する」が起きる。技術的妥当性は Codex が見るので、
+    //    人間は「これは求めているものか / いつやるか」だけを判断できればよい。
+    //    → 同じ内容を 1 画面の HTML に要約させ、判断の入口をそちらに移す。
+    else if (
+      /\.md$/i.test(base) &&
+      dirs.includes('plans') &&
+      !dirs.includes('archive') &&
+      !/^(README|CLAUDE|AGENTS)\.md$/i.test(base)
+    ) {
+      const root = process.env.CLAUDE_PLUGIN_ROOT || '';
+      reason =
+        '実装プラン（' + base + '）ができました。このあとの順番を必ず守ってください。\n' +
+        '1. まず Codex に読ませてレビューしてもらうよう、ユーザーに依頼文をコピペ用に案内する\n' +
+        '2. Codex が approve したら、**実装に入る前に**同じ内容の「判断用 HTML 要約」を\n' +
+        '   同じフォルダに <同じファイル名>.html として作る\n' +
+        '3. ブラウザで開いて見せ、ユーザーの判断を待つ（ここで初めて実装に入ってよい）\n\n' +
+        '判断用 HTML のルール:\n' +
+        '- 1 画面で読み終わる分量にする。プランの .md をそのまま HTML にしない\n' +
+        '- 専門用語・ファイル名・ライブラリ名を書かない。画面や機能の言葉で書く\n' +
+        '- 中身は「決めてほしいこと（最大3つ）／何が変わるか／触る範囲／リスクと戻し方」\n' +
+        '- 「承認しますか？」ではなく「①②③のどれにしますか？」の形にする\n' +
+        '- ダークモード対応は付けない（説明資料はライト固定）\n' +
+        (root
+          ? '- ひな形が ' + root + '/references/plan-summary-template.html にあります。\n' +
+            '  必ず読んでから作ってください（CSS はそのまま使い、{{ }} だけ差し替える）\n'
+          : '') +
+        '\n技術的な詳細は .md 側に残したままでよく、HTML から落として構いません。' +
+        '技術的な妥当性は Codex が担当し、ユーザーは「これは自分が求めているものか」を判断する担当です。';
     }
 
     if (reason) {
