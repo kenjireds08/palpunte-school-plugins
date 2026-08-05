@@ -444,13 +444,15 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 
 **毎日決まった時刻に動く仕組み**（Vercel Cron / GitHub Actions / 外部スケジューラ）がアプリに既にあり、**それがデータベースを読みに行っている**場合、pause は起こりません。7 日のカウントは「**DB にアクセスがあったか**」で決まるので、**メールを送ったかどうかは関係なく、DB を見に行った時点でリセット**されます（送る予約が 0 件の日でも成立）。
 
-確認方法（ターミナル・プロジェクトフォルダ内）:
+**確認方法**: 受講生に聞く前に、**Claude がコードを読んで**「毎日決まった時刻に動く処理」があるかを確認する。よくある形は次の 3 つ:
 
-```bash
-ls vercel.json .github/workflows/ 2>/dev/null && cat vercel.json 2>/dev/null | grep -A 5 crons
-```
+| 形 | 探す場所 |
+|----|---------|
+| **外部のスケジューラがアプリの API を呼ぶ**（Google Apps Script のトリガー等） | `app/api/` 配下に、リマインド・通知・バッチ用の route があるか（例: `app/api/reminders/tomorrow/route.ts`）。**このコースで作るのはこの形** |
+| Vercel Cron | `vercel.json` の `crons` |
+| GitHub Actions | `.github/workflows/` の `schedule` |
 
-`crons` の設定や workflow ファイルがあれば、その処理が DB を読んでいるかコードを確認する。
+見つかったら、**その処理がデータベースを読んでいるか**をコードで確認する（予約データを取得していれば該当）。
 
 **この場合の本項目の判定**:
 - **N/A（Pro プラン契約済み / 契約を提案予定）**
