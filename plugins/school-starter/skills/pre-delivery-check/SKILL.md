@@ -106,21 +106,26 @@ description: "納品当日・本番デプロイ直前の最終総合チェック
 **コピペ先**: **ターミナル（VS Code のターミナルでも別ターミナルでも可・プロジェクトフォルダ内）**
 
 **確認方法**:
-ターミナルで以下を実行（**追加コミット**だけを抽出して出力を絞る）:
+ターミナルで以下を実行（**追加コミット**だけを抽出し、**テンプレートファイルは除外**して出力を絞る）:
 
 ```bash
-git log --all --diff-filter=A -- ".env*" ".env"
+git log --all --diff-filter=A --name-only -- ".env*" ".env" ":(exclude).env.example" ":(exclude).env.*.example"
 ```
 
 何も出力されなければ OK。何か出たら過去にコミットされたことがあるので詳細を確認:
 
 ```bash
-git log --all --diff-filter=A -p -- ".env*" ".env" | head -200
+git log --all --diff-filter=A -p -- ".env*" ".env" ":(exclude).env.example" ":(exclude).env.*.example" | head -200
 ```
 
-**PASS の条件**: 1 つ目のコマンドの出力が空（`.env*` が一度も git に追加されたことがない）
+**PASS の条件**: 1 つ目のコマンドの出力が空
 
-**FAIL の対処**（漏れていた場合）:
+**🚨 判定前に必ず確認すること（誤判定が最も多い項目）**:
+`.env.example` / `.env.local.example` は **中身がダミー値のテンプレート**なので、**git にコミットされているのが正常**です（`/school-starter:new-project` が最初に作り、チーム全員が「どの変数が必要か」を知るためのファイル）。
+
+上のコマンドは除外済みですが、もし出力に **`.env.example` しか出てこなかった場合は PASS** と判定してください。**API キーのローテーションは不要**です。実際に危険なのは `.env` / `.env.local` / `.env.production` など、**実際の値が入るファイル**が出てきた場合だけです。
+
+**FAIL の対処**（`.env.example` 以外の、実値の入るファイルが出てきた場合）:
 1. **まず該当 API キーを全部ローテーション**（再発行）— Supabase / Stripe / Resend / OpenAI / GitHub Token 等
 2. 新しいキーを Vercel 環境変数（Sensitive 化）に再登録
 3. git 履歴からのファイル削除は影響が大きい（共同開発者の手元と衝突）ので、**ちーけんさんに相談してから** `git filter-repo` 等で対応
@@ -435,7 +440,24 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 
 **推奨対応**: クライアントに **Supabase Pro プラン契約**（$25/月）を提案して、無料プラン pause 問題自体を発生させない。引き渡しパッケージ（項目 8）に「**Supabase は Pro プラン必須**」の理由と契約方法を明記。
 
-**この場合の本項目の判定**: **N/A（Pro プラン契約済み）** または **要確認（クライアントと契約形態を相談中）**
+**⚠️ 判定を出す前に、まず今のアプリを確認する（この項目は「無関係」で流さない）**:
+
+**毎日決まった時刻に動く仕組み**（Vercel Cron / GitHub Actions / 外部スケジューラ）がアプリに既にあり、**それがデータベースを読みに行っている**場合、pause は起こりません。7 日のカウントは「**DB にアクセスがあったか**」で決まるので、**メールを送ったかどうかは関係なく、DB を見に行った時点でリセット**されます（送る予約が 0 件の日でも成立）。
+
+確認方法（ターミナル・プロジェクトフォルダ内）:
+
+```bash
+ls vercel.json .github/workflows/ 2>/dev/null && cat vercel.json 2>/dev/null | grep -A 5 crons
+```
+
+`crons` の設定や workflow ファイルがあれば、その処理が DB を読んでいるかコードを確認する。
+
+**この場合の本項目の判定**:
+- **N/A（Pro プラン契約済み / 契約を提案予定）**
+- **PASS（既存の定期処理が毎日 DB にアクセスしているため pause しない）** ← リマインド通知などの定期処理を実装済みの場合
+- **要確認（クライアントと契約形態を相談中）**
+
+**受講生への伝え方**: 「pause 対策のために何かを足す」のではなく、「**すでに作ったものが、結果として pause 対策になっている**」ことに気づいてもらう項目。無料プランのまま止まらない理由を説明できる状態がゴール。
 
 **注意**: Supabase 公式に「これを叩けば必ず pause 解除」という決定的なエンドポイント名のドキュメントは存在しない。`/rest/v1/` への anon key 付き GET（PostgREST ルート）が最も広く使われる慣習。より確実にしたい場合は実際の SELECT クエリを発行する。
 
@@ -472,10 +494,13 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 - **特に CSP は静的解析で見えないので必ず目視**
 
 #### 4-3. Vercel Function Logs を確認
-```bash
-vercel logs <project-name> --since 1h
-```
-（または Vercel Dashboard → 該当プロジェクト → Logs タブ）
+
+**コピペ先**: **ブラウザで Vercel ダッシュボード**（このコースでは **Vercel CLI は使いません**・`CLAUDE.md` の方針どおりブラウザで確認します）
+
+1. https://vercel.com/dashboard を開く → 該当プロジェクト
+2. 上部タブの **Logs** を開く
+3. 時間範囲を **Last 1 hour** 前後にして、赤い error 行が無いか目視
+
 - Server Action / API Route の error が出ていないか
 - 環境変数未設定エラー（`undefined is not a function` 等）が無いか
 
@@ -596,6 +621,8 @@ vercel logs <project-name> --since 1h
 1. **項目 1 で `NEXT_PUBLIC_*` まで Sensitive 化してしまう** — `NEXT_PUBLIC_*` は**ブラウザに露出する前提**なのでそもそも Sensitive 化不要・してもブラウザコード内では値が見える。**シークレットを `NEXT_PUBLIC_*` に入れている**ことが本当の問題（その場合は変数名を変えて再設計）
 
 2. **項目 2 で「`.gitignore` に入っているからセーフ」と判断する** — `.gitignore` は**今後の追加**を防ぐだけで、**過去にコミットしてしまった履歴**は別途確認が必要。`git log --all --diff-filter=A` で必ず過去の追加コミットを見る
+
+2-b. **項目 2 で `.env.example` がヒットして FAIL と判定し、API キーのローテーションを始めてしまう** — `.env.example` は**ダミー値のテンプレートなのでコミットされているのが正常**。慌ててキーを再発行する必要はない。**出てきたファイル名を必ず見る**（危険なのは `.env` / `.env.local` / `.env.production` のような**実値が入るファイル**だけ）
 
 3. **項目 4 のヘッダー確認で `curl` ではなくブラウザの DevTools で見て満足する** — ブラウザは**キャッシュやプロキシで誤った結果**を見せることがある。必ず `curl -I` で**素のレスポンス**を見る
 
