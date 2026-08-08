@@ -371,8 +371,10 @@ README.md（または別途の引き渡し文書）に以下が**全部**書か�
    - 不要なものは **アクセス権を削除**
    - **組織管理の Google Workspace**（企業契約・受講生が組織のメンバーとして使う場合）の場合は、**管理者が** https://admin.google.com → セキュリティ → API のコントロール → アプリのアクセス制御 で組織全体のサードパーティアプリを管理できる。受講生個人で使う範囲では `myaccount.google.com/permissions` で十分
 
-3. **Vercel Integrations**: https://vercel.com/account/integrations
+3. **Vercel Integrations**: https://vercel.com/dashboard を開き、**上部ナビの「Integrations」**をクリック
    - 接続している外部サービス（GitHub / Slack / Supabase 等）が **最小権限**で接続されているか
+   - **⚠️ 直リンクを案内しない**（2026-08-08 実測）: 旧 URL `https://vercel.com/account/integrations` は **404 になる**。Vercel はこの手のページを移動するので、**ダッシュボードから辿らせる**こと
+   - GitHub 側（上記 1.）で Vercel の連携が確認できていれば、実質的に同じことを見ている。時間がなければそちらで代替してよい
 
 **PASS の条件**:
 - 心当たりのない / 使っていない連携が **0 件**
