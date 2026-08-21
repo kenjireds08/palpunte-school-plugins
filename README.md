@@ -112,7 +112,15 @@ setupで配置したグローバル設定は自動的に適用されます。
 /plugin
 ```
 
-→ `Installed` タブ → `school-starter` を選択 → `Update now`
+→ `Installed` タブ → `school-starter` を選択 → `Update now` → `Esc` で閉じる
+
+そのあと反映する（ここまでやらないと新しいスキル・コマンド・Hook が有効にならない）:
+
+```
+/reload-plugins
+```
+
+ルール・テンプレートに変更があるリリースでは `/school-starter:setup` も実行する（毎回実行しても害はない）。
 
 受講生向けの操作解説動画:
 https://drive.google.com/file/d/1-Ubb3KUf5KT2pVO_BEK8PSFudIsirYPy/view?usp=sharing
