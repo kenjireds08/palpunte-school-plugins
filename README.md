@@ -106,6 +106,13 @@ setupで配置したグローバル設定は自動的に適用されます。
 
 ## 更新
 
+`/plugin` の UI から更新する。**`/plugin update <名前>` というコマンド形式は存在しない**。
+
 ```
-/plugin update school-starter@kenjireds08/palpunte-school-plugins
+/plugin
 ```
+
+→ `Installed` タブ → `school-starter` を選択 → `Update now`
+
+受講生向けの操作解説動画:
+https://drive.google.com/file/d/1-Ubb3KUf5KT2pVO_BEK8PSFudIsirYPy/view?usp=sharing
