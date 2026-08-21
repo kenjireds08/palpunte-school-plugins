@@ -18,6 +18,8 @@
     - ライト固定。ダークモード対応を足さない（説明資料に例外を作らない）
     - 専門用語・モデル名・ファイル名・ライブラリ名を書かない → それは .md 側の仕事
     - 「決めてほしいこと」は最大3つ。多いと判断が止まる
+    - 図を必ず1つ入れる（01 の節）。図が無いプラン要約は不可
+    - 図はインライン SVG で描く。mermaid・外部 CDN・画像ファイルは使わない（file:// で開くため）
     - 1画面（スクロール1回以内）で読み終わる分量に収める
     - 不要な節は削る。埋めるために内容を作らない
     - 最後の「詳細を読む必要はありません」は消さない（読まない後ろめたさを消すため）
@@ -39,6 +41,8 @@
     --sub: #6b6b6b;
     --line: #e3e3e0;
     --accent: #1a1a1a;
+    --line2: #b9b9b4;
+    --key: #4f46e5;
     --mark: #f5c518;
     --warn: #c0392b;
   }
@@ -90,6 +94,19 @@
   th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--sub); font-weight: 500; width: 11rem; }
 
+  /* 図（01 の節）。線画・モノトーン＋アクセント1色。色で分類しない */
+  .figure { border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
+            padding: 1.25rem 1rem; margin: .2rem 0 .5rem; overflow-x: auto; }
+  .figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .figure svg text { font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+  .fig-node { fill: #fff; stroke: var(--line2); stroke-width: 1.5; }
+  .fig-label { font-size: 13px; font-weight: 600; fill: var(--ink); }
+  .fig-sub { font-size: 11px; fill: var(--sub); }
+  .fig-arrow { stroke: var(--line2); stroke-width: 1.5; fill: none; marker-end: url(#ah); }
+  .fig-arrow.dashed { stroke-dasharray: 4 4; }
+  .fig-verb { font-size: 11px; fill: var(--sub); }
+  .cap { font-size: .85rem; color: var(--sub); margin: 0 0 .3rem; }
+
   footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line);
            font-size: .82rem; color: var(--sub); }
   code { font-family: ui-monospace, monospace; font-size: .85em; background: var(--panel);
@@ -110,9 +127,81 @@
   </div>
 </header>
 
-<h2><span class="n">01</span>決めてほしいこと</h2>
+<h2><span class="n">01</span>全体像</h2>
+<!-- 図は必須。文章だけで済ませない。描き方:
+       ・登場人物/モノを箱で置く。ラベルは2段（上=日本語の呼び名・太字 / 下=実体を小さくグレー）
+       ・矢印には必ず動詞のラベルを振る（保存する / 通知する / 読み書きする）
+       ・実線=主な流れ、点線=補助・条件付き・外部要因
+       ・色はモノトーン＋アクセント1色（--key）だけ。色で分類しない
+       ・図の下の .cap には「この図から何が言えるか」を一言。図の説明は書かない
+       ・同じ長方形を並べない。画面=窓枠 / 保存先=円柱 / 自動処理=ロボット / 人=丸＋肩
+         定期実行=時計 / クラウド=点線の雲 と、種類ごとに違う記号で描き分ける
+     下は骨組み。ノードの数と位置は内容に合わせて作り替える。
+     書き終えたら必ずブラウザで開いて、ラベルが重なっていないか目で確認する -->
+<div class="figure">
+  <svg viewBox="0 0 700 260" role="img" aria-label="{{図の内容を一言で}}">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#b9b9b4"/>
+      </marker>
+    </defs>
+
+    <!-- 人（丸＋肩の弧）。使う人・担当者・お客さま -->
+    <circle cx="44" cy="96" r="13" fill="#4f46e5"/>
+    <path d="M25,130 a19,19 0 0 1 38,0" fill="#4f46e5"/>
+    <text class="fig-label" x="44" y="152" text-anchor="middle">{{使う人}}</text>
+
+    <!-- 画面・フォーム（窓枠。左上の3つの丸が「画面」の記号） -->
+    <rect class="fig-node" x="112" y="68" width="156" height="76" rx="6"/>
+    <circle cx="124" cy="80" r="2.6" fill="#b9b9b4"/>
+    <circle cx="133" cy="80" r="2.6" fill="#b9b9b4"/>
+    <circle cx="142" cy="80" r="2.6" fill="#b9b9b4"/>
+    <line x1="112" y1="90" x2="268" y2="90" stroke="#e4e4e1" stroke-width="1.2"/>
+    <text class="fig-label" x="190" y="114" text-anchor="middle">{{画面の名前}}</text>
+    <text class="fig-sub" x="190" y="131" text-anchor="middle">{{そこで何を入れるか}}</text>
+
+    <!-- 保存先（円柱）。不要なら削る -->
+    <path d="M138,196 v38 a52,13 0 0 0 104,0 v-38" fill="#fff" stroke="#b9b9b4" stroke-width="1.5"/>
+    <ellipse cx="190" cy="196" rx="52" ry="13" fill="#fff" stroke="#b9b9b4" stroke-width="1.5"/>
+    <text class="fig-label" x="190" y="256" text-anchor="middle">{{保存されるもの}}</text>
+
+    <!-- 自動で動くもの（ロボット）。人手を介さない処理はこの記号で -->
+    <line x1="404" y1="76" x2="404" y2="60" stroke="#4f46e5" stroke-width="2.2"/>
+    <circle cx="404" cy="56" r="4" fill="#4f46e5"/>
+    <rect x="356" y="76" width="96" height="76" rx="14" fill="#fff" stroke="#4f46e5" stroke-width="2.2"/>
+    <circle cx="382" cy="106" r="7.5" fill="#4f46e5"/>
+    <circle cx="426" cy="106" r="7.5" fill="#4f46e5"/>
+    <path d="M386,130 q18,11 34,0" stroke="#4f46e5" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <text class="fig-label" x="404" y="174" text-anchor="middle">{{自動で動くところ}}</text>
+    <text class="fig-sub" x="404" y="191" text-anchor="middle">{{何をきっかけに動くか}}</text>
+
+    <!-- 外部サービス。そのブランド色の角丸カードで置く（例は汎用色） -->
+    <rect x="520" y="80" width="150" height="70" rx="10" fill="#4f46e5"/>
+    <text x="595" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">{{届け先}}</text>
+    <text x="595" y="132" text-anchor="middle" font-size="10.5" fill="#e7e6ff">{{誰が受け取るか}}</text>
+
+    <!-- 矢印には必ず動詞を振る。実線=主な流れ / 点線=補助・条件つき -->
+    <path class="fig-arrow" d="M68,106 L108,106"/>
+    <text class="fig-verb" x="88" y="97" text-anchor="middle">{{動詞}}</text>
+
+    <path class="fig-arrow" d="M190,148 L190,178"/>
+    <text class="fig-verb" x="200" y="168" text-anchor="start">{{動詞}}</text>
+
+    <path class="fig-arrow" d="M272,102 C312,90 334,92 352,104"/>
+    <text class="fig-verb" x="316" y="76" text-anchor="middle">{{動詞}}</text>
+
+    <path class="fig-arrow dashed" d="M244,210 C310,210 330,180 356,146"/>
+    <text class="fig-verb" x="300" y="228" text-anchor="middle">{{動詞}}</text>
+
+    <path class="fig-arrow" d="M456,114 L516,114"/>
+    <text class="fig-verb" x="486" y="105" text-anchor="middle">{{動詞}}</text>
+  </svg>
+</div>
+<p class="cap">{{この図から何が言えるか。一言だけ}}</p>
+
+<h2><span class="n">02</span>決めてほしいこと</h2>
 <!-- 最大3つ。「承認しますか」ではなく「どれにしますか」の形にする。
-     選択肢がない場合はこの節を削り、02 から始める -->
+     選択肢がない場合はこの節を削り、03 から始める -->
 
 <div class="decide">
   <p class="q">{{決めてほしいことを疑問形で}}</p>
@@ -121,19 +210,19 @@
   <p class="why">{{なぜそれをおすすめするか。判断に必要な事実だけ}}</p>
 </div>
 
-<h2><span class="n">02</span>何が変わるか</h2>
+<h2><span class="n">03</span>何が変わるか</h2>
 <!-- 画面・機能・使う人の体験の言葉で書く。ファイル名やライブラリ名は書かない -->
 <ul class="flat">
   <li>{{使う人から見て何が変わるか。変わらないなら「変わらない」と明記する}}</li>
 </ul>
 
-<h2><span class="n">03</span>触る範囲</h2>
+<h2><span class="n">04</span>触る範囲</h2>
 <table>
   <tr><th>触るところ</th><td>{{機能名で書く}}</td></tr>
   <tr><th>触らないところ</th><td>{{影響しないと保証できるもの。ここが安心材料になる}}</td></tr>
 </table>
 
-<h2><span class="n">04</span>リスクと備え</h2>
+<h2><span class="n">05</span>リスクと備え</h2>
 <!-- 「何が壊れうるか」と「そのときどう戻すか」をペアで書く -->
 <table>
   <tr><th>{{起きうること}}</th><td>{{備え・戻し方}}</td></tr>
