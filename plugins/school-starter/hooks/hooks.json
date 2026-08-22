@@ -31,6 +31,10 @@
           {
             "type": "command",
             "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/detect-invisible-unicode.js\" --hook; fi"
+          },
+          {
+            "type": "command",
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/scripts/warn-non-null-assertion.js\"; fi"
           }
         ]
       },
