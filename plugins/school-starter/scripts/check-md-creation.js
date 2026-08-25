@@ -51,8 +51,13 @@ process.stdin.on('end', () => {
     // v1.21.6: rules/ を追加（setup が ~/.claude/rules/*.md を書くのに許可リストに無く、
     //          rules/ が空の「初回 setup」で全 .md がブロックされる致命バグを修正。
     //          既存ファイルがある環境では編集扱いで通っていたため発覚が遅れた）
+    // v1.26.1: memory/ を追加（Claude Code のメモリ機能は projects/<名前>/memory/ に
+    //          1メモ1ファイルで書く仕様なのに許可リストに無く、新しいメモを作れなかった。
+    //          既存の MEMORY.md は「既存ファイル＝編集」で通っていたため発覚が遅れた。
+    //          受講生から「AI が Bash でこの Hook を迂回した」の報告で判明・rules/ と同型の抜け）
     const ALLOWED_DIRS = [
       /[\\/]Obsidian[\\/]/,
+      /[\\/]memory[\\/]/,
       /[\\/]docs[\\/]/,
       /[\\/]curriculum[\\/]/,
       /[\\/]references[\\/]/,
