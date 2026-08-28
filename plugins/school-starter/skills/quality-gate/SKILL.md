@@ -277,7 +277,18 @@ updates:
 
 あわせて GitHub の画面での設定を1つ案内する（Claude からは操作できないため受講生の1回だけの手作業）:
 
-> GitHub のリポジトリページ → Settings → Advanced Security → 「Dependabot alerts」を **Enable** にしてください。使っている部品に弱点が見つかったときに教えてくれるようになります。
+> **アカウント全体で1回だけ**設定します（プロジェクトごとにやり直す必要はありません）。
+>
+> 1. `https://github.com/settings/security_analysis` を開く
+> 2. `Dependabot alerts` の右の **`Enable all`** を押す
+> 3. ダイアログの **`Enable by default for new repositories`** にチェックを入れる
+> 4. **`Enable Dependabot alerts`** を押して確定
+>
+> これで、いま持っているリポジトリと**これから作るもの全部**で、使っている部品に弱点が見つかったときに教えてくれるようになります。
+
+**リポジトリごとに設定する道もある**（そのリポジトリのページ → Settings → Advanced Security → `Dependabot alerts` を Enable）が、**受講生にはアカウント全体のほうを案内する**。作るアプリの数だけ同じ操作を繰り返すことになるため。すでに `Disable` と表示されている場合は、それは「有効になっている」という意味なので押さない。
+
+⚠️ `Dependabot security updates` の `Enable all` は**この場では押さない**。全リポジトリで更新 PR が一斉に開き、そのぶん Vercel の Preview が積み上がる。届いた PR に慣れてから、必要なら個別に有効化する。
 
 ※ Secret scanning（GitHub 純正の秘密情報スキャン）はプライベートリポジトリでは有料プランが必要。**無効にできなくて詰まる必要はない**。その役割は STEP 3 の gitleaks と STEP 4 の secretlint が担っている。
 
