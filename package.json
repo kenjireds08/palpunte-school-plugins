@@ -6,7 +6,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test:hooks": "node --test plugins/school-starter/scripts/warn-dangerous-prompts.test.js plugins/school-starter/scripts/guard-env-access.test.js plugins/school-starter/scripts/flow-gate.test.js plugins/school-starter/scripts/warn-non-null-assertion.test.js plugins/school-starter/scripts/check-dependency-prs.test.js",
+    "test:hooks": "node --test plugins/school-starter/scripts/warn-dangerous-prompts.test.js plugins/school-starter/scripts/guard-env-access.test.js plugins/school-starter/scripts/flow-gate.test.js plugins/school-starter/scripts/warn-non-null-assertion.test.js plugins/school-starter/scripts/check-dependency-prs.test.js plugins/school-starter/scripts/check-md-creation.test.js",
     "test": "npm run test:hooks"
   }
 }
