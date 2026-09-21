@@ -1,9 +1,9 @@
 ---
 name: supabase-connection
-description: "Supabase案件で接続・DB操作・スキーマ管理が必要なとき。Supabase MCP は使わず、Supabase CLI + psql or Supabase Studio SQL Editor で進める方針を提供。受講生向けのデータ操作は SQL Editor を第一推奨。トリガー: 「Supabaseに接続」「DBの中身を確認」「テーブルを作成」「マイグレーション」「データを削除」「SQLを実行」「.env.local に SUPABASE_URL を設定」等。"
+description: "Supabase案件で接続・DB操作・スキーマ管理が必要なとき。Supabase CLI + psql or Supabase Studio SQL Editor で進める方針を提供。受講生向けのデータ操作は SQL Editor を第一推奨。トリガー: 「Supabaseに接続」「DBの中身を確認」「テーブルを作成」「マイグレーション」「データを削除」「SQLを実行」「.env.local に SUPABASE_URL を設定」等。"
 ---
 
-# Supabase 接続・DB操作（MCP不使用方針）
+# Supabase 接続・DB操作（CLI + SQL Editor で進める）
 
 ## このスキルを発動する条件
 
@@ -16,17 +16,14 @@ description: "Supabase案件で接続・DB操作・スキーマ管理が必要�
 
 ## 基本方針
 
-**Supabase MCP は使わない。Supabase CLI + psql 直接接続で進める。**
+**Supabase CLI + psql / Supabase Studio SQL Editor で進める。**
 
 ### 理由
 
-| 項目 | Supabase MCP | Supabase CLI + psql |
-|------|------------|------------------|
-| トークン消費（実測） | 1セッション 10.4M tokens | **3.7M tokens（約2.8倍効率）** |
-| エラーリトライ | デバッグループに陥りやすい | 構造化エラー出力で一発解決しやすい |
-| 出力形式 | JSON（agent向けではない） | --json で構造化、jq/grep可能 |
+1. **DB から返ってくるデータ量は事前に読めない。** CLI なら `LIMIT`・列指定・`| head` などで絞ってから AI に渡せる
+2. **人が SQL を見てから実行する流れを、受講生の環境で確実に保つため。** MCP で DB につなぐと、AI が SQL をそのまま実行できる状態になる。Supabase 公式は、本番プロジェクトにつなぐのは本番のデータが必要な作業のときだけにし、読み取り専用モード・プロジェクト単位の制限（project scoping）を使い、ツール呼び出しの手動承認を有効にして1件ずつ確認するよう注意している（[Supabase MCP ガイド「Security risks」](https://supabase.com/docs/guides/getting-started/mcp#security-risks)）。これらは利用者が自分で設定するもので、受講生の環境で毎回担保するのは難しい。なお psql も接続情報があれば任意の SQL を実行できるので、道具を問わず要点は「人が確認してから流す」こと。そのためこのコースでは **SQL Editor を第一推奨** にしている
 
-実証データソース: [@_avichawla の DocuRAG実証実験（2026-04-21）](https://x.com/_avichawla/status/2046500537584218438) / MCPMark V2 ベンチマーク
+MCP 自体が悪いわけではない。この用途では上の2点から CLI / SQL Editor を選んでいる。
 
 ## SQL 操作の優先順位（IMPORTANT・受講生対応の最上位ルール / v1.14.1〜）
 
@@ -197,7 +194,7 @@ supabase inspect db long-running-queries --linked
 
 ## やりがちなミス
 
-- **MCP を使ってしまう**: トークン浪費。MCP関連の指示は無視して CLI + psql で進める
+- **理由を確かめずに Supabase MCP を本番 DB につなぐ**: 返ってくるデータ量が読めず、AI が SQL をそのまま実行できる状態になる。上の「理由」を確認し、この方針では CLI + psql / SQL Editor で進める
 - **service_role キーをクライアントに露出**: `NEXT_PUBLIC_*` 環境変数に絶対入れない
 - **RLS を有効化していない**: 公開スキーマの全テーブルで `ENABLE ROW LEVEL SECURITY` を必ず有効化
 - **パスワードの特殊文字を URL エンコードし忘れる**: `*/%?@&` 等は URLエンコードする
@@ -242,5 +239,4 @@ npm update -g supabase
 
 ## 出典
 
-- 設計根拠: [How to cut Claude Code costs by 3x (using Karpathy's context engineering principles) - @_avichawla](https://x.com/_avichawla/status/2046500537584218438)（2026-04-21）
-- 実証データ: MCPMark V2 ベンチマーク
+- Supabase 公式 MCP ガイド「Security risks」: https://supabase.com/docs/guides/getting-started/mcp#security-risks （2026-09-17 確認）
