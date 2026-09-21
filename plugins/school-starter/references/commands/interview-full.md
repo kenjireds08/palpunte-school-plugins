@@ -1,6 +1,6 @@
 ---
 description: 【受注後・本実装用】詳細ヒアリング（9観点）。spec-lightがあれば自動補完。UX・データ・技術・エッジケース・優先順位・コスト・法令・LLMリスク・性能を全て固める
-argument-hint: [作りたい機能や要件の概要（既にspec-light-*.mdがあれば不要）]
+argument-hint: "[作りたい機能や要件の概要（既にspec-light-*.mdがあれば不要）]"
 allowed-tools: AskUserQuestion, Write, Read, Glob, Grep, Bash
 ---
 

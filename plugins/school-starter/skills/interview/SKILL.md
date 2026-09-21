@@ -1,6 +1,6 @@
 ---
 name: interview
-argument-hint: [--light | --full] [作りたい機能や要件の概要]
+argument-hint: "[--light | --full] [作りたい機能や要件の概要]"
 description: 【通常は /interview-light か /interview-full を使う】要件定義インタビュー本体スキル。引数なしで状況自動判定（spec-lightがあれば--full補完、なければ--light/--fullを確認）。「インタビューして」「要件を聞いて」「仕様を詰めて」「ヒアリングして」等の自然言語呼び出しでも発動。--fullはGrill Me風深掘り+用語集確定+技術者向け要件定義出力。技術者向け完成後に「クライアント向けにまとめて」「Notionに送れる形にして」等でフェーズ4発動→粒度選択→クライアント向け要件定義を別ファイル出力。上級者向け。
 allowed-tools: AskUserQuestion, Write, Read, Glob, Grep, Bash
 ---
