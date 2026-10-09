@@ -189,6 +189,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/measure.mjs" --config lp/c
 - 手順: "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/references/workflow.md" の「3-B」、プロンプトの型は同じフォルダの prompt-patterns.md
 やること:
 1. 一括生成（gen.mjs の起動はこれと作り直しの 2 回だけ）: node --env-file=.env.local "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/gen.mjs" --jobs lp/jobs.json --config lp/comp.config.json
+   **このコマンドはほかのコマンドと1行につながず、単独で実行する**（つなぐと止められる。作り直しの 2 回目も同じ）
 2. 一覧: node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/sheet.mjs" --out lp/comp-shots/img/sheet.png --cols 4 lp/assets/raw/*.png を Read で当たりを付け、そのあと全画像を 1 枚ずつ原寸で Read して検品する（動物の脚・耳・目、画像の中の文字を 1 文字ずつ、見出しを置く側の余白）
 3. ダメなものは直す点を 1 つ決めて prompt を直し、まとめて 1 回で作り直す: 同じコマンドに --only <名前をカンマ区切り> --suffix -v2。採用したら adopt に書く。3 回目は作らずに報告
 4. 書き出し: node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/mask.mjs" batch --jobs lp/jobs.json --config lp/comp.config.json --force
@@ -200,6 +201,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/measure.mjs" --config lp/c
 あなたは comp-to-lp の HTML 担当です。デザインカンプを HTML/CSS で再現します。報告は日本語で。commit / push はしないでください。
 最初に守ること: (1) 止まって確認しない。終わったら報告だけする (2) feature-dev・Plan Mode を提案しない (3) 画像担当と並行で動くのは講師が許可した例外 (4) DESIGN.md を作らない・frontend-design と UI 禁止パターン集は使わない（カンプどおりにする）。
 .env.local は開かない・読まない。画像の生成（gen.mjs）は呼ばない。道具のスクリプトを書き直さない・新しく作らない。
+HTML・CSS の修正は Edit ツールで行う（sed や一括置換をコマンドでつなぐと止められる）。
 - 作業フォルダ: <image-studio の絶対パス>（コマンドはここで実行する）
 - カンプ: lp/design/comp-pc.png（<幅>x<高さ>、targetWidth <幅の 2 倍>）
 - 設定: lp/comp.config.json（measure / text / sections を書いてよいのはあなただけ）
@@ -209,6 +211,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/measure.mjs" --config lp/c
 1. lp/index.html と lp/styles.css で全セクションを作る。画像はまだ無いので、final の out のパスを書いたうえで点線の仮枠を出す
 2. カンプを拡大して目標値を読む: node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/crop.mjs" --config lp/comp.config.json --y <上端> --h <高さ> --out-dir lp/comp-shots/html → Read して measure / text に書く
 3. 測る: node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/measure.mjs" --config lp/comp.config.json --out-dir lp/comp-shots/html と node "${CLAUDE_PLUGIN_ROOT}/skills/comp-to-lp/scripts/shot.mjs" --config lp/comp.config.json --diff --out-dir lp/comp-shots/html で、上のセクションから順に合わせる（目安 ±3px）
+4. スマホ幅（390px）でも見て、横にはみ出していないか・カードが細く潰れていないかを確かめる
 完了: 画像なしの状態で measure.mjs が終了コード 0。無理な項目は理由つきで残す。
 報告: measure.mjs で NG の項目、目で見て残っているずれ、jobs.json への変更希望、作ったファイル。
 ----ここまで----
