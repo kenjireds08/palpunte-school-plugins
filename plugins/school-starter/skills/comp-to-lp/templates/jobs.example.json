@@ -1,0 +1,29 @@
+[
+  {
+    "name": "hero-bg",
+    "kind": "bg",
+    "size": "1536x1024",
+    "slot": "ヒーロー背景 .hero__bg（右半分に猫、左 40% は見出し用に空ける）",
+    "final": [{ "out": "assets/img/hero-bg.jpg", "maxWidth": 1600 }],
+    "prompt": "Photorealistic lifestyle photograph for a cozy Japanese cat cafe website. Consistent look across the whole set: warm beige and cream color palette, light natural oak wood furniture, soft bright natural window light, gentle warm film tone, shallow depth of field, clean and calm, high detail, anatomically correct cats (exactly four legs, two ears, natural eyes). No watermark, no logo, no border, no added text overlay. Wide interior shot. On the RIGHT HALF: ... The LEFT 40% of the frame is bright, airy, softly out of focus and low in detail, suitable for overlaying headline text."
+  },
+  {
+    "name": "icon-paw",
+    "kind": "icon",
+    "size": "1024x1024",
+    "slot": "見出し横・ボタン内のアイコン .ico--paw（2 色で使う）",
+    "final": [
+      { "out": "assets/icons/paw-accent.png", "color": "#b5613f" },
+      { "out": "assets/icons/paw-white.png", "color": "#ffffff" }
+    ],
+    "prompt": "Flat minimal vector icon in a clean modern UI icon style, pure black (#000000) uniform rounded strokes of medium thickness on a perfectly plain pure white (#FFFFFF) background. Single icon centered with generous empty margin (icon fills about 60% of the canvas). No text, no shadow, no gradient, no gray, no border, no frame, no background shape. A cat paw print silhouette, SOLID FILLED black: one large rounded pad at bottom and four oval toe pads above in an arc."
+  },
+  {
+    "name": "hand-nonbiri",
+    "kind": "hand",
+    "size": "1536x1024",
+    "slot": "料金プラン左上の手書き文字 .hand--nonbiri（alt に同じ文言）",
+    "final": [{ "out": "assets/hand/nonbiri.png", "color": "#6e5040" }],
+    "prompt": "Japanese casual handwriting, written with a thin felt-tip pen, friendly and slightly playful but neat and legible, pure black (#000000) ink on a perfectly plain pure white (#FFFFFF) background. Nothing else in the image: no paper texture, no lines, no decorations, no shadow. Each character must be written exactly and correctly as given (correct stroke structure for every kanji). Line 1: 「のんびり」 Line 2 (indented right): 「まってるにゃ…」"
+  }
+]

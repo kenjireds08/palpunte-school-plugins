@@ -1,0 +1,15 @@
+{
+  "//": "measure.mjs の「目標値と合わないと終了コード 1」を確かめるための設定。comp.config.json と同じページで、.hero の height と .features の top をわざと 12px ずらしてある（セレクタは実在するので終了コード 2 にはならない）",
+  "html": "index.html",
+  "comp": "comp-pc.png",
+  "targetWidth": 1448,
+  "viewportHeight": 900,
+  "outDir": "comp-shots",
+  "waitMs": 300,
+  "tolerance": 1,
+  "measure": {
+    ".header": { "top": 0, "height": 88 },
+    ".hero": { "top": 88, "height": 700 },
+    ".features": { "top": 750, "height": 378 }
+  }
+}

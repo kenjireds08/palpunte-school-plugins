@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ねこのひるね Cat Café | 渋谷の猫カフェ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  /* 画像がまだ無い枠は「未生成」の点線枠にする（生成後にファイルを置けば自動で差し替わる） */
+  function ph(img){ var s = img.closest('.slot'); if (s) s.classList.add('is-ph'); img.remove(); }
+</script>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="header">
+  <div class="header__inner">
+    <a class="logo" aria-label="ねこのひるね Cat Café">
+      <span class="slot logo__mark" data-ph="logo-cat"><img src="assets/icons/logo-cat-t.png" alt="" onerror="ph(this)"></span>
+      <span class="logo__text"><span class="logo__ja">ねこのひるね</span><span class="logo__en">Cat Café</span></span>
+    </a>
+    <nav class="gnav" aria-label="メインメニュー">
+      <a>特徴</a><a>料金</a><a>猫スタッフ</a><a>アクセス</a><a>FAQ</a>
+    </nav>
+    <button type="button" class="btn btn--primary btn--sm">
+      <span class="slot ico ico--btn-sm" data-ph="calendar"><img src="assets/icons/calendar-w.png" alt="" onerror="ph(this)"></span>予約
+    </button>
+  </div>
+</header>
+
+<main>
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="slot hero__bg" data-ph="hero-bg"><img src="assets/img/hero-bg.jpg" alt="猫カフェの店内でくつろぐ猫" onerror="ph(this)"></div>
+  <div class="hero__inner">
+    <h1 class="hero__title">癒やし<span class="small">の</span>時間を、<br>猫たちと。<span class="slot hero__paw" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span></h1>
+    <p class="hero__lead">ふわふわの猫たちに囲まれて、<br>ゆったり過ごせる癒やしの猫カフェ。<br>おひとりでも、ご家族でも、デートでも。</p>
+    <div class="hero__btns">
+      <button type="button" class="btn btn--primary btn--lg">
+        <span class="slot ico ico--btn" data-ph="calendar"><img src="assets/icons/calendar-w.png" alt="" onerror="ph(this)"></span>予約する
+      </button>
+      <button type="button" class="btn btn--outline btn--lg">猫たちを見る
+        <span class="slot ico ico--chev" data-ph="chevron"><img src="assets/icons/chevron-d.png" alt="" onerror="ph(this)"></span>
+      </button>
+    </div>
+    <div class="hero__deco">
+      <span class="slash slash--l"></span>
+      <span class="slot hand hand--goodcats" data-ph="hand: Good cats"><img src="assets/hand/good-cats.png" alt="Good cats Good time." onerror="ph(this)"></span>
+      <span class="slash slash--r"></span>
+      <span class="slot hero__paws" data-ph="paw x2">
+        <img class="p1" src="assets/icons/paw-t.png" alt="" onerror="ph(this)"><img class="p2" src="assets/icons/paw-t.png" alt="" onerror="ph(this)">
+      </span>
+    </div>
+    <span class="slot hand hand--yasashii" data-ph="hand: 猫のいる やさしい時間"><img src="assets/hand/yasashii-jikan.png" alt="猫のいる やさしい時間" onerror="ph(this)"></span>
+  </div>
+</section>
+
+<!-- ===== Features ===== -->
+<section class="features" id="features">
+  <div class="container features__grid">
+    <article class="feature">
+      <div class="feature__head">
+        <span class="icon-circle"><span class="slot ico ico--feature" data-ph="cat-face"><img src="assets/icons/cat-face-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="feature__title">人なつっこい猫たち</h3><p class="feature__text">個性豊かな猫スタッフが、<br>のんびりお出迎え。</p></div>
+      </div>
+      <div class="slot feature__photo" data-ph="feat-kitten"><img src="assets/img/feat-kitten.jpg" alt="子猫" onerror="ph(this)"></div>
+    </article>
+    <article class="feature">
+      <div class="feature__head">
+        <span class="icon-circle"><span class="slot ico ico--feature" data-ph="house"><img src="assets/icons/house-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="feature__title">くつろげる空間</h3><p class="feature__text">木のぬくもりを感じる、<br>落ち着いた店内。</p></div>
+      </div>
+      <div class="slot feature__photo" data-ph="feat-interior"><img src="assets/img/feat-interior.jpg" alt="店内" onerror="ph(this)"></div>
+    </article>
+    <article class="feature">
+      <div class="feature__head">
+        <span class="icon-circle"><span class="slot ico ico--feature" data-ph="cup"><img src="assets/icons/cup-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="feature__title">ドリンク付きプラン</h3><p class="feature__text">カフェ利用も楽しめる、<br>やさしい料金設定。</p></div>
+      </div>
+      <div class="slot feature__photo" data-ph="feat-latte"><img src="assets/img/feat-latte.jpg" alt="猫のラテアート" onerror="ph(this)"></div>
+    </article>
+  </div>
+</section>
+
+<!-- ===== Recommend ===== -->
+<section class="section recommend">
+  <span class="slot deco-paw deco-paw--1" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span>
+  <span class="slot deco-paw deco-paw--2" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span>
+  <span class="slot deco-paw deco-paw--3" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span>
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    こんな方におすすめ
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="container rec__grid">
+    <article class="rec"><div class="slot rec__photo" data-ph="rec-1"><img src="assets/img/rec-1.jpg" alt="" onerror="ph(this)"></div><p class="rec__text">猫が大好き</p></article>
+    <article class="rec"><div class="slot rec__photo" data-ph="rec-2"><img src="assets/img/rec-2.jpg" alt="" onerror="ph(this)"></div><p class="rec__text">日常の疲れを癒やしたい</p></article>
+    <article class="rec"><div class="slot rec__photo" data-ph="rec-3"><img src="assets/img/rec-3.jpg" alt="" onerror="ph(this)"></div><p class="rec__text">デートでゆっくり<br>過ごしたい</p></article>
+    <article class="rec"><div class="slot rec__photo" data-ph="rec-4"><img src="assets/img/rec-4.jpg" alt="" onerror="ph(this)"></div><p class="rec__text">お子さまと一緒に<br>楽しみたい</p></article>
+  </div>
+</section>
+
+<!-- ===== Price ===== -->
+<section class="section price" id="price">
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    料金プラン
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="price__stage">
+    <div class="slot price__cat price__cat--l" data-ph="plan-cat-left"><img src="assets/img/plan-cat-left.jpg" alt="" onerror="ph(this)"></div>
+    <div class="slot price__cat price__cat--r" data-ph="plan-cat-right"><img src="assets/img/plan-cat-right.jpg" alt="" onerror="ph(this)"></div>
+    <div class="hand-wrap hand-wrap--nonbiri">
+      <span class="slash slash--l"></span>
+      <span class="slot hand hand--nonbiri" data-ph="hand: のんびり"><img src="assets/hand/nonbiri.png" alt="のんびり まってるにゃ〜" onerror="ph(this)"></span>
+      <span class="slash slash--r"></span>
+    </div>
+    <div class="hand-wrap hand-wrap--drink">
+      <span class="slash slash--l"></span>
+      <span class="slot hand hand--drink" data-ph="hand: おいしいドリンクと"><img src="assets/hand/oishii-drink.png" alt="おいしいドリンクと 癒やしのひとときを" onerror="ph(this)"></span>
+      <span class="slash slash--r"></span>
+    </div>
+    <div class="plans">
+      <div class="plan"><span class="plan__time">30分</span><p class="plan__price"><span class="yen">¥</span>900</p><p class="plan__note">1ドリンク付き</p></div>
+      <div class="plan plan--popular"><span class="plan__badge">人気プラン</span><span class="plan__time">60分</span><p class="plan__price"><span class="yen">¥</span>1,500</p><p class="plan__note">1ドリンク付き</p></div>
+      <div class="plan"><span class="plan__time">90分</span><p class="plan__price"><span class="yen">¥</span>2,000</p><p class="plan__note">ゆったり満喫</p></div>
+    </div>
+    <p class="price__caution">※小学生未満は保護者同伴でご利用ください。</p>
+  </div>
+</section>
+
+<!-- ===== Staff ===== -->
+<section class="section staff" id="staff">
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    猫スタッフ紹介
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="hand-wrap hand-wrap--kosei">
+    <span class="slash slash--l"></span>
+    <span class="slot hand hand--kosei" data-ph="hand: 個性豊かな"><img src="assets/hand/kosei.png" alt="個性豊かな 癒やしのひとときを" onerror="ph(this)"></span>
+    <span class="slash slash--r"></span>
+  </div>
+  <div class="container staff__grid">
+    <article class="cat">
+      <div class="slot cat__photo" data-ph="staff-moka"><img src="assets/img/staff-moka.jpg" alt="モカ" onerror="ph(this)"></div>
+      <div class="cat__body"><span class="icon-circle icon-circle--sm"><span class="slot ico ico--paw" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="cat__name">モカ</h3><p class="cat__desc">のんびり屋の人気者</p></div></div>
+    </article>
+    <article class="cat">
+      <div class="slot cat__photo" data-ph="staff-komugi"><img src="assets/img/staff-komugi.jpg" alt="こむぎ" onerror="ph(this)"></div>
+      <div class="cat__body"><span class="icon-circle icon-circle--sm"><span class="slot ico ico--paw" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="cat__name">こむぎ</h3><p class="cat__desc">遊ぶのが大好き</p></div></div>
+    </article>
+    <article class="cat">
+      <div class="slot cat__photo" data-ph="staff-shiratama"><img src="assets/img/staff-shiratama.jpg" alt="しらたま" onerror="ph(this)"></div>
+      <div class="cat__body"><span class="icon-circle icon-circle--sm"><span class="slot ico ico--paw" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="cat__name">しらたま</h3><p class="cat__desc">お昼寝名人</p></div></div>
+    </article>
+    <article class="cat">
+      <div class="slot cat__photo" data-ph="staff-kurumi"><img src="assets/img/staff-kurumi.jpg" alt="くるみ" onerror="ph(this)"></div>
+      <div class="cat__body"><span class="icon-circle icon-circle--sm"><span class="slot ico ico--paw" data-ph="paw"><img src="assets/icons/paw-t.png" alt="" onerror="ph(this)"></span></span>
+        <div><h3 class="cat__name">くるみ</h3><p class="cat__desc">甘えんぼう担当</p></div></div>
+    </article>
+  </div>
+</section>
+
+<!-- ===== Interior ===== -->
+<section class="section interior">
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    店内の雰囲気
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="hand-wrap hand-wrap--ibasho">
+    <span class="slash slash--l"></span>
+    <span class="slot hand hand--ibasho" data-ph="hand: ここは、猫と人の"><img src="assets/hand/ibasho.png" alt="ここは、猫と人の やさしい居場所。" onerror="ph(this)"></span>
+    <span class="slash slash--r"></span>
+  </div>
+  <div class="gallery">
+    <div class="slot gallery__item g1" data-ph="interior-1"><img src="assets/img/interior-1.jpg" alt="" onerror="ph(this)"></div>
+    <div class="slot gallery__item g2" data-ph="interior-2"><img src="assets/img/interior-2.jpg" alt="" onerror="ph(this)"></div>
+    <div class="slot gallery__item g3" data-ph="interior-3"><img src="assets/img/interior-3.jpg" alt="" onerror="ph(this)"></div>
+    <div class="slot gallery__item g4" data-ph="interior-4"><img src="assets/img/interior-4.jpg" alt="" onerror="ph(this)"></div>
+    <div class="slot gallery__item g5" data-ph="interior-5"><img src="assets/img/interior-5.jpg" alt="" onerror="ph(this)"></div>
+  </div>
+</section>
+
+<!-- ===== Access ===== -->
+<section class="section access" id="access">
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    アクセス
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="hand-wrap hand-wrap--shibuya">
+    <span class="slash slash--l"></span>
+    <span class="slot hand hand--shibuya" data-ph="hand: 渋谷で、"><img src="assets/hand/shibuya.png" alt="渋谷で、猫に会える。" onerror="ph(this)"></span>
+    <span class="slash slash--r"></span>
+  </div>
+  <div class="container access__grid">
+    <div class="slot access__photo" data-ph="access-storefront"><img src="assets/img/access-storefront.jpg" alt="店の外観" onerror="ph(this)"></div>
+    <div class="access__info">
+      <ul class="info">
+        <li><span class="slot ico ico--info" data-ph="pin"><img src="assets/icons/pin-t.png" alt="" onerror="ph(this)"></span>東京都渋谷区ねこ通り2-3-4</li>
+        <li><span class="slot ico ico--info" data-ph="train"><img src="assets/icons/train-t.png" alt="" onerror="ph(this)"></span>渋谷駅 徒歩5分</li>
+        <li><span class="slot ico ico--info" data-ph="clock"><img src="assets/icons/clock-t.png" alt="" onerror="ph(this)"></span>営業時間 11:00〜20:00</li>
+        <li><span class="slot ico ico--info" data-ph="calendar"><img src="assets/icons/calendar-fill-t.png" alt="" onerror="ph(this)"></span>定休日：火曜日</li>
+      </ul>
+      <button type="button" class="btn btn--outline btn--map">
+        <span class="slot ico ico--mapbtn" data-ph="pin"><img src="assets/icons/pin-t.png" alt="" onerror="ph(this)"></span>Googleマップで見る
+      </button>
+    </div>
+    <div class="map">
+      <div class="slot map__img" data-ph="map"><img src="assets/img/map.jpg" alt="" onerror="ph(this)"></div>
+      <span class="map__route" aria-hidden="true"></span>
+      <span class="map__station">渋谷駅</span>
+      <span class="map__walk">徒歩5分</span>
+      <span class="slot map__pin" data-ph="map-pin"><img src="assets/icons/map-pin-t.png" alt="" onerror="ph(this)"></span>
+      <span class="map__shop"><b>ねこのひるね</b><small>Cat Café</small></span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="section faq" id="faq">
+  <h2 class="sec-title">
+    <span class="slot hane" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+    よくある質問
+    <span class="slot hane hane--r" data-ph="hane"><img src="assets/icons/hane-t.png" alt="" onerror="ph(this)"></span>
+  </h2>
+  <div class="container faq__wrap">
+    <div class="faq__list">
+      <div class="qa">
+        <span class="slot qa__q" data-ph="Q"><img src="assets/icons/q-t.png" alt="Q" onerror="ph(this)"></span>
+        <div class="qa__body"><p class="qa__question">予約は必要ですか？</p><p class="qa__answer">週末はご予約がおすすめです。空席があれば当日利用も可能です。</p></div>
+        <button type="button" class="qa__toggle" aria-label="開閉"><span class="slot ico ico--down" data-ph="chevron"><img src="assets/icons/chevron-d.png" alt="" onerror="ph(this)"></span></button>
+      </div>
+      <div class="qa">
+        <span class="slot qa__q" data-ph="Q"><img src="assets/icons/q-t.png" alt="Q" onerror="ph(this)"></span>
+        <div class="qa__body"><p class="qa__question">子どもも入れますか？</p><p class="qa__answer">はい。保護者同伴でご利用いただけます。</p></div>
+        <button type="button" class="qa__toggle" aria-label="開閉"><span class="slot ico ico--down" data-ph="chevron"><img src="assets/icons/chevron-d.png" alt="" onerror="ph(this)"></span></button>
+      </div>
+      <div class="qa">
+        <span class="slot qa__q" data-ph="Q"><img src="assets/icons/q-t.png" alt="Q" onerror="ph(this)"></span>
+        <div class="qa__body"><p class="qa__question">猫用おやつはありますか？</p><p class="qa__answer">店内で販売しています。スタッフまでお声がけください。</p></div>
+        <button type="button" class="qa__toggle" aria-label="開閉"><span class="slot ico ico--down" data-ph="chevron"><img src="assets/icons/chevron-d.png" alt="" onerror="ph(this)"></span></button>
+      </div>
+    </div>
+    <div class="faq__side">
+      <div class="hand-wrap hand-wrap--faq">
+        <span class="slash slash--l"></span>
+        <span class="slot hand hand--faq" data-ph="hand: よくあるご質問に"><img src="assets/hand/faq.png" alt="よくあるご質問に お答えしますにゃ" onerror="ph(this)"></span>
+        <span class="slot hand-paw" data-ph="paw"><img src="assets/icons/paw-d.png" alt="" onerror="ph(this)"></span>
+      </div>
+      <div class="slot faq__cat" data-ph="faq-cat"><img src="assets/img/faq-cat.jpg" alt="" onerror="ph(this)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta">
+  <div class="slot cta__bg" data-ph="cta-bg"><img src="assets/img/cta-bg.jpg" alt="" onerror="ph(this)"></div>
+  <div class="cta__inner">
+    <h2 class="cta__title">お気に入りの猫に会いにきませんか？</h2>
+    <p class="cta__text">きっと、特別な時間が待っています。</p>
+    <button type="button" class="btn btn--primary btn--cta">
+      <span class="slot ico ico--btn-cta" data-ph="calendar"><img src="assets/icons/calendar-w.png" alt="" onerror="ph(this)"></span>今すぐ予約する
+    </button>
+  </div>
+  <div class="hand-wrap hand-wrap--shiawase">
+    <span class="slash slash--l"></span>
+    <span class="slot hand hand--shiawase" data-ph="hand: 猫と過ごす幸せを"><img src="assets/hand/shiawase.png" alt="猫と過ごす幸せを あなたに。" onerror="ph(this)"></span>
+    <span class="slash slash--r"></span>
+  </div>
+</section>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <a class="logo logo--footer" aria-label="ねこのひるね Cat Café">
+        <span class="slot logo__mark" data-ph="logo-cat"><img src="assets/icons/logo-cat-t.png" alt="" onerror="ph(this)"></span>
+        <span class="logo__text"><span class="logo__ja">ねこのひるね</span><span class="logo__en">Cat Café</span></span>
+      </a>
+      <p class="footer__tagline">猫のいる、やさしい時間を。</p>
+    </div>
+    <div class="footer__center">
+      <nav class="fnav" aria-label="フッターメニュー"><a>特徴</a><a>料金</a><a>猫スタッフ</a><a>アクセス</a><a>FAQ</a></nav>
+      <div class="sns">
+        <a class="slot sns__item" data-ph="instagram" aria-label="Instagram"><img src="assets/icons/instagram-d.png" alt="" onerror="ph(this)"></a>
+        <a class="slot sns__item" data-ph="x" aria-label="X"><img src="assets/icons/x-d.png" alt="" onerror="ph(this)"></a>
+        <a class="slot sns__item" data-ph="youtube" aria-label="YouTube"><img src="assets/icons/youtube-d.png" alt="" onerror="ph(this)"></a>
+      </div>
+    </div>
+    <button type="button" class="pagetop">
+      <span class="pagetop__circle"><span class="slot ico ico--up" data-ph="arrow-up"><img src="assets/icons/arrow-up-t.png" alt="" onerror="ph(this)"></span></span>
+      <span class="pagetop__label">ページトップ</span>
+    </button>
+  </div>
+  <p class="copyright">© 2024 ねこのひるね Cat Café. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

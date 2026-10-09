@@ -1,0 +1,37 @@
+{
+  "//": "テスト用の設定（ねこのひるね LP の実物から作った）。画像フォルダ assets/ はコピーしていないので、画像の枠は点線のプレースホルダーで表示される。テストでは必ず --out-dir で出力先を外に向ける",
+  "html": "index.html",
+  "comp": "comp-pc.png",
+  "targetWidth": 1448,
+  "viewportHeight": 900,
+  "outDir": "comp-shots",
+  "waitMs": 300,
+  "tolerance": 1,
+
+  "//sections": "上から 3 つ（hero / features / recommend）。境目が切れないよう 10〜60px 重ねている",
+  "sections": [
+    { "name": "hero", "top": 0, "bottom": 800 },
+    { "name": "features", "top": 740, "bottom": 1150 },
+    { "name": "recommend", "top": 1140, "bottom": 1560 }
+  ],
+
+  "//measure": "styles.css の固定値から決めた目標値（画像・Web フォントの有無に左右されない）。header 88px、hero 712px、features は margin-top -38px なので 88 + 712 - 38 = 762 から 378px",
+  "measure": {
+    ".header": { "top": 0, "height": 88 },
+    ".hero": { "top": 88, "height": 712 },
+    ".features": { "top": 762, "height": 378 }
+  },
+
+  "//text": "textw.mjs 用。Web フォント（Google Fonts）が読めたときの実測値。オフラインや OS の違いで変わるので、終了コードを固定するテストには使わない",
+  "text": [
+    { "selector": ".hero__title", "line": 0, "width": 234 },
+    { "selector": ".hero__lead", "line": 1, "width": 411, "left": 83 }
+  ],
+
+  "images": {
+    "budgetYen": 300,
+    "quality": "medium",
+    "rawDir": "assets/raw",
+    "promptDir": "prompts/images"
+  }
+}

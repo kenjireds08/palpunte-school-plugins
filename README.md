@@ -84,6 +84,7 @@ Claude Code の入力欄に以下を順番に打つ:
 | review | 2段階コードレビュー。`feature-dev:code-reviewer` サブエージェントで内部レビュー → 必要な修正ループ → 最後に「作業サマリー（Codex独立レビュー用）」を必ず出力 |
 | interview | 要件定義インタビュー（4フェーズ構成）。Grill Me風の深掘り質問 + Ubiquitous Language（用語集）確定 + 技術者向け要件定義 `docs/001_requirements.md` 生成 → ブラッシュアップ後「クライアント向けにまとめて」でフェーズ4発動 → 粒度選択（営業向け/実務担当向け/エンジニア向け/カスタム）→ `docs/001_requirements_for_client.md` を別ファイルで出力（Notion/Google Docs コピペ可） |
 | project-flow | アプリ開発フェーズ進行ガイド |
+| comp-to-lp | 完成したデザインカンプ画像から LP を HTML/CSS で再現。文字・ボタンは HTML、写真・アイコン・手書き文字だけを OpenAI の画像 API で生成（見積もりの承認 1 回・上限 300 円・台帳で途中から再開可）。道具は `skills/comp-to-lp/scripts/`（Node + Playwright。開発用のテストは `npm test`、プロンプト版向けの zip は `npm run build:tools -- <出力先>`） |
 
 **review スキルの前提**: `feature-dev` プラグインが必要です（`/plugin install feature-dev@claude-plugins-official`）。セットアップ時に自動で伴走します。
 

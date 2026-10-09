@@ -1,0 +1,40 @@
+{
+  "//": "comp-to-lp の設定のひな形。lp/comp.config.json として置く。相対パスはこのファイルの場所（lp/）が基準。「//」で始まるキーは説明用で、道具は読まない",
+
+  "html": "index.html",
+  "comp": "design/comp-pc.png",
+  "//targetWidth": "採寸の基準幅。カンプの幅の 2 倍にする（カンプ 724px なら 1448）。カンプはこの幅に拡大して比べる",
+  "targetWidth": 1448,
+  "viewportHeight": 900,
+  "outDir": "comp-shots",
+  "waitMs": 1000,
+  "tolerance": 3,
+
+  "//sections": "shot.mjs がこの範囲ごとにカンプと実装を上下に並べる。値は targetWidth 基準の高さ（px）。境目が切れないよう 10〜60px 重ねる",
+  "sections": [
+    { "name": "hero", "top": 0, "bottom": 800 },
+    { "name": "features", "top": 740, "bottom": 1150 }
+  ],
+
+  "//measure": "measure.mjs の目標値。crop.mjs でカンプを拡大して読んだ値を書く。書いた項目だけ比べる",
+  "measure": {
+    ".header": { "top": 0, "height": 88 },
+    ".hero": { "top": 88, "height": 712 }
+  },
+
+  "//text": "textw.mjs の目標値。line は n 番目のテキストノード（省略で要素全体）",
+  "text": [
+    { "selector": ".hero__title", "line": 0, "width": 555 }
+  ],
+
+  "//mobile": "スマホ幅。今回はスマホ用カンプが無いので、shot.mjs --mobile で横にはみ出していないかだけ確かめる",
+  "mobile": { "width": 390, "height": 844, "dpr": 2 },
+
+  "//images": "gen.mjs の設定。budgetYen は見積もりで承認した上限（300 円より大きく書いても 300 円で止まる）。quality は medium 固定",
+  "images": {
+    "budgetYen": 300,
+    "quality": "medium",
+    "rawDir": "assets/raw",
+    "promptDir": "prompts/images"
+  }
+}

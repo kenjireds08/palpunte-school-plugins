@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- shot.mjs / crop.mjs / sheet.mjs / mask.mjs が使う合成用ページ。Chromium の描画で画像を並べて撮る・画素を読む -->
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: #c8c8c8; }
+  #stage { position: relative; display: inline-block; }
+  .band { position: relative; overflow: hidden; }
+  .band img { position: absolute; left: 0; display: block; }
+  .sep { height: 6px; background: #ff0000; }
+  .label { position: absolute; left: 6px; top: 4px; z-index: 2; padding: 1px 6px; font: 600 12px/1.4 system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.6); }
+  .diff { isolation: isolate; }
+  .diff img.blend { mix-blend-mode: difference; }
+  .grid { display: grid; gap: 10px; padding: 10px; }
+  .cell { background: #fff; }
+  .cell p { margin: 0; padding: 4px 6px; font: 12px/1.3 system-ui, sans-serif; color: #000; word-break: break-all; }
+  .cell img { display: block; width: 100%; }
+  .checker { background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+</style>
+<div id="stage"></div>
+<script>
+  const stage = document.getElementById("stage");
+  const load = (src) => new Promise((ok, ng) => {
+    const im = new Image();
+    im.onload = () => ok(im);
+    im.onerror = () => ng(new Error("画像を読めません: " + src));
+    im.src = src;
+  });
+  window.naturalSize = async (src) => { const im = await load(src); return [im.naturalWidth, im.naturalHeight]; };
+
+  // 1つの帯 = 画像を幅 W に合わせて表示し、top から高さ h だけ見せる
+  function band(img, W, H, top, h, label) {
+    const d = document.createElement("div");
+    d.className = "band"; d.style.width = W + "px"; d.style.height = h + "px";
+    const i = img.cloneNode(); i.style.width = W + "px"; i.style.height = H + "px"; i.style.top = -top + "px";
+    d.appendChild(i);
+    if (label) { const l = document.createElement("span"); l.className = "label"; l.textContent = label; d.appendChild(l); }
+    return d;
+  }
+
+  // 上 = カンプ / 赤線 / 下 = 実装（withDiff なら差分を 3 段目に）
+  window.compose = async ({ compUrl, pcUrl, W, compH, top, h, withDiff }) => {
+    const [c, p] = await Promise.all([load(compUrl), load(pcUrl)]);
+    const pcH = Math.round(p.naturalHeight * W / p.naturalWidth);
+    stage.innerHTML = "";
+    stage.appendChild(band(c, W, compH, top, h, "comp"));
+    stage.appendChild(Object.assign(document.createElement("div"), { className: "sep" }));
+    stage.appendChild(band(p, W, pcH, top, h, "impl"));
+    if (withDiff) {
+      stage.appendChild(Object.assign(document.createElement("div"), { className: "sep" }));
+      const d = band(c, W, compH, top, h, "diff（黒いほど一致）");
+      d.classList.add("diff");
+      const i2 = p.cloneNode(); i2.className = "blend"; i2.style.width = W + "px"; i2.style.height = pcH + "px"; i2.style.top = -top + "px";
+      d.insertBefore(i2, d.querySelector(".label"));
+      stage.appendChild(d);
+    }
+    return stage.getBoundingClientRect().height;
+  };
+
+  // 画像の一部を拡大して 1 枚にする（採寸値を目で読むため）
+  window.crop = async ({ src, W, x, y, w, h, zoom }) => {
+    const im = await load(src);
+    const H = im.naturalHeight * W / im.naturalWidth;
+    stage.innerHTML = "";
+    const d = document.createElement("div");
+    d.className = "band"; d.style.width = w * zoom + "px"; d.style.height = h * zoom + "px";
+    const i = im.cloneNode();
+    Object.assign(i.style, { width: W * zoom + "px", height: H * zoom + "px", left: -x * zoom + "px", top: -y * zoom + "px", imageRendering: zoom >= 3 ? "pixelated" : "auto" });
+    d.appendChild(i);
+    // 10px ごとの目盛り（元の座標系）
+    const ruler = document.createElement("canvas");
+    ruler.width = w * zoom; ruler.height = h * zoom;
+    Object.assign(ruler.style, { position: "absolute", left: 0, top: 0 });
+    const g = ruler.getContext("2d");
+    g.font = "11px system-ui"; g.lineWidth = 1;
+    for (let yy = Math.ceil(y / 10) * 10; yy <= y + h; yy += 10) {
+      const py = (yy - y) * zoom + .5, major = yy % 50 === 0;
+      g.strokeStyle = major ? "rgba(255,0,0,.8)" : "rgba(255,0,0,.35)";
+      g.beginPath(); g.moveTo(0, py); g.lineTo(major ? 18 : 8, py); g.stroke();
+      if (major) { g.fillStyle = "red"; g.fillText(String(yy), 20, py + 4); }
+    }
+    for (let xx = Math.ceil(x / 10) * 10; xx <= x + w; xx += 10) {
+      const px = (xx - x) * zoom + .5, major = xx % 50 === 0;
+      g.strokeStyle = major ? "rgba(0,0,255,.8)" : "rgba(0,0,255,.35)";
+      g.beginPath(); g.moveTo(px, 0); g.lineTo(px, major ? 18 : 8); g.stroke();
+      if (major) { g.fillStyle = "blue"; g.fillText(String(xx), px + 2, 28); }
+    }
+    d.appendChild(ruler);
+    stage.appendChild(d);
+    return stage.getBoundingClientRect().height;
+  };
+
+  // 検品用の一覧（コンタクトシート）。透過 PNG は市松模様の上に置く
+  window.sheet = async ({ items, cols, thumb }) => {
+    stage.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "grid"; grid.style.gridTemplateColumns = `repeat(${cols}, ${thumb}px)`;
+    for (const it of items) {
+      const cell = document.createElement("div"); cell.className = "cell";
+      const p = document.createElement("p"); p.textContent = it.label; cell.appendChild(p);
+      const im = await load(it.src);
+      if (it.checker) cell.classList.add("checker");
+      cell.appendChild(im);
+      grid.appendChild(cell);
+    }
+    stage.appendChild(grid);
+    return stage.getBoundingClientRect().height;
+  };
+
+  // ---- mask.mjs 用（画素を読む）----
+  // 画像は data: URL で受け取る（file:// の画像は getImageData が SecurityError になるため）。
+  // 色の変換・アルファの乗算をしない設定で読み、元の画素の値をそのまま使う。
+  const decodeBitmap = async (src) => {
+    const blob = await (await fetch(src)).blob();
+    return createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" });
+  };
+  const toBase64 = (u8) => {
+    let s = "";
+    for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return btoa(s);
+  };
+
+  // 明るさ（0〜255）の配列を返す。係数は 0.299 / 0.587 / 0.114 で、Pillow の convert("L") と同じ整数計算（四捨五入）
+  window.luma = async (src) => {
+    const bm = await decodeBitmap(src);
+    const w = bm.width, h = bm.height;
+    const g = new OffscreenCanvas(w, h).getContext("2d");
+    g.drawImage(bm, 0, 0);
+    const d = g.getImageData(0, 0, w, h).data;
+    const L = new Uint8Array(w * h);
+    for (let i = 0, p = 0; i < L.length; i++, p += 4) L[i] = (d[p] * 19595 + d[p + 1] * 38470 + d[p + 2] * 7471 + 0x8000) >> 16;
+    return { w, h, data: toBase64(L) };
+  };
+
+  // 写真を maxWidth まで縮めて書き出す（type は image/jpeg / image/png / image/webp）
+  window.photo = async ({ src, w, h, type, quality }) => {
+    const bm = await decodeBitmap(src);
+    const c = new OffscreenCanvas(w, h);
+    const g = c.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
+    g.drawImage(bm, 0, 0, w, h);
+    const blob = await c.convertToBlob({ type, quality });
+    return { w, h, data: toBase64(new Uint8Array(await blob.arrayBuffer())) };
+  };
+  window.imageSize = async (src) => {
+    const bm = await decodeBitmap(src);
+    return [bm.width, bm.height];
+  };
+</script>
