@@ -539,3 +539,19 @@ test("ffpath: ffmpeg を使う道具は置き場を探す・案内に「アプ�
   assert.ok(desc.length < 1024, `description は 1024 文字未満（今 ${desc.length}）`);
   for (const w of ["このアプリの紹介動画を作って", "showcase-video で", "紹介動画スキルで", "torisetsu"]) assert.ok(desc.includes(w), w);
 });
+
+test("どのスキルの description も、厳しい YAML の読み方で壊れない（Windows で説明が空になった対策）", () => {
+  const skillsDir = path.join(ROOT, "plugins", "school-starter", "skills");
+  for (const name of fs.readdirSync(skillsDir)) {
+    const file = path.join(skillsDir, name, "SKILL.md");
+    if (!fs.existsSync(file)) continue;
+    const line = fs.readFileSync(file, "utf8").split("\n").find((l) => l.startsWith("description:"));
+    assert.ok(line, `${name}: description がない`);
+    const value = line.slice("description:".length).trim();
+    if (value.startsWith('"')) {
+      assert.doesNotThrow(() => JSON.parse(value), `${name}: 引用符の中が壊れている`);
+    } else {
+      assert.ok(!/: | #/.test(value), `${name}: 引用符なしの description に「: 」か「 #」がある（引用符で囲む）`);
+    }
+  }
+});
