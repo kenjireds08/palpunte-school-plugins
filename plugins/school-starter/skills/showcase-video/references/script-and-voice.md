@@ -134,7 +134,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/transcribe.ts" --media
 - 出力 `s2-phone.words.json` の `transcript` と原稿を比べる。`tokens[].at` は語の始まりの秒（動きを声に合わせるのに使う → `compose.md`）
 - **同じ音の別の漢字は誤読ではない**（「店舗」→「テンポ」など）。音が合っていれば OK
 - 音が違う → `--force` で作り直す。作り直しても直らなければ原稿の書き方を変える（漢字にする・区切りの読点を足す）
-- **頭の短い語（アプリの名前など）は、書き起こしで抜けたり別の字になったりする**（見本アプリで「ヨヤクル。」が抜けた）。`tokens[0].at` が 0.5 秒より後なら、頭の部分だけを切り出して書き起こし直す: `ffmpeg -v error -y -i <wav> -af apad=pad_dur=0.8 -t 1.5 <作業用>/head.wav` → `transcribe.ts --media <作業用>/head.wav`
+- **頭の短い語（アプリの名前など）は、書き起こしで抜けたり別の字になったりする**（見本アプリで「ヨヤクル。」が抜けた）。`tokens[0].at` が 0.5 秒より後なら、頭の部分だけを切り出して書き起こし直す（`deps.mjs` が「コマンドの頭に付ける 1 行」を出していたら `ffmpeg` の頭に付ける）: `ffmpeg -v error -y -i <wav> -af apad=pad_dur=0.8 -t 1.5 <作業用>/head.wav` → `transcribe.ts --media <作業用>/head.wav`
 - 迷う所は、秒数を添えて受講生に耳で確かめてもらう
 - **🙋 最後の場面（名前と制作）は必ず受講生に 1 回聞いてもらう**。「s6-name.wav を開いて、『〇〇』の読みが合っているか聞いてください」と、ファイルの場所を添えて頼む
 

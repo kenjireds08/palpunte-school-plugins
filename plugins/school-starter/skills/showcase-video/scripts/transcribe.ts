@@ -17,6 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeFileAtomic } from "./lib/atomic.ts";
+import { ensureFfmpegOnPath } from "./lib/ffpath.mjs";
 import { SAVE_HINT, findKey, redactKeys } from "./lib/keys.ts";
 
 export const MODEL = "whisper-1";
@@ -73,6 +74,7 @@ const HELP = `transcribe.ts — 音声・動画を書き起こし、語の時刻
   同じ音の別の漢字で書き起こされることがある（「神」→「紙」など）。読みが合っていれば誤読ではない`;
 
 async function main(argv: string[]): Promise<number> {
+  ensureFfmpegOnPath(); // ffmpeg を入れたあとアプリが古い PATH のままでも動くように（lib/ffpath.mjs）
   const args = parseArgs(argv);
   if (args.help) {
     console.log(HELP);

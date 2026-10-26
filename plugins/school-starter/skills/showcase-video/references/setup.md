@@ -15,7 +15,9 @@ STEP 0 の正本。確認は `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/
 | HyperFrames 0.8.77 | 動画の組み立てと書き出し | `npx --yes hyperframes@0.8.77 …` が初回に自動で取ってくる（入れる作業は無い） | 同じ |
 | 書き出し用のブラウザ（chrome-headless-shell） | 書き出しと録画 | `npx --yes hyperframes@0.8.77 browser ensure`（約 200MB・1 回だけ） | 同じ |
 
-- **入れたら Claude のアプリを完全に終了して開き直す**（開き直さないと新しいコマンドが見つからない）
+- **ffmpeg を入れたら、アプリを開き直さずに、同じ会話のまま「入れました」と送ってもらう**。アプリは古い PATH のままだが、道具（`deps.mjs` と `.ts`）は ffmpeg の置き場（Windows: `%LOCALAPPDATA%\Microsoft\WinGet\Links` と `…\WinGet\Packages\Gyan.FFmpeg*\ffmpeg-*\bin`・Mac: `/opt/homebrew/bin`・`/usr/local/bin`）を自分で探す。`deps.mjs` をもう一度実行し、`[OK] ffmpeg: あり（<置き場>）` になれば先へ進む
+  - そのとき `deps.mjs` が `[注意]` で「コマンドの頭に付ける 1 行」を出す。Claude の Bash で `ffmpeg`・`ffprobe`・`npx hyperframes` を直接動かすときは、毎回その 1 行を頭に付ける（Bash は 1 回ごとに設定が消える）
+- **Node.js を新しく入れた・入れ直したときだけ**は、アプリを完全に終了してから開く（道具そのものを Node で動かすため、開き直さないと古い Node のまま）。Mac は Command＋Q、Windows はタスクバー右下の「^」→ Claude を右クリック→終了。開いたら**新しい会話ではなく、左の一覧から前の会話を開いて**「showcase-video の続きから」と送ってもらう
 - Homebrew が無い Mac は、ffmpeg を入れる前に Homebrew を入れる必要がある。受講生に「Homebrew を入れる手順を教えて」と頼んでもらう（パスワードを聞かれるのは受講生のターミナルの中だけ）
 - サムネイルは**パソコンの Google Chrome**で撮る（Playwright のブラウザを別にダウンロードしない）。Chrome が無いと止まる
 - 録画は、HyperFrames の書き出し用のブラウザがあればそれで（画面に何も出ない）、無ければ**パソコンの Chrome の窓を開いて**撮る。パソコンの Chrome を画面なしで使うと、録画の下に灰色の帯が出て画面が欠ける（Chrome 155 で確認）ため
@@ -66,7 +68,7 @@ node "<スキルのフォルダ>/scripts/save-key.ts" openai
 
 ### キーの取り方
 
-- **ElevenLabs**: elevenlabs.io でアカウントを作る → 左下のメニュー → Developers → API Keys → Create。権限を絞るときは、読み上げ（Text to Speech）・声の読み取り（Voices）・アカウントの読み取り（User。残りの文字数を見るため）を許す（画面の名前は変わることがある）
+- **ElevenLabs**: elevenlabs.io でアカウントを作る → 左下のメニュー → Developers → API Keys → Create。権限を絞るときは、「キーを制限」をオンのまま、「テキスト読み上げ」＝アクセス、「ボイス」＝既読、「ユーザー」（「管理」の中。残りの文字数を見るため）＝アクセスにし、ほかは「アクセスなし」にする。「スピーチtoテキスト」は使わない（書き起こしは OpenAI で行う）。画面の名前は変わることがある
 - **OpenAI**: platform.openai.com → API keys → Create new secret key（`sk-` で始まる）。先に Billing でクレジットを入れておく（補講2 と同じ）
 
 ---

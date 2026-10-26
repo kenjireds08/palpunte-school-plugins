@@ -438,3 +438,104 @@ test("配布物: 講師・会社の名前と、外した機能（Drive・サイ�
   assert.ok(skill.includes("事業サイトへの掲載などは、このスキルを自分で改良すれば足せます"));
   assert.ok(!/30\s*〜\s*90/.test(skill), "紹介動画の長さの数字を書かない");
 });
+
+// ---------- ffmpeg の置き場（PATH が古いままでも見つける） ----------
+
+const loadFfpath = () => import(pathToFileURL(path.join(SCRIPTS, "lib", "ffpath.mjs")).href);
+function fakeBin(dir, names) {
+  fs.mkdirSync(dir, { recursive: true });
+  for (const n of names) fs.writeFileSync(path.join(dir, n), "");
+  return dir;
+}
+
+test("ffpath: Windows は PATH に無くても WinGet の Packages（Gyan.FFmpeg*/ffmpeg-*/bin）で見つけ、Path の先頭に足す", async () => {
+  const { ensureFfmpegOnPath } = await loadFfpath();
+  const local = tmpDir("ffpath-win");
+  const bin = fakeBin(path.join(local, "Microsoft", "WinGet", "Packages", "Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe", "ffmpeg-8.0-full_build", "bin"), ["ffmpeg.exe", "ffprobe.exe"]);
+  const env = { LOCALAPPDATA: local, Path: "C:\\Windows\\system32" };
+  const r = ensureFfmpegOnPath({ env, platform: "win32" });
+  assert.deepStrictEqual(r, { status: "added", dir: bin });
+  assert.strictEqual(env.Path, `${bin};C:\\Windows\\system32`, "区切りは ; ・先頭に足す");
+  assert.ok(!("PATH" in env), "Windows の Path の名前をそのまま使う（PATH を別に作らない）");
+  // 2 回目はもう PATH にあるので何もしない
+  const again = ensureFfmpegOnPath({ env, platform: "win32" });
+  assert.strictEqual(again.status, "on-path");
+  assert.strictEqual(env.Path, `${bin};C:\\Windows\\system32`);
+});
+
+test("ffpath: Windows は WinGet の Links を先に見る・ffprobe が無いフォルダは使わない", async () => {
+  const { ensureFfmpegOnPath } = await loadFfpath();
+  const local = tmpDir("ffpath-links");
+  const links = fakeBin(path.join(local, "Microsoft", "WinGet", "Links"), ["ffmpeg.exe", "ffprobe.exe"]);
+  fakeBin(path.join(local, "Microsoft", "WinGet", "Packages", "Gyan.FFmpeg_x", "ffmpeg-8.0-full_build", "bin"), ["ffmpeg.exe", "ffprobe.exe"]);
+  const env = { LOCALAPPDATA: local, PATH: "" };
+  assert.deepStrictEqual(ensureFfmpegOnPath({ env, platform: "win32" }), { status: "added", dir: links });
+  assert.strictEqual(env.PATH, links);
+
+  const local2 = tmpDir("ffpath-half");
+  fakeBin(path.join(local2, "Microsoft", "WinGet", "Links"), ["ffmpeg.exe"]);
+  const env2 = { LOCALAPPDATA: local2, Path: "C:\\x" };
+  assert.deepStrictEqual(ensureFfmpegOnPath({ env: env2, platform: "win32" }), { status: "missing", dir: null });
+  assert.strictEqual(env2.Path, "C:\\x", "見つからなければ PATH を変えない");
+});
+
+test("ffpath: すでに PATH にあれば何もしない・どこにも無ければ missing", async () => {
+  const { ensureFfmpegOnPath } = await loadFfpath();
+  const bin = fakeBin(path.join(tmpDir("ffpath-on"), "bin"), ["ffmpeg", "ffprobe"]);
+  const before = `/nowhere:${bin}:/usr/bin`;
+  const env = { PATH: before };
+  assert.deepStrictEqual(ensureFfmpegOnPath({ env, platform: "darwin" }), { status: "on-path", dir: bin });
+  assert.strictEqual(env.PATH, before, "PATH を 1 字も変えない");
+
+  const empty = tmpDir("ffpath-none");
+  const env2 = { LOCALAPPDATA: empty, Path: "" };
+  assert.deepStrictEqual(ensureFfmpegOnPath({ env: env2, platform: "win32" }), { status: "missing", dir: null });
+  assert.strictEqual(env2.Path, "");
+  const env3 = { Path: "C:\\x" }; // LOCALAPPDATA が無い
+  assert.strictEqual(ensureFfmpegOnPath({ env: env3, platform: "win32" }).status, "missing");
+});
+
+test("ffpath: 足した PATH は子プロセスにも効く（偽の ffmpeg が起動できる）", { skip: process.platform === "win32" ? "Mac / Linux で確かめる" : false }, async () => {
+  const { ensureFfmpegOnPath } = await loadFfpath();
+  const local = tmpDir("ffpath-child");
+  const bin = fakeBin(path.join(local, "Microsoft", "WinGet", "Links"), []);
+  for (const n of ["ffmpeg.exe", "ffprobe.exe"]) {
+    fs.writeFileSync(path.join(bin, n), "#!/bin/sh\necho fake-ffmpeg-ok\n");
+    fs.chmodSync(path.join(bin, n), 0o755);
+  }
+  // Windows の分岐で置き場を見つけて足し、その PATH を子プロセスに渡す（名前は .exe なので .exe で呼ぶ）
+  const env = { LOCALAPPDATA: local, PATH: "/usr/bin:/bin" };
+  // win32 の区切りは ; なので、子プロセス用には足したフォルダを : で前に付け直して確かめる
+  const r0 = ensureFfmpegOnPath({ env, platform: "win32" });
+  assert.strictEqual(r0.status, "added");
+  const r = spawnSync("ffmpeg.exe", [], { encoding: "utf8", env: { PATH: `${r0.dir}:/usr/bin:/bin` } });
+  assert.strictEqual(r.stdout.trim(), "fake-ffmpeg-ok");
+});
+
+test("ffpath: Bash と PowerShell の「頭に付ける 1 行」・record.mjs も同じ置き場を探す", async () => {
+  const { pathPrefixLines, candidateDirs } = await loadFfpath();
+  assert.deepStrictEqual(pathPrefixLines("/opt/homebrew/bin", "darwin"), { bash: 'export PATH="/opt/homebrew/bin:$PATH";' });
+  assert.deepStrictEqual(pathPrefixLines("C:\\Users\\taro\\AppData\\Local\\Microsoft\\WinGet\\Links", "win32"), {
+    bash: 'export PATH="/c/Users/taro/AppData/Local/Microsoft/WinGet/Links:$PATH";',
+    powershell: '$env:Path = "C:\\Users\\taro\\AppData\\Local\\Microsoft\\WinGet\\Links;" + $env:Path;',
+  });
+  assert.deepStrictEqual(candidateDirs({ env: {}, platform: "darwin" }), ["/opt/homebrew/bin", "/usr/local/bin"]);
+  const record = fs.readFileSync(path.join(SKILL, "templates", "capture", "record.mjs"), "utf8");
+  for (const s of ['"/opt/homebrew/bin", "/usr/local/bin"', '"Microsoft", "WinGet"', '"Links"', '"Gyan.FFmpeg"', '"ffmpeg-"', "ensureFfmpegOnPath();"]) assert.ok(record.includes(s), `record.mjs: ${s}`);
+});
+
+test("ffpath: ffmpeg を使う道具は置き場を探す・案内に「アプリを再起動」が残っていない", () => {
+  for (const f of ["eleven-tts.ts", "transcribe.ts", "showcase-check.ts", "deps.mjs"]) {
+    const t = fs.readFileSync(path.join(SCRIPTS, f), "utf8");
+    assert.ok(t.includes('from "./lib/ffpath.mjs"'), f);
+    assert.ok(/ensureFfmpegOnPath\(\)/.test(t), f);
+  }
+  const deps = fs.readFileSync(path.join(SCRIPTS, "deps.mjs"), "utf8");
+  assert.ok(!deps.includes("アプリを再起動"));
+  assert.ok(deps.includes("同じ会話のまま「入れました」と送る（アプリを開き直さない）"));
+  const skill = fs.readFileSync(path.join(SKILL, "SKILL.md"), "utf8");
+  assert.ok(!skill.includes("入れたらアプリを再起動"));
+  const desc = /^description: (.*)$/m.exec(skill)[1];
+  assert.ok(desc.length < 1024, `description は 1024 文字未満（今 ${desc.length}）`);
+  for (const w of ["このアプリの紹介動画を作って", "showcase-video で", "紹介動画スキルで", "torisetsu"]) assert.ok(desc.includes(w), w);
+});

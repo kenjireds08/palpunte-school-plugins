@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { measureSpeech, probeSeconds, round, AudioMeasureError } from "./lib/audio.ts";
+import { ensureFfmpegOnPath } from "./lib/ffpath.mjs";
 import { keyStatus } from "./lib/keys.ts";
 import { DEFAULT_VOICE } from "./lib/eleven-client.ts";
 
@@ -496,6 +497,7 @@ const HELP = `showcase-check.ts — showcase-video の検査（読み取り専�
 終了コード: 0 NG なし / 1 NG あり・引数の誤り`;
 
 function main(): number {
+  ensureFfmpegOnPath(); // ffmpeg を入れたあとアプリが古い PATH のままでも動くように（lib/ffpath.mjs）
   const a = parseArgs(process.argv.slice(2));
   switch (a.cmd) {
     case "help":

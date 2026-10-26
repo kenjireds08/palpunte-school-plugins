@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeFileAtomic, tmpPathFor } from "./lib/atomic.ts";
+import { ensureFfmpegOnPath } from "./lib/ffpath.mjs";
 import {
   measureSpeech,
   probeSeconds,
@@ -383,6 +384,7 @@ const HELP = `eleven-tts.ts — ElevenLabs で紹介動画のナレーション�
 終了コード: 0 成功 / 1 失敗 / ${PREMISE_EXIT} 鍵・残り・上限の問題 / ${VOICE_EXIT} この声を使えない（voices.ts で選び直す）`;
 
 async function main(): Promise<number> {
+  ensureFfmpegOnPath(); // ffmpeg を入れたあとアプリが古い PATH のままでも動くように（lib/ffpath.mjs）
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(HELP);

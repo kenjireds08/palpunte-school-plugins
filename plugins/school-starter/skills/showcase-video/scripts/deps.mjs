@@ -12,6 +12,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { ensureFfmpegOnPath, pathPrefixLines } from "./lib/ffpath.mjs";
 
 const isWin = process.platform === "win32";
 const isMac = process.platform === "darwin";
@@ -33,25 +34,41 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
   process.exit(0);
 }
 
-// 1) Node
+// 1) Node（Node だけは、入れたらアプリを開き直す。この確認そのものを Node で動かしているため）
+const NODE_RESTART = isWin
+  ? "入れたら Claude のアプリを完全に終了（タスクバー右下の「^」→ Claude を右クリック→終了）して開き、左の一覧から前の会話を開いて「showcase-video の続きから」と送る"
+  : "入れたら Claude のアプリを完全に終了（Command＋Q）して開き、左の一覧から前の会話を開いて「showcase-video の続きから」と送る";
 const [maj, min] = process.versions.node.split(".").map(Number);
 if (maj > 22 || (maj === 22 && min >= 18)) add("Node", true, process.versions.node);
-else add("Node", false, `${process.versions.node}（22.18 以上が必要）`, isWin ? "winget install OpenJS.NodeJS.LTS（入れたらアプリを再起動）" : "brew install node（Homebrew が無ければ https://nodejs.org の LTS を入れる）。入れたらアプリを再起動");
+else add("Node", false, `${process.versions.node}（22.18 以上が必要）`, isWin ? `winget install OpenJS.NodeJS.LTS。${NODE_RESTART}` : `brew install node（Homebrew が無ければ https://nodejs.org の LTS を入れる）。${NODE_RESTART}`);
 
 // 2) コマンド
+// ffmpeg / ffprobe は、入れたあとアプリが古い PATH のままでも見つかるように、よくある置き場も探す（lib/ffpath.mjs）
+const notes = [];
+const ff = ensureFfmpegOnPath();
+const FF_NEXT = `${isWin ? "winget install Gyan.FFmpeg を、アプリの中のターミナルで実行" : "brew install ffmpeg（5〜10 分）"}。入れたら、同じ会話のまま「入れました」と送る（アプリを開き直さない）`;
+for (const [cmd, why] of [
+  ["ffmpeg", "声・録画・書き出しの変換"],
+  ["ffprobe", "長さを測る"],
+]) {
+  if (ff.status === "on-path") add(cmd, true, "あり");
+  else if (ff.status === "added") add(cmd, true, `あり（${ff.dir}）`);
+  else add(cmd, false, `見つかりません（${why}で使う）`, FF_NEXT);
+}
+if (ff.status === "added") {
+  const lines = pathPrefixLines(ff.dir);
+  notes.push(
+    `ffmpeg は ${ff.dir} にあります（アプリの PATH にはまだ入っていない）。道具（deps.mjs・.ts・record.mjs）は自分で探すのでそのまま動く。` +
+      `Claude の Bash で ffmpeg・ffprobe・npx hyperframes を直接動かすときは、コマンドの頭に次を付ける:\n      Bash: ${lines.bash}` +
+      (lines.powershell ? `\n      PowerShell: ${lines.powershell}` : ""),
+  );
+}
 function has(cmd) {
   const r = isWin ? spawnSync("where", [cmd], { encoding: "utf8" }) : spawnSync("/bin/sh", ["-c", `command -v ${cmd}`], { encoding: "utf8" });
   return r.status === 0;
 }
-for (const [cmd, why] of [
-  ["ffmpeg", "声・録画・書き出しの変換"],
-  ["ffprobe", "長さを測る"],
-  ["npx", "HyperFrames（動画の書き出し）"],
-]) {
-  if (has(cmd)) add(cmd, true, "あり");
-  else if (cmd === "npx") add(cmd, false, "見つかりません", "Node を入れ直す（npx は Node に付いてくる）");
-  else add(cmd, false, `見つかりません（${why}で使う）`, isWin ? "winget install Gyan.FFmpeg（入れたらアプリを再起動）" : "brew install ffmpeg（5〜10 分）");
-}
+if (has("npx")) add("npx", true, "あり");
+else add("npx", false, "見つかりません", `Node を入れ直す（npx は Node に付いてくる）。${NODE_RESTART}`);
 
 // 3) Google Chrome（録画・サムネイル・書き出しで使う）
 const chromePaths = isMac
@@ -75,7 +92,6 @@ function hasHeadlessShell() {
   }
   return false;
 }
-const notes = [];
 if (hasHeadlessShell()) add("書き出し用のブラウザ", true, "あり");
 else notes.push("書き出し用のブラウザ（約 200MB）がまだありません。npx --yes hyperframes@0.8.77 browser ensure を 1 回実行すると入ります（数分。入れないと、最初の書き出しのときに自動で入り、録画は Chrome の窓を開いて撮ります）");
 

@@ -327,9 +327,47 @@ async function shot(page, file) {
   await page.evaluate(() => document.documentElement.classList.remove("__sc_nocur"));
 }
 
+/**
+ * ffmpeg が PATH に無いとき（入れたあとアプリが古い PATH のまま）、よくある置き場を探して PATH の先頭に足す。
+ * スキルの scripts/lib/ffpath.mjs と同じ探し方（このファイルは promo-video に写して使うので、読み込まずに同じことをする）
+ */
+function ensureFfmpegOnPath() {
+  const win = process.platform === "win32";
+  const exe = win ? "ffmpeg.exe" : "ffmpeg";
+  const key = win ? (Object.keys(process.env).find((k) => k.toUpperCase() === "PATH") ?? "Path") : "PATH";
+  const sep = win ? ";" : ":";
+  const cur = process.env[key] ?? "";
+  const isFile = (p) => {
+    try {
+      return fs.statSync(p).isFile();
+    } catch {
+      return false;
+    }
+  };
+  if (cur.split(sep).some((d) => d && isFile(path.join(d, exe)))) return;
+  const ls = (d) => {
+    try {
+      return fs.readdirSync(d);
+    } catch {
+      return [];
+    }
+  };
+  const dirs = [];
+  if (process.platform === "darwin") dirs.push("/opt/homebrew/bin", "/usr/local/bin");
+  if (win && process.env.LOCALAPPDATA) {
+    const wg = path.join(process.env.LOCALAPPDATA, "Microsoft", "WinGet");
+    dirs.push(path.join(wg, "Links"));
+    const pk = path.join(wg, "Packages");
+    for (const p of ls(pk).filter((n) => n.startsWith("Gyan.FFmpeg"))) for (const q of ls(path.join(pk, p)).filter((n) => n.startsWith("ffmpeg-"))) dirs.push(path.join(pk, p, q, "bin"));
+  }
+  const found = dirs.find((d) => isFile(path.join(d, exe)));
+  if (found) process.env[key] = cur ? `${found}${sep}${cur}` : found;
+}
+
 /** webm → mp4。Playwright の録画は 128 コマごとの 1 コマだけ大きくぼけるので、そのコマを落として前のコマで埋める（時刻はずれない） */
 function toMp4(src, dst) {
-  const r = spawnSync("ffmpeg", ["-y", "-v", "error", "-i", src, "-vf", "select='not(eq(mod(n\\,128)\\,0)*gt(n\\,0))',fps=30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-an", dst], { encoding: "utf8" });
+  ensureFfmpegOnPath();
+  const r =spawnSync("ffmpeg", ["-y", "-v", "error", "-i", src, "-vf", "select='not(eq(mod(n\\,128)\\,0)*gt(n\\,0))',fps=30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-an", dst], { encoding: "utf8" });
   if (r.error) throw new Error(`ffmpeg を起動できません（入っていない可能性。references/setup.md）: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`mp4 への変換に失敗しました: ${String(r.stderr).slice(-400)}`);
 }
