@@ -1,0 +1,80 @@
+{
+  "$comment": "声の聞き比べの候補と、同梱の試聴音声（同じ 1 文・数秒の mp3）。受講生の手元では作らない（Gemini の無料枠は 1 日 10 回で、本番の声に使うため）。音声は講師が gen-voice-samples.ts で作り、このファイルの file に書く。no は受講生が返事に使う番号。1 番がおすすめ（設定のひな形の既定の声と同じ）",
+  "sentence": "このアプリで、毎日の予約がスマホからかんたんにできます。",
+  "gemini": [
+    {
+      "no": 1,
+      "id": "ja-jp-commercial-4",
+      "model": "gemini-3.8-flash-tts",
+      "label": "明るく軽やかな男性（20 代・広告の声）",
+      "recommended": true,
+      "source": "声の一覧（ja-JP）: 28-year-old Influencer from Tokyo・male・pitch low・Commercial Voiceover・Voice is bright, breezy, and youthful",
+      "file": "gemini/1.mp3"
+    },
+    {
+      "no": 2,
+      "id": "ja-jp-advisor-3",
+      "model": "gemini-3.8-flash-tts",
+      "label": "落ち着いた男性（40 代・はっきり）",
+      "recommended": false,
+      "source": "声の一覧（ja-JP）: 40-year-old Lawyer from Tokyo・male・pitch low・Sounds confident and clear",
+      "file": "gemini/2.mp3"
+    },
+    {
+      "no": 3,
+      "id": "ja-jp-commercial-3",
+      "model": "gemini-3.8-flash-tts",
+      "label": "親しみやすい女性（20 代・広告の声）",
+      "recommended": false,
+      "source": "声の一覧（ja-JP）: 28-year-old Influencer from Tokyo・female・pitch high・Commercial Voiceover・Voice is highly approachable",
+      "file": "gemini/3.mp3"
+    },
+    {
+      "no": 4,
+      "id": "ja-jp-advisor-2",
+      "model": "gemini-3.8-flash-tts",
+      "label": "落ち着いた女性（30 代・低め・はっきり）",
+      "recommended": false,
+      "source": "声の一覧（ja-JP）: 37-year-old Doctor from Tokyo・female・pitch low・Sounds confident and clear",
+      "file": "gemini/4.mp3"
+    }
+  ],
+  "elevenlabs": [
+    {
+      "no": 1,
+      "id": "EHMH9cyd1z3rXm4z0Jja",
+      "model": "eleven_v4",
+      "label": "落ち着いた男性（見本の動画の声・Yuma Uchida）",
+      "recommended": true,
+      "source": "Voice Library: Yuma Uchida - Calm, Clear and Measured",
+      "file": "elevenlabs/1.mp3"
+    },
+    {
+      "no": 2,
+      "id": "8EkOjt4xTPGMclNlh1pk",
+      "model": "eleven_v4",
+      "label": "やわらかい若い女性（Morioki - Calm, Measured and Muffled）",
+      "recommended": false,
+      "source": "Voice Library: Morioki - Calm, Measured and Muffled（female・young・soft・conversational）",
+      "file": "elevenlabs/2.mp3"
+    },
+    {
+      "no": 3,
+      "id": "3JDquces8E8bkmvbh6Bc",
+      "model": "eleven_v4",
+      "label": "自信のある落ち着いた年代の男性（Otani - Inviting, Clear and Measured）",
+      "recommended": false,
+      "source": "Voice Library: Otani - Inviting, Clear and Measured（male・middle_aged・confident・narrative_story）",
+      "file": "elevenlabs/3.mp3"
+    },
+    {
+      "no": 4,
+      "id": "EkK6wL8GaH8IgBZTTDGJ",
+      "model": "eleven_v4",
+      "label": "気さくな若い女性（Akari - Bright & Natural Japanese Female）",
+      "recommended": false,
+      "source": "Voice Library: Akari - Bright & Natural Japanese Female（female・young・casual・informative_educational）",
+      "file": "elevenlabs/4.mp3"
+    }
+  ]
+}

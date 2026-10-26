@@ -28,6 +28,103 @@ export const TOL = {
   mp4: 0.1,
 };
 
+/**
+ * 締めの場面の「アプリの名前」と「せいさく、〇〇」のあいだの間（秒）。
+ * 名前の声の話し終わりから、制作の声の話し始めまで。声を 2 本に分け、制作の声の data-start で間を作る（Gemini・ElevenLabs 共通）
+ */
+export const CREDIT_GAP = { min: 0.6, max: 0.8, target: 0.7 };
+
+/** 制作の声の原稿か（「せいさく」で始まる 1 文） */
+const CREDIT_LEAD = /^せいさく/;
+
+/**
+ * 台本の {{credit}} の入れ方を確かめる（純粋関数・テストあり）。
+ * {{credit}} は「せいさく、{{credit}}。」だけの item に入れる（アプリの名前と同じ item に入れると、あいだに間をあけられない）
+ */
+export function creditItemProblems(items: Array<{ id?: unknown; text?: unknown } | null | undefined>): string[] {
+  const out: string[] = [];
+  for (const it of items) {
+    if (typeof it?.text !== "string" || !it.text.includes("{{credit}}")) continue;
+    const before = it.text.slice(0, it.text.indexOf("{{credit}}")).trim();
+    if (!CREDIT_LEAD.test(before) || /[。！？!?]/.test(before)) {
+      out.push(
+        `${String(it.id)}: {{credit}} が「せいさく、{{credit}}。」だけの場面になっていません（「${it.text}」）。` +
+          `アプリの名前の場面（s6-name「〔名前の読み〕。」）と制作の場面（s6-credit「せいさく、{{credit}}。」）に分けると、あいだに ${CREDIT_GAP.min}〜${CREDIT_GAP.max} 秒の間をあけられる（templates の台本のひな形の形）`,
+      );
+    }
+  }
+  return out;
+}
+
+/** index.html の CREDIT_AT と、制作の声の話し始めとの許容のずれ（秒） */
+export const CREDIT_AT_TOL = 0.15;
+
+export type CreditAtParse = { kind: "ok"; at: number; l0: number } | { kind: "unreadable"; reason: string };
+
+/**
+ * 紹介動画の index.html から CREDIT_AT（制作の名前が出る時刻・秒）を読む（純粋関数・テストあり）。
+ * テンプレートの形: const T = { …, s6: 34.6, … }; const L0 = T.s6; const CREDIT_AT = L0 + 2.6;
+ * L0 は「T.<場面> [± 数]」か数、CREDIT_AT は「L0 [± 数]」か数。読めない形は unreadable（黙って通さない）
+ */
+export function creditAtFromHtml(html: string): CreditAtParse {
+  const src = stripComments(html)
+    .split("\n")
+    .filter((l) => !/^\s*\/\//.test(l))
+    .join("\n");
+  const num = String.raw`(\d+(?:\.\d+)?)`;
+  const offset = (sign: string | undefined, v: string | undefined) => (v === undefined ? 0 : (sign === "-" ? -1 : 1) * Number(v));
+  const tObj = /const\s+T\s*=\s*\{([^}]*)\}/.exec(src);
+  const T = new Map<string, number>();
+  if (tObj) for (const m of tObj[1].matchAll(new RegExp(String.raw`(\w+)\s*:\s*${num}`, "g"))) T.set(m[1], Number(m[2]));
+  const l0m = new RegExp(String.raw`const\s+L0\s*=\s*(?:T\.(\w+)|${num})\s*(?:([+-])\s*${num})?\s*;`).exec(src);
+  if (!l0m) return { kind: "unreadable", reason: "const L0 = T.<場面>; の行が見つかりません" };
+  let l0: number;
+  if (l0m[1] !== undefined) {
+    const v = T.get(l0m[1]);
+    if (v === undefined) return { kind: "unreadable", reason: `L0 が使う T.${l0m[1]} が const T = { … } にありません` };
+    l0 = v;
+  } else l0 = Number(l0m[2]);
+  l0 += offset(l0m[3], l0m[4]);
+  const all = [...src.matchAll(/const\s+CREDIT_AT\s*=\s*([^;\n]*);/g)];
+  if (all.length === 0) return { kind: "unreadable", reason: "const CREDIT_AT = … ; の行が見つかりません" };
+  if (all.length > 1) return { kind: "unreadable", reason: `const CREDIT_AT が ${all.length} か所あります` };
+  const expr = all[0][1].trim();
+  const em = new RegExp(String.raw`^(?:(L0)|${num})\s*(?:([+-])\s*${num})?$`).exec(expr);
+  if (!em) return { kind: "unreadable", reason: `CREDIT_AT の式「${expr}」を読めません（L0 + 数 の形で書く）` };
+  const at = (em[1] ? l0 : Number(em[2])) + offset(em[3], em[4]);
+  return { kind: "ok", at: Number(at.toFixed(3)), l0: Number(l0.toFixed(3)) };
+}
+
+export type ClipTiming ={ key: string; start: number; effective: number; speechStart: number; text: string | null };
+
+export type CreditGapResult =
+  | { kind: "none" }
+  | { kind: "joined"; key: string }
+  | { kind: "first"; key: string }
+  | { kind: "gap"; key: string; prevKey: string; gap: number; ok: boolean; creditAt: number; suggestedStart: number };
+
+/**
+ * 締めの間を測る（純粋関数・テストあり）。制作の声 = 記録の原稿が「せいさく」で始まる声。
+ * 間 = 制作の声の data-start + 話し始め（speechStart）−（直前の声の data-start + 話している長さ）
+ */
+export function creditGap(clips: ClipTiming[]): CreditGapResult {
+  const sorted = [...clips].sort((x, y) => x.start - y.start);
+  const i = sorted.findIndex((c) => c.text !== null && CREDIT_LEAD.test(c.text.trim()));
+  if (i < 0) {
+    const joined = sorted.find((c) => c.text !== null && c.text.includes("せいさく"));
+    return joined ? { kind: "joined", key: joined.key } : { kind: "none" };
+  }
+  const c = sorted[i];
+  if (i === 0) return { kind: "first", key: c.key };
+  const prev = sorted[i - 1];
+  const prevEnd = prev.start + prev.effective;
+  const creditAt = c.start + c.speechStart;
+  const gap = Number((creditAt - prevEnd).toFixed(3));
+  const ok = gap >= CREDIT_GAP.min - 0.001 && gap <= CREDIT_GAP.max + 0.001;
+  const suggestedStart = Number((prevEnd + CREDIT_GAP.target - c.speechStart).toFixed(2));
+  return { kind: "gap", key: c.key, prevKey: prev.key, gap, ok, creditAt: Number(creditAt.toFixed(2)), suggestedStart };
+}
+
 // ---------- 引数 ----------
 
 type Args = { cmd: string; single: Map<string, string>; multi: Map<string, string[]> };
@@ -261,6 +358,7 @@ function cmdTts(a: Args): number {
     const kana = get(cfg, "credit.kana");
     if (usesCredit && (typeof kana !== "string" || !kana.trim())) rep.ng(where, "台本に {{credit}} があるのに、設定の credit.kana がありません（credit.ts save）");
     if (!usesCredit) rep.warn(where, "台本に {{credit}} がありません（最後の場面で「せいさく、{{credit}}。」と読むのが決まり）");
+    for (const m of creditItemProblems(items)) rep.ng(where, m);
     const chars = items.reduce((n, it) => n + (typeof it?.text === "string" ? [...(it.text as string)].length : 0), 0);
     if (rep.items.filter((i) => i.where === where && i.level === "NG").length === 0) console.log(`[OK] ${where}: ${items.length} 場面・約 ${chars} 字`);
   }
@@ -360,7 +458,7 @@ function cmdTemplate(a: Args): number {
 
 // ---------- timing ----------
 
-type Scene = { key: string; src: string; start: number; htmlDur: number; seconds: number; effective: number; basis: string };
+type Scene = { key: string; src: string; start: number; htmlDur: number; seconds: number; effective: number; speechStart: number; text: string | null; basis: string };
 
 function cmdTiming(a: Args): number {
   const rep = new Report();
@@ -405,11 +503,15 @@ function cmdTiming(a: Args): number {
       continue;
     }
     const seconds = typeof meta.seconds === "number" ? meta.seconds : probeSeconds(wav);
-    const effective = typeof meta.effectiveSeconds === "number" ? meta.effectiveSeconds : measureSpeech(wav).effectiveSeconds;
+    let measured: ReturnType<typeof measureSpeech> | null = null;
+    const measure = () => (measured ??= measureSpeech(wav));
+    const effective = typeof meta.effectiveSeconds === "number" ? meta.effectiveSeconds : measure().effectiveSeconds;
+    const speechStart = typeof meta.speechStart === "number" ? meta.speechStart : measure().speechStart;
+    const text = typeof meta.text === "string" ? meta.text : null;
     if (fs.existsSync(htmlWav) && Math.abs(probeSeconds(htmlWav) - seconds) > 0.05) {
       rep.ng(key, `HTML の ${src}（${probeSeconds(htmlWav).toFixed(2)} 秒）と記録の wav（${seconds} 秒）が別物です（ナレーションのフォルダから写し直す）`);
     }
-    scenes.push({ key, src, start: Number(t.get("data-start")), htmlDur: Number(t.get("data-duration")), seconds, effective, basis: typeof meta.effectiveSeconds === "number" ? "記録" : "wav から計算" });
+    scenes.push({ key, src, start: Number(t.get("data-start")), htmlDur: Number(t.get("data-duration")), seconds, effective, speechStart, text, basis: typeof meta.effectiveSeconds === "number" ? "記録" : "wav から計算" });
   }
   if (scenes.length === 0) throw new CheckError(`ナレーションの <audio id="vo-…"> が見つかりません: ${htmlPath}`);
   console.log("場面 | data-start | 全長 | 話している長さ（正本） | HTML data-duration | 判定");
@@ -426,6 +528,24 @@ function cmdTiming(a: Args): number {
     console.log(`${s.key} | ${s.start} | ${s.seconds} | ${s.effective}（${s.basis}） | ${s.htmlDur} | ${ok ? "OK" : "NG"}`);
   }
   console.log(`ナレーションの合計（話している長さの和）: ${round(total, 2)} 秒`);
+  const cg = creditGap(scenes);
+  if (cg.kind === "joined") rep.ng(cg.key, `締めの声が 1 本です（アプリの名前と「せいさく、〇〇」が同じ声）。台本を s6-name「〔名前の読み〕。」と s6-credit「せいさく、{{credit}}。」に分けて作り直し、あいだを ${CREDIT_GAP.min}〜${CREDIT_GAP.max} 秒あける（references/compose.md）`);
+  else if (cg.kind === "first") rep.ng(cg.key, "制作の声（「せいさく、〇〇」）が一番前にあります。アプリの名前の声の後ろに置く");
+  else if (cg.kind === "gap") {
+    console.log(`締めの間（${cg.prevKey} の話し終わり → ${cg.key} の話し始め）: ${cg.gap} 秒（${CREDIT_GAP.min}〜${CREDIT_GAP.max} 秒）${cg.ok ? " OK" : " NG"}`);
+    if (!cg.ok) rep.ng(cg.key, `締めの間が ${cg.gap} 秒です（${CREDIT_GAP.min}〜${CREDIT_GAP.max} 秒にする）。vo-${cg.key} の data-start を ${cg.suggestedStart} にする（後ろの時刻もずらす）`);
+    else console.log(`CREDIT_AT（制作の名前が出る時刻）= ${cg.creditAt} 秒（vo-${cg.key} の data-start ＋ 話し始め）`);
+    const ca = creditAtFromHtml(html);
+    if (ca.kind === "unreadable") rep.warn("CREDIT_AT", `index.html の CREDIT_AT を読めないので、制作の声と突き合わせていません（${ca.reason}）。テンプレートどおり const L0 = T.s6; と const CREDIT_AT = L0 + 数; の形で書く（制作の声の話し始めは ${cg.creditAt} 秒）`);
+    else {
+      const diff = Number((ca.at - cg.creditAt).toFixed(3));
+      const want = `L0 + ${(cg.creditAt - ca.l0).toFixed(2)}`;
+      console.log(`index.html の CREDIT_AT: ${ca.at} 秒（L0 = ${ca.l0}）／ 制作の声の話し始め ${cg.creditAt} 秒 ／ ずれ ${diff} 秒${Math.abs(diff) < CREDIT_AT_TOL ? " OK" : " NG"}`);
+      if (Math.abs(diff) >= CREDIT_AT_TOL) {
+        rep.ng("CREDIT_AT", `index.html の CREDIT_AT（${ca.at} 秒）が、制作の声 vo-${cg.key} の話し始め（${cg.creditAt} 秒）と ${diff} 秒ずれています（±${CREDIT_AT_TOL} 秒未満にする）。const CREDIT_AT = ${want}; にする`);
+      }
+    }
+  }
   console.log(`動画の長さ（#root の data-duration）: ${videoSec} 秒`);
   if (lastEnd > videoSec + TOL.html) rep.ng("動画の長さ", `最後の声の終わり ${lastEnd.toFixed(2)} 秒が動画の長さ ${videoSec} 秒を超えています`);
   for (const m of mp4s) {
@@ -498,7 +618,7 @@ function cmdThumb(a: Args): number {
 const HELP = `showcase-check.ts — showcase-video の検査（読み取り専用。ファイルを書き換えない）
 
   node showcase-check.ts tts --config <showcase.config.json> [--script <台本.json>]
-      声を作る前に回す。NG: 台本の声の種類・voice・model が設定と違う／{{credit}} があるのに credit.kana が無い／声の種類（tts.provider）に合うキーが無い（値は見ない）
+      声を作る前に回す。NG: 台本の声の種類・voice・model が設定と違う／{{credit}} があるのに credit.kana が無い／{{credit}} が「せいさく、{{credit}}。」だけの場面になっていない／声の種類（tts.provider）に合うキーが無い（値は見ない）
 
   node showcase-check.ts template --config <showcase.config.json> [--dir <フォルダ> ...]
       書き出しの前に回す。NG: 設定の〔 〕／REPLACE の印／本文の〔 〕／色が設定と違う／
@@ -506,7 +626,7 @@ const HELP = `showcase-check.ts — showcase-video の検査（読み取り専�
 
   node showcase-check.ts timing (--config <json> | --html <紹介動画の index.html>) [--meta-dir <narration のフォルダ>] [--mp4 <書き出した mp4> ...]
       正本 = 各 <audio id="vo-sN"> の wav の話している長さ（<id>.json の effectiveSeconds）。
-      NG: HTML の data-duration が正本と ±${TOL.html} 秒で合わない／声が次の場面の声と重なる／最後の声が動画の長さを超える／mp4 の長さが動画の長さと ±${TOL.mp4} 秒で合わない
+      NG: HTML の data-duration が正本と ±${TOL.html} 秒で合わない／声が次の場面の声と重なる／締めの「アプリの名前」と「せいさく、〇〇」が 1 本の声・あいだの間が ${CREDIT_GAP.min}〜${CREDIT_GAP.max} 秒でない・index.html の CREDIT_AT が制作の声の話し始めと ±${CREDIT_AT_TOL} 秒以上ずれる（式が読めなければ注意）／最後の声が動画の長さを超える／mp4 の長さが動画の長さと ±${TOL.mp4} 秒で合わない
 
   node showcase-check.ts thumb (--config <json> | --dir <stills のフォルダ>)
       NG: final/${THUMB.file} が無い・${THUMB.w}x${THUMB.h} でない／配置の検査が不合格／書き出しの後に ${THUMB.sources.join("・")} を直した

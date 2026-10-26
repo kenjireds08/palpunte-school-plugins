@@ -4,7 +4,7 @@
 |---|---|---|
 | `package.json` | `promo-video/package.json` | 道具の依存（Playwright・GSAP・フォント）。`promo-video` で `npm install` を 1 回 |
 | `showcase.config.example.json` | `promo-video/showcase.config.json` | 設定（アプリの名前・色・声・写真の費用の上限・録画の URL）。`credit` は `credit.ts save`、`tts` は `voice-choice.ts save` が書く |
-| `narration.script.gemini.example.json` | `promo-video/intro/narration/narration.script.json` | ナレーションの台本・**Gemini の声**のとき（場面ごとの原稿。最後は `{{credit}}`） |
+| `narration.script.gemini.example.json` | `promo-video/intro/narration/narration.script.json` | ナレーションの台本・**Gemini の声**のとき（場面ごとの原稿。最後はアプリの名前 `s6-name` と制作 `s6-credit`（`{{credit}}`）の 2 本に分ける） |
 | `narration.script.example.json` | `promo-video/intro/narration/narration.script.json` | ナレーションの台本・**ElevenLabs の声**のとき（どちらか 1 つだけ写す） |
 | `cm-15s/` | `promo-video/cm/` | 15 秒の動画（`index.html`・`package.json`・`hyperframes.json`） |
 | `intro/` | `promo-video/intro/video/` | 紹介動画（同じ 3 ファイル） |

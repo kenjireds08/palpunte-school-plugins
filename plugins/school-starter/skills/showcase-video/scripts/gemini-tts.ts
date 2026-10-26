@@ -43,7 +43,7 @@ export { UsageError };
 export const PREMISE_EXIT = 5;
 export const OUTPUT_SAMPLE_RATE = 24000;
 export const GEMINI_DEFAULT_BASE = "https://generativelanguage.googleapis.com/v1beta";
-export const DEFAULT_GEMINI = { voice: "ja-jp-advisor-3", model: "gemini-3.8-flash-tts" };
+export const DEFAULT_GEMINI = { voice: "ja-jp-commercial-4", model: "gemini-3.8-flash-tts" };
 /** 1 分あたりの回数の上限に当たらないよう、生成の呼び出しのあいだを 6.5 秒あける */
 export const MIN_INTERVAL_MS = 6500;
 /** 分単位の 429・5xx を取り直す回数 */
@@ -58,7 +58,7 @@ const ERROR_BODY_MAX = 600;
 export class GeminiStop extends Error {}
 
 const SWITCH_HINT =
-  "選べること: ① 明日もう一度同じコマンドを実行する（作り終えた場面は作り直さないので、続きから作れます） " +
+  "選べること: ① 回数が戻る日本時間の夕方 16 時（11 月〜3 月中旬は 17 時）を過ぎてから、同じコマンドをもう一度実行する（夕方より後に止まったときは明日もう一度。作り終えた場面は作り直さないので、続きから作れます） " +
   "② ElevenLabs の Starter（月 6 ドル）以上に切り替える（設定と台本を ElevenLabs 用にして全場面を作り直す。references/script-and-voice.md「声を選ぶ」）。どちらにするかは受講生が決めます";
 
 // ---------- 鍵（値はこのプロセスの中だけ） ----------
@@ -246,7 +246,7 @@ export function decideFailure(status: number, body: string, retryAfter: string |
       return {
         kind: "stop-premise",
         message:
-          `Gemini: 今日の読み上げの回数の上限に達しました（HTTP 429）。待たずに止めます。上限は太平洋時間の 0 時（日本時間の夕方 16〜17 時）に戻ります。\n${SWITCH_HINT}\n${short}`,
+          `Gemini: 今日の読み上げの回数の上限に達しました（HTTP 429。無料枠は 1 日 10 回まで・紹介動画 1 本で 7 回（読み直しがあればその分増える））。待たずに止めます。回数は日本時間の夕方 16 時（11 月〜3 月中旬は 17 時。太平洋時間の 0 時）に戻ります。\n${SWITCH_HINT}\n${short}`,
       };
     }
     return { kind: "retry", waitMs: Math.min(wait ?? MIN_INTERVAL_MS * 2 ** (tries - 1), MAX_WAIT_MS) };
@@ -445,7 +445,7 @@ const HELP = `gemini-tts.ts — Gemini の読み上げで紹介動画のナレ�
   { "provider": "gemini", "model": "${DEFAULT_GEMINI.model}", "voice": "${DEFAULT_GEMINI.voice}", "style": "",
     "outDir": ".", "items": [ { "id": "s1-hook", "text": "読みをかなで書いた原稿" } ] }
 
-回数: 1 場面 = 1 回の呼び出し。呼び出しのあいだを ${MIN_INTERVAL_MS / 1000} 秒あける。
+回数: 台本の items 1 件 = 1 回の呼び出し。呼び出しのあいだを ${MIN_INTERVAL_MS / 1000} 秒あける。
   分単位の 429・5xx は最大 ${MAX_RETRIES} 回だけ短く待って取り直す。1 日の上限の 429 は待たずに止まる（終了コード ${PREMISE_EXIT}）
 無料枠: 送った原稿が Google の品質改善に使われる。お客様の実名や秘密は台本に入れない
 キー: 環境変数 GEMINI_API_KEY → 共通の置き場（~/.config/school-starter/credentials.env）。値は画面に出さない

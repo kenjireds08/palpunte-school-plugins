@@ -39,10 +39,13 @@
 **音が先・映像が後。** 声（wav）ができて長さが分かるまで、映像の時刻を決めない。
 
 1. `templates/intro` の 3 ファイルを `promo-video/intro/video/` に写す。骨格が B（PC だけ）・C（立場が複数）なら、先頭のコメントのとおり場面を消す・写す
-2. 声を写す: `intro/narration/s1-hook.wav` … `s6-name.wav` → `intro/video/assets/audio/`
+2. 声を写す: `intro/narration/s1-hook.wav` … `s6-name.wav`・`s6-credit.wav` → `intro/video/assets/audio/`
 3. 時刻を決める（`index.html` の `const T = { … }` と各 `data-start`）:
    - 場面の長さ = 声の `effectiveSeconds`（`<id>.json`）＋ 前後の間 0.3〜0.6 秒
    - `<audio id="vo-sN">` の `data-start` = 場面の開始 + 0.3、`data-duration` = `effectiveSeconds`（小数 2 桁）
+   - **締めの S6 は声が 2 本**（`vo-s6` = アプリの名前 `s6-name.wav`・`vo-s6b` = 「せいさく、〇〇」`s6-credit.wav`）。名前と制作のあいだに **0.6〜0.8 秒の間**をあける（講師の指定。名前のすぐ後に「せいさく」が続くと詰まって聞こえる）:
+     `vo-s6b` の `data-start` = `vo-s6` の `data-start` + `s6-name.json` の `effectiveSeconds` + 0.7 − `s6-credit.json` の `speechStart`。S6 の長さは、名前の声 + 0.7 + 制作の声 + 後ろの間 1.5 秒ほど
+     （声を 2 本に分けて HTML の時刻で間を作るので、Gemini でも ElevenLabs でも同じに効く。間がずれていれば手順 8 の `timing` が NG にし、入れる値を出す）
    - 手順の光る時刻・寄りの時刻は、書き起こしの語の時刻（`<id>.words.json` の `tokens[].at`＋場面の開始）に合わせる
    - 場面を足したら**後ろの時刻を全部ずらす**（JS の `T` と、`<video>` `<img>` `<audio>` の `data-start`、`#root` の `data-duration`）
 4. 写真: `s1-a/b/c.png`（困りごと）・`s5-bg.png`（使ったあとの場面）→ `assets/img/`。録画: `takes/user.mp4`・`admin.mp4` → `assets/video/`、前後の静止画 `takes/user-first.png`・`user-last.png`・`admin-first.png` → `assets/img/`
@@ -50,11 +53,11 @@
    ```
    node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/credit.ts" apply --config promo-video/showcase.config.json --html promo-video/intro/video/index.html
    ```
-   `CREDIT_AT`（名前が出る時刻）は「せいさく」の語の時刻に合わせる。名前は 2 秒以上画面に出す
+   `CREDIT_AT`（制作の名前が出る時刻）= 制作の声 `vo-s6b` の `data-start` ＋ `s6-credit.json` の `speechStart`（「せいさく」と言い始める時刻。手順 8 の `timing` が「CREDIT_AT = 〇 秒」と出し、`index.html` の `CREDIT_AT` と 0.15 秒以上ずれていれば NG にして入れる式を出す）。`index.html` では `L0`（S6 の開始）からの差で書く。名前は 2 秒以上画面に出す
 6. BGM: `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gen-bgm.ts" --style narrated --duration <合計秒> --logo-at <S6 の開始秒> --groove-from <S1 の終わり> --out promo-video/intro/video/assets/audio/bgm.wav`
    - 声より BGM が大きく聞こえたら、`index.html` の BGM の `data-volume` を下げる（既定 0.22）
 7. `#glyph-warm` に画面の文字を全部入れ（制作の名前は `credit.ts apply` が入れる）、フォント: `gen-fonts.ts --html promo-video/intro/video/index.html`（`credit.ts apply` の後）
-8. 確かめる: `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/showcase-check.ts" timing --config promo-video/showcase.config.json`（HTML の時刻と声の長さの突き合わせ。NG 0 まで）
+8. 確かめる: `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/showcase-check.ts" timing --config promo-video/showcase.config.json`（HTML の時刻と声の長さの突き合わせ・締めの間が 0.6〜0.8 秒か。NG 0 まで）
 
 ## 書き出し
 
@@ -98,3 +101,4 @@ npx --yes hyperframes@0.8.77 render promo-video/intro/video --output promo-video
 3. **止まって見える所**: 1 で抜いたコマを順に見て、同じ画面が 2 枚（4 秒）以上続く場面が無いか（あれば、その場面に動きを足すか短くする）。テンプレートは画面全体に細かい粒（grain）を重ねているので、コマの差を数字で測る方法では止まっている所を見つけられない
 4. サムネイルも Read で開いて見る
 5. 1 つでも見つかったら直して書き出し直す。作業用のフォルダのコマ画像は確認が済んだら消す
+6. **全部 OK になったら、デスクトップに写す**: `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/deliver.ts" --config promo-video/showcase.config.json` → デスクトップの「紹介動画_<アプリの名前>」フォルダに 15秒.mp4・紹介動画.mp4・サムネイル.png（軽い版を作っていれば 紹介動画_軽量.mp4 も）が入る。元は `promo-video/` に残る。直して書き出し直したら、もう一度実行する（同じ名前のファイルを上書きする）。`[注意] デスクトップのフォルダが見つかりませんでした` のときはフォルダを作っていないので、道具が出した元の場所を受講生に伝える

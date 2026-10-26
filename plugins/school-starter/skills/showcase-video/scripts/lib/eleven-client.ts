@@ -175,7 +175,7 @@ export function classify4xx(status: number, body: string, voiceId: string): { ki
   // 無料プランで止まったときは 2 択だけを出す（無料プランの公式の声は英語なまりで、日本語の紹介動画には使えなかった）
   const planChoice =
     "選べること（どちらにするかは受講生が決める）:\n" +
-    "  ① ElevenLabs を Starter（月 6 ドル）以上にして、同じコマンドをもう一度実行する（Yuma Uchida の声のまま・商用に使える）\n" +
+    "  ① ElevenLabs を Starter（月 6 ドル）以上にして、同じコマンドをもう一度実行する（選んだ声のまま・商用に使える）\n" +
     "  ② Gemini の声に切り替える: voice-choice.ts save --config <showcase.config.json> --provider gemini → 台本を templates/narration.script.gemini.example.json の形にして gemini-tts.ts で作る（無料枠あり）\n" +
     "  無料プランの公式の声（voices.ts の一覧）は英語なまりなので、日本語の紹介動画には使わない";
   if (/free_users_not_allowed|free users|library voice|voice library|upgrade your subscription|subscription.*(required|upgrade)|paid plan/.test(t)) {
@@ -183,7 +183,7 @@ export function classify4xx(status: number, body: string, voiceId: string): { ki
       kind: "voice",
       message:
         `ElevenLabs: この声（${voiceId}）は、いまのプランでは API から使えません（HTTP ${status}）。\n` +
-        "既定の声 Yuma Uchida は Voice Library（みんなが公開している声の棚）の声で、無料プランでは API から使えません。\n" +
+        "このスキルの ElevenLabs の声（おすすめの Yuma Uchida も、ほかの候補も）は Voice Library（みんなが公開している声の棚）の声で、無料プランでは API から使えません。\n" +
         planChoice,
     };
   }

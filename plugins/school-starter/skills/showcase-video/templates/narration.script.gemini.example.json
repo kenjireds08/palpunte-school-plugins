@@ -1,7 +1,7 @@
 {
   "provider": "gemini",
   "model": "gemini-3.8-flash-tts",
-  "voice": "ja-jp-advisor-3",
+  "voice": "ja-jp-commercial-4",
   "style": "",
   "outDir": ".",
   "items": [
@@ -10,6 +10,7 @@
     { "id": "s3-line", "text": "〔お客さんの操作が、管理側に届くこと〕" },
     { "id": "s4-admin", "text": "〔管理側でできること〕" },
     { "id": "s5-features", "text": "〔特長を 2 つ〕" },
-    { "id": "s6-name", "text": "〔アプリの名前の読み〕。せいさく、{{credit}}。" }
+    { "id": "s6-name", "text": "〔アプリの名前の読み〕。" },
+    { "id": "s6-credit", "text": "せいさく、{{credit}}。" }
   ]
 }

@@ -23,7 +23,7 @@ const SCRIPTS = path.join(SKILL, "scripts");
 const [maj, min] = process.versions.node.split(".").map(Number);
 const skip = maj > 22 || (maj === 22 && min >= 18) ? false : `Node ${process.versions.node} は .ts をそのまま動かせないので skip（22.18 以上で動く）`;
 
-const KEY_VARS = ["GEMINI_API_KEY", "ELEVENLABS_API_KEY", "OPENAI_API_KEY", "SHOWCASE_CREDENTIALS_FILE", "SHOWCASE_PROFILE_FILE", "SHOWCASE_IMAGE_STUDIO_ENV", "SHOWCASE_GEMINI_API_BASE"];
+const KEY_VARS = ["GEMINI_API_KEY", "ELEVENLABS_API_KEY", "OPENAI_API_KEY", "SHOWCASE_CREDENTIALS_FILE", "SHOWCASE_PROFILE_FILE", "SHOWCASE_IMAGE_STUDIO_ENV", "SHOWCASE_GEMINI_API_BASE", "SHOWCASE_DESKTOP_DIR", "SHOWCASE_VOICE_SAMPLES_DIR"];
 
 function tmpDir(name) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `showcase-test-${name}-`));
@@ -57,6 +57,9 @@ function runTs(file, args, env) {
 }
 
 const load = (rel) => import(pathToFileURL(path.join(SCRIPTS, rel)).href);
+
+/** 台本のひな形の〔 〕を埋める原稿。締めは名前と制作の 2 本（あいだに間をあけるため） */
+const FILL = { "s6-name": "よやくる。", "s6-credit": "せいさく、{{credit}}。" };
 
 const DUMMY_ELEVEN = "a".repeat(24) + "0123456789";
 const DUMMY_OPENAI = "sk-test-" + "b".repeat(30);
@@ -228,12 +231,13 @@ test("eleven-tts: 台本の〔 〕は 1 字も送らずに止まる・正しい�
   const raw = path.join(d, "raw.script.json");
   fs.writeFileSync(raw, JSON.stringify(example));
   assert.throws(() => jobsFromScript(raw, "みほん"), UsageError);
-  const filled = { ...example, items: example.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" })) };
+  const filled = { ...example, items: example.items.map((it) => ({ ...it, text: FILL[it.id] ?? "見本の文です。" })) };
   const ok = path.join(d, "ok.script.json");
   fs.writeFileSync(ok, JSON.stringify(filled));
   const { jobs } = jobsFromScript(ok, "みほんこうぼう");
-  assert.strictEqual(jobs.length, 6);
-  assert.strictEqual(jobs[5].text, "よやくる。せいさく、みほんこうぼう。");
+  assert.strictEqual(jobs.length, 7, "ひな形は 7 本（締めが名前と制作の 2 本）");
+  assert.strictEqual(jobs[5].text, "よやくる。");
+  assert.strictEqual(jobs[6].text, "せいさく、みほんこうぼう。");
   assert.strictEqual(jobs[0].spec.voice, "EHMH9cyd1z3rXm4z0Jja");
   assert.strictEqual(jobs[0].spec.model, "eleven_v4");
   assert.throws(() => jobsFromScript(ok, null), UsageError, "{{credit}} があるのに読みが無い");
@@ -408,12 +412,200 @@ test("showcase-check tts: 〔 〕の残った台本・鍵なしは NG、埋め�
   assert.match(ng.out, /〔 〕の仮の原稿/);
   assert.match(ng.out, /ElevenLabs のキー/);
   const filled = JSON.parse(example);
-  filled.items = filled.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  filled.items = filled.items.map((it) => ({ ...it, text: FILL[it.id] ?? "見本の文です。" }));
   fs.writeFileSync(path.join(nd, "narration.script.json"), JSON.stringify(filled));
   fs.writeFileSync(cred, `ELEVENLABS_API_KEY=${DUMMY_ELEVEN}\n`);
   const ok = runTs("showcase-check.ts", ["tts", "--config", cfg], env);
   assert.strictEqual(ok.status, 0, ok.out);
   assert.ok(!ok.out.includes(DUMMY_ELEVEN), "鍵の値を出さない");
+});
+
+// ---------- 締めの間（アプリの名前と「せいさく、〇〇」のあいだ） ----------
+
+test("締めの間: 台本のひな形は 2 つとも、名前（s6-name）と制作（s6-credit）を別の声にする", { skip }, async () => {
+  const { creditItemProblems } = await load("showcase-check.ts");
+  for (const name of ["narration.script.example.json", "narration.script.gemini.example.json"]) {
+    const s = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", name), "utf8"));
+    const ids = s.items.map((it) => it.id);
+    assert.deepStrictEqual(ids.slice(-2), ["s6-name", "s6-credit"], `${name}: 締めは名前 → 制作の順で最後の 2 本`);
+    const name6 = s.items.find((it) => it.id === "s6-name");
+    const credit6 = s.items.find((it) => it.id === "s6-credit");
+    assert.ok(!name6.text.includes("{{credit}}") && !name6.text.includes("せいさく"), `${name}: 名前の声に制作を入れない`);
+    assert.strictEqual(credit6.text, "せいさく、{{credit}}。", `${name}: 制作の声は「せいさく、{{credit}}。」だけ`);
+    assert.deepStrictEqual(creditItemProblems(s.items), [], `${name}: ひな形は検査に通る`);
+  }
+});
+
+test("締めの間: creditItemProblems は {{credit}} を名前と同じ声に入れた台本を止める", { skip }, async () => {
+  const { creditItemProblems } = await load("showcase-check.ts");
+  assert.deepStrictEqual(creditItemProblems([{ id: "s6-credit", text: "せいさく、{{credit}}。" }]), []);
+  assert.deepStrictEqual(creditItemProblems([{ id: "s6-credit", text: "せいさく {{credit}}" }]), [], "読点なしでもよい");
+  assert.deepStrictEqual(creditItemProblems([{ id: "s1-hook", text: "見本の文です。" }, null, { id: "x" }]), [], "{{credit}} の無い場面は見ない");
+  const joined = creditItemProblems([{ id: "s6-name", text: "よやくる。せいさく、{{credit}}。" }]);
+  assert.strictEqual(joined.length, 1);
+  assert.match(joined[0], /^s6-name: /);
+  assert.match(joined[0], /s6-credit「せいさく、\{\{credit\}\}。」/);
+  assert.match(joined[0], /0\.6〜0\.8 秒/);
+  assert.strictEqual(creditItemProblems([{ id: "a", text: "{{credit}}。" }]).length, 1, "「せいさく」が無い");
+  assert.strictEqual(creditItemProblems([{ id: "a", text: "ちーけんぱーそなるじむ、せいさく、{{credit}}。" }]).length, 1, "名前のあとに読点でつないでも止める");
+});
+
+test("締めの間: creditGap は名前の話し終わりから「せいさく」の話し始めまでを測り、0.6〜0.8 秒の外なら入れる値を出す", { skip }, async () => {
+  const { creditGap, CREDIT_GAP } = await load("showcase-check.ts");
+  assert.deepStrictEqual(CREDIT_GAP, { min: 0.6, max: 0.8, target: 0.7 });
+  const s5 = { key: "s5", start: 29.7, effective: 4.5, speechStart: 0, text: "特長です。" };
+  const s6 = { key: "s6", start: 35, effective: 1.5, speechStart: 0.05, text: "よやくる。" };
+  const ok = creditGap([{ key: "s6b", start: 37.1, effective: 3, speechStart: 0.1, text: "せいさく、みほんこうぼう。" }, s5, s6]);
+  assert.strictEqual(ok.kind, "gap");
+  assert.strictEqual(ok.prevKey, "s6", "並び順は data-start で決める");
+  assert.strictEqual(ok.gap, 0.7, "37.1 + 0.1 − (35 + 1.5)");
+  assert.strictEqual(ok.ok, true);
+  assert.strictEqual(ok.creditAt, 37.2, "CREDIT_AT = 制作の声の data-start ＋ 話し始め");
+  for (const [start, want] of [
+    [36.6, false],
+    [37.0, true],
+    [37.2, true],
+    [37.3, false],
+  ]) {
+    const r = creditGap([s5, s6, { key: "s6b", start, effective: 3, speechStart: 0.1, text: "せいさく、みほん。" }]);
+    assert.strictEqual(r.ok, want, `data-start ${start} → 間 ${r.gap}`);
+    assert.strictEqual(r.suggestedStart, 37.1, "直すなら 35 + 1.5 + 0.7 − 0.1");
+  }
+  assert.deepStrictEqual(creditGap([s5, { ...s6, text: "よやくる。せいさく、みほんこうぼう。" }]), { kind: "joined", key: "s6" });
+  assert.deepStrictEqual(creditGap([s5, s6]), { kind: "none" }, "制作の声が無ければ測らない");
+  assert.deepStrictEqual(creditGap([{ ...s5, text: null }, { ...s6, text: null }]), { kind: "none" }, "記録に原稿が無ければ測らない");
+  assert.deepStrictEqual(creditGap([{ key: "s6b", start: 0.3, effective: 2, speechStart: 0, text: "せいさく、みほん。" }, s6]), { kind: "first", key: "s6b" });
+});
+
+test("締めの間: 紹介動画のテンプレートは制作の声 vo-s6b を名前の声 vo-s6 の 0.6〜0.8 秒後に置き、CREDIT_AT をその時刻にする", { skip }, async () => {
+  const { tagsOf, CREDIT_GAP } = await load("showcase-check.ts");
+  const html = fs.readFileSync(path.join(SKILL, "templates", "intro", "index.html"), "utf8");
+  const audio = new Map(tagsOf(html, "audio").map((t) => [t.get("id"), t]));
+  const v6 = audio.get("vo-s6");
+  const v6b = audio.get("vo-s6b");
+  assert.ok(v6 && v6b, "vo-s6 と vo-s6b");
+  assert.strictEqual(v6.get("src"), "assets/audio/s6-name.wav");
+  assert.strictEqual(v6b.get("src"), "assets/audio/s6-credit.wav");
+  const gap = Number(v6b.get("data-start")) - (Number(v6.get("data-start")) + Number(v6.get("data-duration")));
+  assert.ok(gap >= CREDIT_GAP.min - 1e-9 && gap <= CREDIT_GAP.max + 1e-9, `間 ${gap.toFixed(2)} 秒`);
+  const t6 = Number(/const T = \{[^}]*\bs6: ([\d.]+)/.exec(html)?.[1]);
+  const at = Number(/const CREDIT_AT = L0 \+ ([\d.]+);/.exec(html)?.[1]);
+  assert.ok(Number.isFinite(t6) && Number.isFinite(at), "T.s6 と CREDIT_AT を読める");
+  assert.ok(Math.abs(t6 + at - Number(v6b.get("data-start"))) < 1e-9, "CREDIT_AT は制作の声の始まり");
+  const root = tagsOf(html, "div").find((t) => t.get("id") === "root");
+  assert.ok(Number(v6b.get("data-start")) + Number(v6b.get("data-duration")) <= Number(root.get("data-duration")), "制作の声が動画の長さに収まる");
+});
+
+/** テンプレートと同じ形の S6 の時刻（L0 = 34.6・CREDIT_AT = 37.2） */
+const S6_JS = "const T = { s5: 29.4, s6: 34.6, end: 42.0 };\nconst L0 = T.s6;\n// REPLACE: 制作クレジットが出る時刻\nconst CREDIT_AT = L0 + 2.6;";
+
+function timingFixture(name, clips, js = S6_JS) {
+  const d = tmpDir(name);
+  const meta = path.join(d, "narration");
+  fs.mkdirSync(meta);
+  const audio = clips
+    .map((c) => `<audio id="vo-${c.key}" src="assets/audio/${c.file}.wav" data-start="${c.start}" data-duration="${c.effective}" data-track-index="10"></audio>`)
+    .join("\n");
+  const html = path.join(d, "index.html");
+  fs.writeFileSync(html, `<div id="root" data-duration="42">\n${audio}\n</div>\n<script>\n${js}\n</script>\n`);
+  for (const c of clips) {
+    fs.writeFileSync(path.join(meta, `${c.file}.wav`), silentWav(c.effective + 0.2));
+    fs.writeFileSync(path.join(meta, `${c.file}.json`), JSON.stringify({ seconds: c.effective + 0.2, effectiveSeconds: c.effective, speechStart: c.speechStart, text: c.text }));
+  }
+  return { html, meta };
+}
+
+test("showcase-check timing: 締めの間が 0.6〜0.8 秒なら OK で CREDIT_AT を出し、外れていれば NG と入れる値を出す・1 本の声なら NG", { skip }, () => {
+  const s5 = { key: "s5", file: "s5-features", start: 29.7, effective: 4.5, speechStart: 0, text: "特長です。" };
+  const s6 = { key: "s6", file: "s6-name", start: 35, effective: 1.5, speechStart: 0, text: "よやくる。" };
+  const credit = (start) => ({ key: "s6b", file: "s6-credit", start, effective: 3, speechStart: 0.1, text: "せいさく、みほんこうぼう。" });
+  const run = (f) => runTs("showcase-check.ts", ["timing", "--html", f.html, "--meta-dir", f.meta], childEnv({}));
+
+  const good = run(timingFixture("timing-gap-ok", [s5, s6, credit(37.1)]));
+  assert.strictEqual(good.status, 0, good.out);
+  assert.match(good.out, /締めの間（s6 の話し終わり → s6b の話し始め）: 0\.7 秒/);
+  assert.match(good.out, /CREDIT_AT（制作の名前が出る時刻）= 37\.2 秒/);
+
+  const tight = run(timingFixture("timing-gap-tight", [s5, s6, credit(36.6)]));
+  assert.strictEqual(tight.status, 1, tight.out);
+  assert.match(tight.out, /締めの間が 0\.2 秒です/);
+  assert.match(tight.out, /vo-s6b の data-start を 37\.1 にする/);
+
+  const joined = run(timingFixture("timing-gap-joined", [s5, { ...s6, effective: 4.3, text: "よやくる。せいさく、みほんこうぼう。" }]));
+  assert.strictEqual(joined.status, 1, joined.out);
+  assert.match(joined.out, /締めの声が 1 本です/);
+});
+
+test("creditAtFromHtml: テンプレートの形（T.s6 と L0 + 数）を読み、読めない形は理由を返す", { skip }, async () => {
+  const { creditAtFromHtml } = await load("showcase-check.ts");
+  assert.deepStrictEqual(creditAtFromHtml(S6_JS), { kind: "ok", at: 37.2, l0: 34.6 });
+  const tpl = fs.readFileSync(path.join(SKILL, "templates", "intro", "index.html"), "utf8");
+  assert.deepStrictEqual(creditAtFromHtml(tpl), { kind: "ok", at: 37.2, l0: 34.6 }, "テンプレートそのものを読める");
+  assert.deepStrictEqual(creditAtFromHtml("const L0 = 30;\nconst CREDIT_AT = L0 - 0.5;"), { kind: "ok", at: 29.5, l0: 30 });
+  assert.deepStrictEqual(creditAtFromHtml("const T = { s6: 30 };\nconst L0 = T.s6 + 1;\nconst CREDIT_AT = 33.25;"), { kind: "ok", at: 33.25, l0: 31 });
+  assert.strictEqual(
+    creditAtFromHtml("const T = { s6: 30 };\nconst L0 = T.s6;\n// const CREDIT_AT = L0 + 9;\nconst CREDIT_AT = L0 + 1;").kind === "ok" &&
+      creditAtFromHtml("const T = { s6: 30 };\nconst L0 = T.s6;\n// const CREDIT_AT = L0 + 9;\nconst CREDIT_AT = L0 + 1;").at,
+    31,
+    "// で消した行は読まない",
+  );
+  for (const [src, re] of [
+    ["const T = { s6: 30 };\nconst L0 = T.s6;", /CREDIT_AT = … ; の行が見つかりません/],
+    ["const CREDIT_AT = L0 + 1;", /const L0 = T/],
+    ["const T = { s5: 30 };\nconst L0 = T.s6;\nconst CREDIT_AT = L0 + 1;", /T\.s6 が const T/],
+    ["const L0 = 30;\nconst CREDIT_AT = L0 + T.s6b;", /式「L0 \+ T\.s6b」を読めません/],
+    ["const L0 = 30;\nconst CREDIT_AT = L0 + 1;\nconst CREDIT_AT = L0 + 2;", /2 か所/],
+  ]) {
+    const r = creditAtFromHtml(src);
+    assert.strictEqual(r.kind, "unreadable", src);
+    assert.match(r.reason, re);
+  }
+});
+
+test("showcase-check timing: index.html の CREDIT_AT を制作の声の話し始めと突き合わせる（ずれ 0.15 秒以上は NG と入れる式・一致は OK・式なしは注意）", { skip }, () => {
+  const s5 = { key: "s5", file: "s5-features", start: 29.7, effective: 4.5, speechStart: 0, text: "特長です。" };
+  const s6 = { key: "s6", file: "s6-name", start: 35, effective: 1.5, speechStart: 0, text: "よやくる。" };
+  const credit = { key: "s6b", file: "s6-credit", start: 37.1, effective: 3, speechStart: 0.1, text: "せいさく、みほんこうぼう。" };
+  const run = (f) => runTs("showcase-check.ts", ["timing", "--html", f.html, "--meta-dir", f.meta], childEnv({}));
+  const js = (at) => `const T = { s6: 34.6, end: 42.0 };\nconst L0 = T.s6;\nconst CREDIT_AT = ${at};`;
+
+  const same = run(timingFixture("credit-at-ok", [s5, s6, credit], js("L0 + 2.6")));
+  assert.strictEqual(same.status, 0, same.out);
+  assert.match(same.out, /index\.html の CREDIT_AT: 37\.2 秒（L0 = 34\.6）.*ずれ 0 秒 OK/);
+
+  const near = run(timingFixture("credit-at-near", [s5, s6, credit], js("L0 + 2.7")));
+  assert.strictEqual(near.status, 0, `0.1 秒のずれは許す\n${near.out}`);
+
+  // vo-s6b だけ動かして CREDIT_AT を直し忘れた（話し始め 37.6 秒・CREDIT_AT は 37.2 秒のまま）
+  const stale = run(timingFixture("credit-at-stale", [s5, s6, { ...credit, start: 37.5, speechStart: 0.1 }], js("L0 + 2.6")));
+  assert.strictEqual(stale.status, 1, stale.out);
+  assert.match(stale.out, /CREDIT_AT（37\.2 秒）が、制作の声 vo-s6b の話し始め（37\.6 秒）と -0\.4 秒ずれています/);
+  assert.match(stale.out, /const CREDIT_AT = L0 \+ 3\.00;/);
+
+  const edge = run(timingFixture("credit-at-edge", [s5, s6, credit], js("L0 + 2.75")));
+  assert.strictEqual(edge.status, 1, `0.15 秒ちょうどは NG\n${edge.out}`);
+
+  const none = run(timingFixture("credit-at-none", [s5, s6, credit], "const T = { s6: 34.6 };\nconst L0 = T.s6;"));
+  assert.strictEqual(none.status, 0, none.out);
+  assert.match(none.out, /CREDIT_AT を読めないので、制作の声と突き合わせていません/);
+  assert.match(none.out, /注意/);
+});
+
+test("showcase-check tts: 名前と {{credit}} を 1 本の声にした台本（1.29 までの形）は NG", { skip }, () => {
+  const d = tmpDir("check-tts-joined");
+  const nd = path.join(d, "intro", "narration");
+  fs.mkdirSync(nd, { recursive: true });
+  const cfg = path.join(d, "showcase.config.json");
+  fs.writeFileSync(cfg, JSON.stringify({ intro: { narrationDir: "intro/narration" }, credit: { display: "見本工房", kana: "みほんこうぼう" } }));
+  const s = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "narration.script.example.json"), "utf8"));
+  s.items = s.items.filter((it) => it.id !== "s6-credit").map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  fs.writeFileSync(path.join(nd, "narration.script.json"), JSON.stringify(s));
+  const cred = path.join(d, "credentials.env");
+  fs.writeFileSync(cred, `ELEVENLABS_API_KEY=${DUMMY_ELEVEN}\n`);
+  const r = runTs("showcase-check.ts", ["tts", "--config", cfg], childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_IMAGE_STUDIO_ENV: path.join(d, "none.env") }));
+  assert.strictEqual(r.status, 1, r.out);
+  assert.match(r.out, /s6-name: \{\{credit\}\} が「せいさく、\{\{credit\}\}。」だけの場面になっていません/);
+  assert.ok(!r.out.includes(DUMMY_ELEVEN), "鍵の値を出さない");
 });
 
 // ---------- 配布物の決まりごと ----------
@@ -562,7 +754,7 @@ const DUMMY_GEMINI = "AIza" + "d".repeat(35);
 const GEMINI_SCRIPT = path.join(SKILL, "templates", "narration.script.gemini.example.json");
 function filledGeminiScript(dir) {
   const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
-  s.items = s.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  s.items = s.items.map((it) => ({ ...it, text: FILL[it.id] ?? "見本の文です。" }));
   const f = path.join(dir, "narration.script.json");
   fs.writeFileSync(f, JSON.stringify(s));
   return f;
@@ -612,13 +804,13 @@ test("save-key: gemini は GEMINI_API_KEY に保存・端末でなければ保�
   assert.ok(!`${r.stdout}${r.stderr}`.includes(DUMMY_GEMINI), "キーを画面に出さない");
 });
 
-test("設定のひな形: 声の種類の既定は gemini・既定の声は ja-jp-advisor-3（台本のひな形と同じ）", { skip }, async () => {
+test("設定のひな形: 声の種類の既定は gemini・既定の声は ja-jp-commercial-4（講師が試聴して決めたおすすめ・台本のひな形と同じ）", { skip }, async () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), "utf8"));
   const { DEFAULT_GEMINI } = await load("gemini-tts.ts");
   assert.strictEqual(cfg.tts.provider, "gemini");
   assert.strictEqual(cfg.tts.voice, DEFAULT_GEMINI.voice);
   assert.strictEqual(cfg.tts.model, DEFAULT_GEMINI.model);
-  assert.strictEqual(DEFAULT_GEMINI.voice, "ja-jp-advisor-3");
+  assert.strictEqual(DEFAULT_GEMINI.voice, "ja-jp-commercial-4");
   const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
   assert.strictEqual(s.provider, "gemini");
   assert.strictEqual(s.voice, cfg.tts.voice);
@@ -632,11 +824,12 @@ test("gemini-tts: 台本の〔 〕・ElevenLabs の台本は 1 回も呼ばず�
   assert.throws(() => jobsFromScript(path.join(SKILL, "templates", "narration.script.example.json"), "みほん"), /Gemini 用ではありません/);
   const f = filledGeminiScript(d);
   const { jobs, outDir } = jobsFromScript(f, "みほんこうぼう");
-  assert.strictEqual(jobs.length, 6);
+  assert.strictEqual(jobs.length, 7, "ひな形は 7 本（締めが名前と制作の 2 本）");
   assert.strictEqual(outDir, d);
-  assert.strictEqual(jobs[5].text, "よやくる。せいさく、みほんこうぼう。");
+  assert.strictEqual(jobs[5].text, "よやくる。");
+  assert.strictEqual(jobs[6].text, "せいさく、みほんこうぼう。");
   assert.strictEqual(jobs[0].out, path.join(d, "s1-hook.wav"), "置き場と名前は eleven-tts.ts と同じ <outDir>/<id>.wav");
-  assert.strictEqual(jobs[0].spec.voice, "ja-jp-advisor-3");
+  assert.strictEqual(jobs[0].spec.voice, "ja-jp-commercial-4");
   assert.throws(() => jobsFromScript(f, null), UsageError, "{{credit}} があるのに読みが無い");
   const other = { ...jobs[0], spec: { ...jobs[0].spec, voice: "ja-jp-tutor-9" } };
   assert.notStrictEqual(cacheKey(jobs[0]), cacheKey(other), "声が変われば作り直す");
@@ -651,7 +844,7 @@ test("gemini-tts --dry-run: キーなしでも本数・文字数・見込みを�
   const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: path.join(d, "none.env"), SHOWCASE_GEMINI_API_BASE: "http://127.0.0.1:9" });
   const r = runTs("gemini-tts.ts", ["--script", f, "--config", cfg, "--dry-run"], env);
   assert.strictEqual(r.status, 0, r.out);
-  assert.match(r.out, /生成 6 本（呼び出し 6 回/);
+  assert.match(r.out, /生成 7 本（呼び出し 7 回/);
   assert.match(r.out, /送る文字数 \d+/);
   assert.match(r.out, /見込みの長さ/);
   assert.match(r.out, /品質改善/);
@@ -765,7 +958,7 @@ test("voice-choice: 選んだ声の種類を設定の tts と控えに書き、�
   const out = applyChoice({ project: { name: "x" }, tts: { $comment: "c", provider: "gemini", voice: "v", model: "m" } }, "elevenlabs");
   assert.deepStrictEqual(out.tts, { $comment: "c", provider: "elevenlabs", voice: "EHMH9cyd1z3rXm4z0Jja", model: "eleven_v4" });
   assert.deepStrictEqual(out.project, { name: "x" });
-  assert.strictEqual(PRESETS.gemini.voice, "ja-jp-advisor-3");
+  assert.strictEqual(PRESETS.gemini.voice, "ja-jp-commercial-4");
 
   const d = tmpDir("voice-choice");
   const cfg = path.join(d, "showcase.config.json");
@@ -800,7 +993,7 @@ test("showcase-check tts: 設定が gemini なら Gemini の台本と Gemini の
   const nd = path.join(d, "intro", "narration");
   fs.mkdirSync(nd, { recursive: true });
   const cfg = path.join(d, "showcase.config.json");
-  fs.writeFileSync(cfg, JSON.stringify({ intro: { narrationDir: "intro/narration" }, credit: { display: "見本工房", kana: "みほんこうぼう" }, tts: { provider: "gemini", voice: "ja-jp-advisor-3", model: "gemini-3.8-flash-tts" } }));
+  fs.writeFileSync(cfg, JSON.stringify({ intro: { narrationDir: "intro/narration" }, credit: { display: "見本工房", kana: "みほんこうぼう" }, tts: { provider: "gemini", voice: "ja-jp-commercial-4", model: "gemini-3.8-flash-tts" } }));
   const cred = path.join(d, "credentials.env");
   const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_IMAGE_STUDIO_ENV: path.join(d, "none.env") });
   filledGeminiScript(nd);
@@ -813,7 +1006,7 @@ test("showcase-check tts: 設定が gemini なら Gemini の台本と Gemini の
   assert.strictEqual(ok.status, 0, ok.out);
   assert.ok(!ok.out.includes(DUMMY_GEMINI), "鍵の値を出さない");
   const eleven = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "narration.script.example.json"), "utf8"));
-  eleven.items = eleven.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  eleven.items = eleven.items.map((it) => ({ ...it, text: FILL[it.id] ?? "見本の文です。" }));
   fs.writeFileSync(path.join(nd, "narration.script.json"), JSON.stringify(eleven));
   const mixed = runTs("showcase-check.ts", ["tts", "--config", cfg], env);
   assert.strictEqual(mixed.status, 1, mixed.out);
@@ -920,4 +1113,349 @@ test("gemini-tts: ffmpeg の置き場を探す（PATH が古いままでも動�
   const t = fs.readFileSync(path.join(SCRIPTS, "gemini-tts.ts"), "utf8");
   assert.ok(t.includes('from "./lib/ffpath.mjs"'));
   assert.ok(/ensureFfmpegOnPath\(\)/.test(t));
+});
+
+// ---------- 1.30.0: できあがりをデスクトップへ・声を聞き比べて選ぶ ----------
+
+/** promo-video の 3 点（中身は小さな偽物）を作る */
+function fakePromo(d, { light = false, skip = [] } = {}) {
+  const promo = path.join(d, "app", "promo-video");
+  const files = { "final/15秒.mp4": "cm", "final/紹介動画.mp4": "intro", "stills/final/thumb-ogp.png": "png" };
+  if (light) files["final/紹介動画_軽量.mp4"] = "light";
+  for (const [rel, body] of Object.entries(files)) {
+    if (skip.includes(rel)) continue;
+    fs.mkdirSync(path.dirname(path.join(promo, rel)), { recursive: true });
+    fs.writeFileSync(path.join(promo, rel), body);
+  }
+  const cfg = path.join(promo, "showcase.config.json");
+  fs.writeFileSync(cfg, JSON.stringify({ project: { name: "予約:アプリ/β" } }));
+  return { promo, cfg };
+}
+
+test("desktop: ホームの Desktop → OneDrive/Desktop → OneDrive/デスクトップ の順・無ければ null・Windows は設定のデスクトップを先に聞く", { skip }, async () => {
+  const { findDesktop, desktopCandidates, safeFolderName } = await load("lib/desktop.ts");
+  await withCleanEnv({}, () => {
+    const home = tmpDir("desk-home");
+    assert.deepStrictEqual(desktopCandidates(home), [path.join(home, "Desktop"), path.join(home, "OneDrive", "Desktop"), path.join(home, "OneDrive", "デスクトップ")]);
+    assert.strictEqual(findDesktop({ home, platform: "darwin" }).dir, null, "どれも無ければ作らずに null");
+    fs.mkdirSync(path.join(home, "OneDrive", "デスクトップ"), { recursive: true });
+    assert.strictEqual(findDesktop({ home, platform: "win32", shell: () => null }).dir, path.join(home, "OneDrive", "デスクトップ"));
+    fs.mkdirSync(path.join(home, "Desktop"));
+    assert.strictEqual(findDesktop({ home, platform: "darwin" }).dir, path.join(home, "Desktop"));
+    const shellDesk = path.join(home, "OneDrive", "デスクトップ");
+    assert.strictEqual(findDesktop({ home, platform: "win32", shell: () => shellDesk }).dir, shellDesk, "Windows はホームの Desktop より設定のデスクトップを使う");
+    assert.strictEqual(safeFolderName('予約:アプリ/β*?"<>|'), "予約アプリβ");
+    assert.strictEqual(safeFolderName("〔アプリの名前〕"), "アプリの名前");
+    assert.strictEqual(safeFolderName("  ...  "), "アプリ");
+    assert.strictEqual(safeFolderName("末尾の点. "), "末尾の点");
+  });
+});
+
+test("deliver: 3 点（軽い版があれば 4 点）をデスクトップの「紹介動画_<名前>」に写し、元は残す・足りなければ何も写さない・デスクトップが無ければ作らない", { skip }, () => {
+  const d = tmpDir("deliver");
+  const desk = path.join(d, "Desktop");
+  fs.mkdirSync(desk);
+  const { promo, cfg } = fakePromo(d, { light: true });
+  const r = runTs("deliver.ts", ["--config", cfg], childEnv({ SHOWCASE_DESKTOP_DIR: desk }));
+  assert.strictEqual(r.status, 0, r.out);
+  const folder = path.join(desk, "紹介動画_予約アプリβ");
+  assert.match(r.out, /デスクトップの「紹介動画_予約アプリβ」フォルダに置きました/);
+  assert.deepStrictEqual(fs.readdirSync(folder).sort(), ["15秒.mp4", "サムネイル.png", "紹介動画.mp4", "紹介動画_軽量.mp4"].sort());
+  assert.strictEqual(fs.readFileSync(path.join(folder, "紹介動画.mp4"), "utf8"), "intro");
+  assert.ok(fs.existsSync(path.join(promo, "final", "紹介動画.mp4")), "元のファイルは残す");
+  // 作り直したあとにもう一度実行すると上書きする
+  fs.writeFileSync(path.join(promo, "final", "紹介動画.mp4"), "intro2");
+  assert.strictEqual(runTs("deliver.ts", ["--config", cfg], childEnv({ SHOWCASE_DESKTOP_DIR: desk })).status, 0);
+  assert.strictEqual(fs.readFileSync(path.join(folder, "紹介動画.mp4"), "utf8"), "intro2");
+  // --name で名前を変えられる
+  assert.strictEqual(runTs("deliver.ts", ["--config", cfg, "--name", "見本"], childEnv({ SHOWCASE_DESKTOP_DIR: desk })).status, 0);
+  assert.ok(fs.existsSync(path.join(desk, "紹介動画_見本", "15秒.mp4")));
+
+  // 足りないものがあれば止まり、フォルダを作らない
+  const d2 = tmpDir("deliver-missing");
+  const desk2 = path.join(d2, "Desktop");
+  fs.mkdirSync(desk2);
+  const p2 = fakePromo(d2, { skip: ["stills/final/thumb-ogp.png"] });
+  const m = runTs("deliver.ts", ["--config", p2.cfg], childEnv({ SHOWCASE_DESKTOP_DIR: desk2 }));
+  assert.strictEqual(m.status, 1, m.out);
+  assert.match(m.out, /サムネイル/);
+  assert.deepStrictEqual(fs.readdirSync(desk2), [], "何も作らない");
+
+  // デスクトップが無ければ作らずに、できあがりの場所を出す
+  const d3 = tmpDir("deliver-nodesk");
+  const p3 = fakePromo(d3);
+  const noDesk = path.join(d3, "Desktop");
+  const n = runTs("deliver.ts", ["--config", p3.cfg], childEnv({ SHOWCASE_DESKTOP_DIR: noDesk }));
+  assert.strictEqual(n.status, 0, n.out);
+  assert.match(n.out, /\[注意\] デスクトップのフォルダが見つかりませんでした/);
+  assert.ok(n.out.includes(path.join(p3.promo, "final", "15秒.mp4")));
+  assert.ok(!fs.existsSync(noDesk), "デスクトップのフォルダを作らない");
+  assert.strictEqual(runTs("deliver.ts", ["--config", p3.cfg, "--bogus", "x"], childEnv({ SHOWCASE_DESKTOP_DIR: noDesk })).status, 1);
+});
+
+test("声の候補（同梱の catalog.json）: 1 番がおすすめで設定のひな形の既定の声と同じ・Gemini は 4 つまで・形の悪い一覧は止める", { skip }, async () => {
+  const { loadCatalog, validateCatalog, findCandidate, placedName } = await load("lib/voice-catalog.ts");
+  const { DEFAULT_GEMINI } = await load("gemini-tts.ts");
+  const { DEFAULT_VOICE } = await load("lib/eleven-client.ts");
+  await withCleanEnv({}, () => {
+    const cat = loadCatalog();
+    assert.strictEqual(cat.gemini[0].id, DEFAULT_GEMINI.voice);
+    assert.strictEqual(cat.gemini[0].model, DEFAULT_GEMINI.model);
+    assert.strictEqual(cat.elevenlabs[0].id, DEFAULT_VOICE.id);
+    assert.ok(cat.gemini.length >= 2 && cat.gemini.length <= 4, "Gemini の候補はおすすめを含めて 4 つまで（無料枠を試聴に 4 回だけ使う）");
+    assert.ok(cat.elevenlabs.length <= 4);
+    for (const c of cat.gemini) {
+      assert.ok(/^ja-jp-[a-z]+-\d+$/.test(c.id), `日本語（ja-JP）の声: ${c.id}`);
+      assert.strictEqual(c.model, DEFAULT_GEMINI.model);
+    }
+    assert.ok([...cat.sentence].length <= 40, "試聴の 1 文は数秒で終わる長さ");
+    assert.strictEqual(findCandidate(cat, "gemini", "2")?.no, 2);
+    assert.strictEqual(findCandidate(cat, "gemini", "ja-jp-commercial-4")?.no, 1);
+    assert.strictEqual(findCandidate(cat, "gemini", "ja-jp-advisor-3")?.no, 2, "1.29 までの既定の声は 2 番（落ち着いた男性）");
+    assert.deepStrictEqual(cat.gemini.map((c) => c.id), ["ja-jp-commercial-4", "ja-jp-advisor-3", "ja-jp-commercial-3", "ja-jp-advisor-2"], "講師が試聴して決めた並び");
+    assert.deepStrictEqual(cat.gemini.map((c) => c.file), ["gemini/1.mp3", "gemini/2.mp3", "gemini/3.mp3", "gemini/4.mp3"], "mp3 は番号どおりの名前");
+    assert.strictEqual(findCandidate(cat, "gemini", "9"), null);
+    assert.strictEqual(findCandidate(cat, "elevenlabs", "ja-jp-commercial-4"), null, "種類の違う声は引かない");
+    assert.match(placedName(cat.gemini[0]), /^1_おすすめ_.+\.mp3$/);
+    assert.ok(!/[\\/:*?"<>|\s]/.test(placedName(cat.gemini[1])), "Windows のファイル名に使えない文字を入れない");
+    const bad = (mut) => {
+      const c = JSON.parse(JSON.stringify(cat));
+      mut(c);
+      return () => validateCatalog(c);
+    };
+    assert.throws(bad((c) => (c.gemini[1].recommended = true)), /おすすめ/);
+    assert.throws(bad((c) => (c.gemini[1].no = 5)), /連番/);
+    assert.throws(bad((c) => (c.gemini[1].id = c.gemini[0].id)), /重複/);
+    assert.throws(bad((c) => (c.gemini[0].file = "../x.mp3")), /file/);
+    assert.throws(bad((c) => (c.elevenlabs = [])), /候補がありません/);
+  });
+});
+
+/** 試聴の音声を置いた仮の voice-samples（Gemini 2 つ・ElevenLabs 1 つで音声なし） */
+function fakeSamples(d) {
+  const dir = path.join(d, "voice-samples");
+  fs.mkdirSync(path.join(dir, "gemini"), { recursive: true });
+  const cat = JSON.parse(fs.readFileSync(path.join(SKILL, "voice-samples", "catalog.json"), "utf8"));
+  cat.gemini = cat.gemini.slice(0, 2);
+  cat.elevenlabs = cat.elevenlabs.slice(0, 1);
+  fs.writeFileSync(path.join(dir, "catalog.json"), JSON.stringify(cat, null, 2));
+  fs.writeFileSync(path.join(dir, "gemini", "1.mp3"), "one");
+  fs.writeFileSync(path.join(dir, "gemini", "2.mp3"), "two");
+  return { dir, cat };
+}
+
+test("voice-samples place: デスクトップの「声の聞き比べ_Gemini」に番号付きで写す・音声が無ければおすすめで進める・デスクトップが無ければ同梱の場所を出す", { skip }, () => {
+  const d = tmpDir("samples");
+  const desk = path.join(d, "Desktop");
+  fs.mkdirSync(desk);
+  const { dir, cat } = fakeSamples(d);
+  const env = childEnv({ SHOWCASE_DESKTOP_DIR: desk, SHOWCASE_VOICE_SAMPLES_DIR: dir });
+  const r = runTs("voice-samples.ts", ["place", "--provider", "gemini"], env);
+  assert.strictEqual(r.status, 0, r.out);
+  const folder = path.join(desk, "声の聞き比べ_Gemini");
+  const names = fs.readdirSync(folder).sort();
+  assert.strictEqual(names.length, 2);
+  assert.match(names[0], /^1_おすすめ_/);
+  assert.match(names[1], /^2_/);
+  assert.strictEqual(fs.readFileSync(path.join(folder, names[1]), "utf8"), "two");
+  assert.match(r.out, /ダブルクリックして聞き、気に入った声の番号を返してください/);
+  assert.match(r.out, /voice-choice\.ts save .*--voice <番号>/);
+  // 前に写した古い名前のファイルは消す・ほかのファイルには触らない
+  fs.writeFileSync(path.join(folder, "2_古い説明.mp3"), "old");
+  fs.writeFileSync(path.join(folder, "メモ.txt"), "keep");
+  assert.strictEqual(runTs("voice-samples.ts", ["place", "--provider", "gemini"], env).status, 0);
+  assert.ok(!fs.existsSync(path.join(folder, "2_古い説明.mp3")));
+  assert.ok(fs.existsSync(path.join(folder, "メモ.txt")));
+
+  // 音声が同梱されていない種類は、聞き比べを飛ばしておすすめで進める（フォルダを作らない）
+  const e = runTs("voice-samples.ts", ["place", "--provider", "elevenlabs"], env);
+  assert.strictEqual(e.status, 0, e.out);
+  assert.match(e.out, /試聴の音声が入っていません/);
+  assert.match(e.out, new RegExp(`--provider elevenlabs --voice 1`));
+  assert.ok(!fs.existsSync(path.join(desk, "声の聞き比べ_ElevenLabs")));
+
+  // デスクトップが無ければ作らず、同梱のファイルの場所を出す
+  const nd = runTs("voice-samples.ts", ["place", "--provider", "gemini"], childEnv({ SHOWCASE_DESKTOP_DIR: path.join(d, "none"), SHOWCASE_VOICE_SAMPLES_DIR: dir }));
+  assert.strictEqual(nd.status, 0, nd.out);
+  assert.match(nd.out, /デスクトップのフォルダが見つかりませんでした/);
+  assert.ok(nd.out.includes(path.join(dir, "gemini", "1.mp3")));
+  assert.ok(!fs.existsSync(path.join(d, "none")));
+
+  const l = runTs("voice-samples.ts", ["list", "--provider", "gemini"], env);
+  assert.strictEqual(l.status, 0, l.out);
+  assert.ok(l.out.includes(cat.sentence));
+  assert.match(l.out, /1\. .+【おすすめ】.+試聴あり/);
+  assert.strictEqual(runTs("voice-samples.ts", ["place", "--provider", "voicevox"], env).status, 1);
+  assert.strictEqual(runTs("voice-samples.ts", ["place"], env).status, 1);
+});
+
+test("voice-choice --voice: 番号で選んだ声を設定と控えに書く・次は控えの声を使う・1.29 の控え（声の種類だけ）はおすすめの声のまま", { skip }, async () => {
+  const { resolveVoice } = await load("voice-choice.ts");
+  const { loadCatalog } = await load("lib/voice-catalog.ts");
+  const cat = await withCleanEnv({}, () => loadCatalog());
+  assert.strictEqual(resolveVoice("gemini", "2", {}, cat).id, cat.gemini[1].id);
+  assert.strictEqual(resolveVoice("gemini", undefined, {}, cat).id, "ja-jp-commercial-4", "何も無ければおすすめ");
+  assert.strictEqual(resolveVoice("gemini", undefined, { voiceProvider: "gemini" }, cat).id, "ja-jp-commercial-4", "1.29 の控え（声の種類だけ）は 1.30 のおすすめの声");
+  assert.strictEqual(resolveVoice("gemini", undefined, { voiceProvider: "gemini", voiceId: cat.gemini[2].id }, cat).id, cat.gemini[2].id, "控えの声を使う");
+  assert.strictEqual(resolveVoice("elevenlabs", undefined, { voiceProvider: "gemini", voiceId: cat.gemini[2].id }, cat).id, "EHMH9cyd1z3rXm4z0Jja", "種類を変えたらその種類のおすすめ");
+  assert.strictEqual(resolveVoice("gemini", undefined, { voiceProvider: "gemini", voiceId: "ja-jp-nai-1" }, cat).id, "ja-jp-commercial-4", "一覧から消えた声ならおすすめ");
+  assert.throws(() => resolveVoice("gemini", "9", {}, cat), /候補にありません/);
+
+  const d = tmpDir("voice-choice-voice");
+  const cfg = path.join(d, "showcase.config.json");
+  fs.copyFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), cfg);
+  const profile = path.join(d, "profile.json");
+  // 1.29 で保存した控え（声の種類だけ）
+  fs.writeFileSync(profile, JSON.stringify({ org: "見本工房", voiceProvider: "gemini" }));
+  const env = childEnv({ SHOWCASE_PROFILE_FILE: profile });
+  const old = runTs("voice-choice.ts", ["show"], env);
+  assert.strictEqual(old.status, 0, old.out);
+  assert.match(old.out, /控え: 声の種類 gemini.*ja-jp-commercial-4/);
+  const r = runTs("voice-choice.ts", ["save", "--config", cfg, "--provider", "gemini", "--voice", "3"], env);
+  assert.strictEqual(r.status, 0, r.out);
+  assert.ok(r.out.includes(cat.gemini[2].id));
+  const saved = JSON.parse(fs.readFileSync(cfg, "utf8"));
+  assert.deepStrictEqual([saved.tts.provider, saved.tts.voice, saved.tts.model], ["gemini", cat.gemini[2].id, cat.gemini[2].model]);
+  assert.ok(typeof saved.tts.$comment === "string", "tts の説明は残す");
+  const p = JSON.parse(fs.readFileSync(profile, "utf8"));
+  assert.strictEqual(p.voiceId, cat.gemini[2].id);
+  assert.strictEqual(p.org, "見本工房", "制作クレジットの控えを消さない");
+  assert.match(runTs("voice-choice.ts", ["show"], env).out, new RegExp(`声 3\\. .*${cat.gemini[2].id}`));
+  // 次の動画で「前と同じ」なら --voice なしで同じ声になる
+  const cfg2 = path.join(d, "showcase2.config.json");
+  fs.copyFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), cfg2);
+  assert.strictEqual(runTs("voice-choice.ts", ["save", "--config", cfg2, "--provider", "gemini"], env).status, 0);
+  assert.strictEqual(JSON.parse(fs.readFileSync(cfg2, "utf8")).tts.voice, cat.gemini[2].id);
+  // 一覧に無い番号は書かずに止まる
+  const before = fs.readFileSync(cfg2, "utf8");
+  const bad = runTs("voice-choice.ts", ["save", "--config", cfg2, "--provider", "gemini", "--voice", "99"], env);
+  assert.strictEqual(bad.status, 1, bad.out);
+  assert.strictEqual(fs.readFileSync(cfg2, "utf8"), before, "設定を書き換えない");
+});
+
+test("showcase-check tts: 聞き比べで選んだ Gemini の声（おすすめ以外）でも、台本と設定がそろっていれば NG にしない", { skip }, async () => {
+  const { loadCatalog } = await load("lib/voice-catalog.ts");
+  const cat = await withCleanEnv({}, () => loadCatalog());
+  const d = tmpDir("check-tts-picked");
+  const nd = path.join(d, "intro", "narration");
+  fs.mkdirSync(nd, { recursive: true });
+  const cfg = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), "utf8"));
+  cfg.tts.voice = cat.gemini[1].id;
+  cfg.credit = { display: "見本工房", kana: "みほんこうぼう" };
+  fs.writeFileSync(path.join(d, "showcase.config.json"), JSON.stringify(cfg));
+  const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
+  s.voice = cat.gemini[1].id;
+  s.items = [{ id: "s1-hook", text: "見本の文です。" }, { id: "s6-name", text: "みほん。" }, { id: "s6-credit", text: "せいさく、{{credit}}。" }];
+  fs.writeFileSync(path.join(nd, "narration.script.json"), JSON.stringify(s));
+  const cred = path.join(d, "credentials.env");
+  fs.writeFileSync(cred, `GEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+  const r = runTs("showcase-check.ts", ["tts", "--config", path.join(d, "showcase.config.json")], childEnv({ SHOWCASE_CREDENTIALS_FILE: cred }));
+  assert.ok(!/voice が設定と違います/.test(r.out), r.out);
+  assert.ok(r.out.includes(cat.gemini[1].id), r.out);
+});
+
+test("gen-voice-samples（講師用）: 声の一覧で候補を確かめてから 1 候補 1 回だけ作り、mp3 を置く・作ってあれば呼ばない・一覧に無い声は 1 回も読み上げない", { skip }, async () => {
+  const http = await import("node:http");
+  const { spawn } = await import("node:child_process");
+  const d = tmpDir("gen-samples");
+  const { dir, cat } = fakeSamples(d);
+  fs.rmSync(path.join(dir, "gemini"), { recursive: true });
+  let speech = 0;
+  let listed = 0;
+  let known = cat.gemini.map((c) => c.id);
+  let keyInUrl = false;
+  const server = http.createServer((req, res) => {
+    if (req.url.includes("key=")) keyInUrl = true;
+    req.resume();
+    req.on("end", () => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      if (req.method === "GET" && req.url.startsWith("/v1beta/voices")) {
+        listed++;
+        assert.match(req.url, /language_code=ja-JP/);
+        res.end(JSON.stringify({ voices: known.map((id) => ({ id })) }));
+        return;
+      }
+      speech++;
+      res.end(JSON.stringify({ steps: [{ type: "model_output", content: [{ type: "audio", data: toneWav(1.5).toString("base64") }] }] }));
+    });
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const cred = path.join(d, "credentials.env");
+  fs.writeFileSync(cred, `GEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_VOICE_SAMPLES_DIR: dir, SHOWCASE_GEMINI_API_BASE: `http://127.0.0.1:${server.address().port}/v1beta` });
+  const run = (args) =>
+    new Promise((resolve) => {
+      const p = spawn(process.execPath, [path.join(SCRIPTS, "gen-voice-samples.ts"), ...args], { env });
+      let out = "";
+      p.stdout.on("data", (c) => (out += c));
+      p.stderr.on("data", (c) => (out += c));
+      p.on("close", (code) => resolve({ status: code, out }));
+    });
+  try {
+    const dry = await run(["--provider", "gemini", "--dry-run"]);
+    assert.strictEqual(dry.status, 0, dry.out);
+    assert.match(dry.out, /読み上げの呼び出し: 2 回/);
+    assert.strictEqual(speech + listed, 0, "--dry-run は呼ばない");
+
+    known = [cat.gemini[0].id];
+    const missing = await run(["--provider", "gemini"]);
+    assert.strictEqual(missing.status, 1, missing.out);
+    assert.ok(missing.out.includes(cat.gemini[1].id));
+    assert.strictEqual(speech, 0, "一覧に無い声があれば 1 回も読み上げない");
+
+    known = cat.gemini.map((c) => c.id);
+    const r = await run(["--provider", "gemini"]);
+    assert.strictEqual(r.status, 0, r.out);
+    assert.strictEqual(speech, 2, "1 候補 1 回");
+    assert.ok(!r.out.includes(DUMMY_GEMINI), "鍵の値を出さない");
+    assert.ok(!keyInUrl, "キーを URL に入れない");
+    for (const n of [1, 2]) {
+      const b = fs.readFileSync(path.join(dir, "gemini", `${n}.mp3`));
+      assert.ok(b.length > 1000 && (b.subarray(0, 3).toString() === "ID3" || b[0] === 0xff), "mp3 になっている");
+    }
+    const written = JSON.parse(fs.readFileSync(path.join(dir, "catalog.json"), "utf8"));
+    assert.deepStrictEqual(written.gemini.map((c) => c.file), ["gemini/1.mp3", "gemini/2.mp3"]);
+
+    const again = await run(["--provider", "gemini"]);
+    assert.strictEqual(again.status, 0, again.out);
+    assert.strictEqual(speech, 2, "作ってあれば呼ばない（無料枠の回数を使わない）");
+  } finally {
+    server.close();
+  }
+});
+
+test("gen-voice-samples（講師用）: 引数の誤りは止める・ElevenLabs の自動の候補は日本語の声だけで男女を交互に選ぶ", { skip }, async () => {
+  const { parseArgs, eligibleShared, pickAlternating, elevenLabel } = await load("gen-voice-samples.ts");
+  assert.throws(() => parseArgs([]), /--provider/);
+  assert.throws(() => parseArgs(["--provider", "gemini", "--list"]), /elevenlabs だけ/);
+  assert.throws(() => parseArgs(["--provider", "elevenlabs", "--pick", "a/b"]), /英数字/);
+  assert.throws(() => parseArgs(["--provider", "gemini", "--bogus"]), /知らない引数/);
+  assert.deepStrictEqual(parseArgs(["--provider", "elevenlabs", "--pick", "abc", "--auto", "2"]).pick, ["abc"]);
+  const list = [
+    { voice_id: "m1", name: "M1", gender: "male", language: "ja", usage_character_count_1y: 900 },
+    { voice_id: "en", name: "EN", gender: "female", language: "en", usage_character_count_1y: 99999 },
+    { voice_id: "f1", name: "F1", gender: "female", language: "ja", usage_character_count_1y: 800 },
+    { voice_id: "m2", name: "M2", gender: "male", language: "ja", usage_character_count_1y: 700 },
+    { voice_id: "pay", name: "PAY", gender: "female", language: "ja", rate: 2, usage_character_count_1y: 5000 },
+    { voice_id: "mod", name: "MOD", gender: "female", language: "ja", live_moderation_enabled: true, usage_character_count_1y: 5000 },
+    { voice_id: "m1", name: "M1", gender: "male", language: "ja", usage_character_count_1y: 900 },
+    { voice_id: "yuma", name: "Y", gender: "male", language: "ja", usage_character_count_1y: 99999 },
+  ];
+  const ok = eligibleShared(list, new Set(["yuma"]));
+  assert.deepStrictEqual(ok.map((v) => v.voice_id), ["m1", "f1", "m2"], "日本語・料金の上乗せなし・重複なし・使われている順");
+  assert.deepStrictEqual(pickAlternating(ok, 3).map((v) => v.voice_id), ["f1", "m1", "m2"]);
+  assert.match(elevenLabel({ name: "X", gender: "female", age: "young", descriptive: "calm" }), /^穏やかな若い女性（X）$/);
+});
+
+test("SKILL.md: 声は聞き比べてから番号で選ぶ・できあがりはデスクトップのフォルダにも置く・無料枠は 1 日 10 回", () => {
+  const skill = fs.readFileSync(path.join(SKILL, "SKILL.md"), "utf8");
+  assert.ok(skill.includes("voice-samples.ts"), "聞き比べの道具");
+  assert.ok(skill.includes("deliver.ts"), "デスクトップへ写す道具");
+  assert.ok(skill.includes("デスクトップの「紹介動画_"), "完了報告でデスクトップのフォルダを言う");
+  assert.ok(skill.includes("声を変えて"), "選び直し方");
+  assert.ok(skill.includes("1 日 10 回"), "無料枠の回数");
+  assert.ok(skill.includes("7 回（読み直しがあればその分増える）"), "1 本で使う回数");
+  const sv = fs.readFileSync(path.join(SKILL, "references", "script-and-voice.md"), "utf8");
+  assert.match(sv, /voice-samples\.ts"? place --provider/);
+  assert.ok(sv.includes("--voice"));
 });

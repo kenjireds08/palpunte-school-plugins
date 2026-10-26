@@ -20,6 +20,9 @@
     1. 場面ごとの wav（gemini-tts.ts か eleven-tts.ts）の「話している長さ」（<id>.json の effectiveSeconds）で場面の長さを決める
        （場面 = 話している長さ ＋ 前後の間 0.3〜0.6 秒）
     2. <audio id="vo-sN"> の data-start = 場面の開始 + 0.3、data-duration = effectiveSeconds（2 桁）
+       締めの S6 だけは声が 2 本（vo-s6 = アプリの名前・vo-s6b = 「せいさく、〇〇」）。名前と制作のあいだに 0.6〜0.8 秒の間をあける:
+       vo-s6b の data-start = vo-s6 の data-start + s6-name の effectiveSeconds + 0.7 − s6-credit の speechStart
+       （showcase-check.ts timing が間を測り、外れていれば入れる値を出す）
     3. 文字や画面の動きは、transcribe.ts の語の時刻（<id>.words.json の tokens[].at）に合わせる
     4. 録画 <video> は data-media-start で使い始める秒を決める。途中を切り出して並べてよい
     5. 録画の前後は静止画（record.mjs が書き出す <場面>-first.png / -last.png）で埋める
@@ -29,7 +32,7 @@
     - 色: :root（15 秒動画と同じ値）／写真: assets/img/s1-a.png・s1-b.png・s1-c.png・s5-bg.png（gen-images.ts）
     - 文言: 〔 〕の仮の文言。**コードで確かめた機能だけ**。ナレーションと画面の文字を合わせる
     - 録画: assets/video/user.mp4（スマホ 390x844）/ admin.mp4（PC 1280x800）と、前後の静止画
-    - 声: assets/audio/s1-hook.wav … s6-name.wav（場面の数だけ）
+    - 声: assets/audio/s1-hook.wav … s6-name.wav・s6-credit.wav（場面の数だけ。S6 は名前と制作の 2 本）
     - 制作クレジット: 手で書かない。node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/credit.ts" apply --config <設定> --html index.html
     - BGM: gen-bgm.ts --style narrated --duration <合計秒> --logo-at <S6 開始秒> --out assets/audio/bgm.wav ／ 効果音: gen-sfx.ts
     - #glyph-warm に画面の文字を全部 → gen-fonts.ts --html index.html（credit.ts apply の後に回す）
@@ -387,7 +390,9 @@
       <audio id="vo-s3" src="assets/audio/s3-line.wav" data-start="14.3" data-duration="2.6" data-track-index="10" data-volume="1"></audio>
       <audio id="vo-s4" src="assets/audio/s4-admin.wav" data-start="17.5" data-duration="11.0" data-track-index="10" data-volume="1"></audio>
       <audio id="vo-s5" src="assets/audio/s5-features.wav" data-start="29.7" data-duration="4.5" data-track-index="10" data-volume="1"></audio>
-      <audio id="vo-s6" src="assets/audio/s6-name.wav" data-start="35" data-duration="5.9" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s6" src="assets/audio/s6-name.wav" data-start="35" data-duration="1.5" data-track-index="10" data-volume="1"></audio>
+      <!-- 制作の声（「せいさく、〇〇」）。アプリの名前の声との間を 0.6〜0.8 秒あける: data-start = vo-s6 の data-start + s6-name の effectiveSeconds + 0.7 − s6-credit の speechStart -->
+      <audio id="vo-s6b" src="assets/audio/s6-credit.wav" data-start="37.2" data-duration="3.0" data-track-index="10" data-volume="1"></audio>
 
       <!-- BGM（gen-bgm.ts --style narrated）。声の下で控えめに -->
       <audio id="bgm-bed" src="assets/audio/bgm.wav" data-start="0" data-duration="42" data-track-index="11" data-volume="0.22"></audio>
@@ -565,7 +570,7 @@
       tl.fromTo("#s6-rule-l", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, L0 + 0.7);
       tl.fromTo("#s6-rule-r", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, L0 + 0.7);
       tl.fromTo("#s6-tag", { opacity: 0, y: 26, scale: 1.06 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, L0 + 0.7);
-      // REPLACE: 制作クレジットが出る時刻（ナレーションの「せいさく」の語の時刻に合わせる）
+      // REPLACE: 制作クレジットが出る時刻 = 制作の声 vo-s6b の data-start ＋ s6-credit.json の speechStart（showcase-check.ts timing が「CREDIT_AT = 〇 秒」と出す。L0 からの差で書く）
       const CREDIT_AT = L0 + 2.6;
       tl.fromTo("#s6-credit", { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, CREDIT_AT);
       tl.fromTo("#s6-zoom", { scale: 1.0 }, { scale: 1.04, duration: T.end - L0, ease: "none" }, L0);
