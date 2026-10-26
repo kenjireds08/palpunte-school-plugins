@@ -1,5 +1,6 @@
 // API キーを、ホームの共通の置き場（~/.config/school-starter/credentials.env）に 1 回だけ保存する。Mac / Windows 共通。
 //
+//   node "<スキルのフォルダ>/scripts/save-key.ts" gemini
 //   node "<スキルのフォルダ>/scripts/save-key.ts" elevenlabs
 //   node "<スキルのフォルダ>/scripts/save-key.ts" openai
 //
@@ -19,6 +20,7 @@ import { type KeyName, credentialsFile, keyShape } from "./lib/keys.ts";
 export class SaveKeyError extends Error {}
 
 export const TARGETS: Record<string, { name: KeyName; label: string; where: string }> = {
+  gemini: { name: "GEMINI_API_KEY", label: "Gemini", where: "Google AI Studio（aistudio.google.com）→ Get API key で作ったキー" },
   elevenlabs: { name: "ELEVENLABS_API_KEY", label: "ElevenLabs", where: "ElevenLabs の画面の左下 → Developers → API Keys で作ったキー" },
   openai: { name: "OPENAI_API_KEY", label: "OpenAI", where: "OpenAI の Platform（platform.openai.com）→ API keys で作ったキー（sk- で始まる）" },
 };
@@ -83,7 +85,7 @@ function readHidden(prompt: string): Promise<string> {
 async function main(argv: string[]): Promise<number> {
   const which = argv[0];
   if (!which || which === "--help" || which === "-h" || argv.length !== 1 || !TARGETS[which]) {
-    console.log("save-key.ts — API キーを共通の置き場に保存する（受講生がアプリの中のターミナルで実行する）\n  node save-key.ts elevenlabs\n  node save-key.ts openai");
+    console.log("save-key.ts — API キーを共通の置き場に保存する（受講生がアプリの中のターミナルで実行する）\n  node save-key.ts gemini\n  node save-key.ts elevenlabs\n  node save-key.ts openai");
     return which && !["--help", "-h"].includes(which) ? 1 : 0;
   }
   const t = TARGETS[which];

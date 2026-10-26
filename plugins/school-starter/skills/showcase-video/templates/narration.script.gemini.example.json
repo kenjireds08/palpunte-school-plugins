@@ -1,0 +1,15 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.8-flash-tts",
+  "voice": "ja-jp-advisor-3",
+  "style": "",
+  "outDir": ".",
+  "items": [
+    { "id": "s1-hook", "text": "〔困りごとの一言。英字・数字はかなで、同じ音の別の言葉がある語は漢字で書く〕" },
+    { "id": "s2-phone", "text": "〔お客さん側でできること〕" },
+    { "id": "s3-line", "text": "〔お客さんの操作が、管理側に届くこと〕" },
+    { "id": "s4-admin", "text": "〔管理側でできること〕" },
+    { "id": "s5-features", "text": "〔特長を 2 つ〕" },
+    { "id": "s6-name", "text": "〔アプリの名前の読み〕。せいさく、{{credit}}。" }
+  ]
+}

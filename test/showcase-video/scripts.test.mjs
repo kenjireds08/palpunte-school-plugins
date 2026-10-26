@@ -23,7 +23,7 @@ const SCRIPTS = path.join(SKILL, "scripts");
 const [maj, min] = process.versions.node.split(".").map(Number);
 const skip = maj > 22 || (maj === 22 && min >= 18) ? false : `Node ${process.versions.node} は .ts をそのまま動かせないので skip（22.18 以上で動く）`;
 
-const KEY_VARS = ["ELEVENLABS_API_KEY", "OPENAI_API_KEY", "SHOWCASE_CREDENTIALS_FILE", "SHOWCASE_PROFILE_FILE", "SHOWCASE_IMAGE_STUDIO_ENV"];
+const KEY_VARS = ["GEMINI_API_KEY", "ELEVENLABS_API_KEY", "OPENAI_API_KEY", "SHOWCASE_CREDENTIALS_FILE", "SHOWCASE_PROFILE_FILE", "SHOWCASE_IMAGE_STUDIO_ENV", "SHOWCASE_GEMINI_API_BASE"];
 
 function tmpDir(name) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `showcase-test-${name}-`));
@@ -554,4 +554,370 @@ test("どのスキルの description も、厳しい YAML の読み方で壊れ�
       assert.ok(!/: | #/.test(value), `${name}: 引用符なしの description に「: 」か「 #」がある（引用符で囲む）`);
     }
   }
+});
+
+// ---------- Gemini の声（ネットに出ない範囲。API はにせの fetch で差し替える） ----------
+
+const DUMMY_GEMINI = "AIza" + "d".repeat(35);
+const GEMINI_SCRIPT = path.join(SKILL, "templates", "narration.script.gemini.example.json");
+function filledGeminiScript(dir) {
+  const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
+  s.items = s.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  const f = path.join(dir, "narration.script.json");
+  fs.writeFileSync(f, JSON.stringify(s));
+  return f;
+}
+
+test("keys: GEMINI_API_KEY は 環境変数 → 共通の置き場 の順・image-studio は見ない・AIza… を伏せる", { skip }, async () => {
+  const { findKey, keyShape, redactKeys } = await load("lib/keys.ts");
+  const d = tmpDir("keys-gemini");
+  const cred = path.join(d, "credentials.env");
+  const studio = path.join(d, "studio.env");
+  fs.writeFileSync(studio, `GEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+  await withCleanEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_IMAGE_STUDIO_ENV: studio }, () => {
+    assert.strictEqual(findKey("GEMINI_API_KEY"), null, "image-studio の Gemini は使わない");
+    fs.writeFileSync(cred, `ELEVENLABS_API_KEY=${DUMMY_ELEVEN}\nGEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+    assert.strictEqual(findKey("GEMINI_API_KEY")?.source, "共通の置き場");
+    assert.strictEqual(findKey("GEMINI_API_KEY")?.value, DUMMY_GEMINI);
+    process.env.GEMINI_API_KEY = DUMMY_GEMINI + "x";
+    assert.strictEqual(findKey("GEMINI_API_KEY")?.source, "環境変数");
+  });
+  assert.strictEqual(keyShape("GEMINI_API_KEY", DUMMY_GEMINI), "ok");
+  assert.strictEqual(keyShape("GEMINI_API_KEY", "short"), "bad-char");
+  assert.ok(!redactKeys(`x ${DUMMY_GEMINI} y`).includes(DUMMY_GEMINI));
+});
+
+test("save-key: gemini は GEMINI_API_KEY に保存・端末でなければ保存せずに止まる", { skip }, async () => {
+  const { TARGETS, saveKey } = await load("save-key.ts");
+  const { findKey } = await load("lib/keys.ts");
+  assert.strictEqual(TARGETS.gemini.name, "GEMINI_API_KEY");
+  assert.match(TARGETS.gemini.where, /AI Studio/);
+  const d = tmpDir("save-gemini");
+  const file = path.join(d, "credentials.env");
+  saveKey("ELEVENLABS_API_KEY", DUMMY_ELEVEN, file);
+  saveKey("GEMINI_API_KEY", DUMMY_GEMINI, file);
+  await withCleanEnv({ SHOWCASE_CREDENTIALS_FILE: file }, () => {
+    assert.strictEqual(findKey("GEMINI_API_KEY")?.value, DUMMY_GEMINI);
+    assert.strictEqual(findKey("ELEVENLABS_API_KEY")?.value, DUMMY_ELEVEN, "ほかのキーの行は残る");
+  });
+  const file2 = path.join(d, "notty.env");
+  const r = spawnSync(process.execPath, [path.join(SCRIPTS, "save-key.ts"), "gemini"], {
+    encoding: "utf8",
+    input: `${DUMMY_GEMINI}\n`,
+    env: childEnv({ SHOWCASE_CREDENTIALS_FILE: file2 }),
+    timeout: 30000,
+  });
+  assert.notStrictEqual(r.status, 0, r.stdout + r.stderr);
+  assert.ok(!fs.existsSync(file2), "保存していない");
+  assert.ok(!`${r.stdout}${r.stderr}`.includes(DUMMY_GEMINI), "キーを画面に出さない");
+});
+
+test("設定のひな形: 声の種類の既定は gemini・既定の声は ja-jp-advisor-3（台本のひな形と同じ）", { skip }, async () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), "utf8"));
+  const { DEFAULT_GEMINI } = await load("gemini-tts.ts");
+  assert.strictEqual(cfg.tts.provider, "gemini");
+  assert.strictEqual(cfg.tts.voice, DEFAULT_GEMINI.voice);
+  assert.strictEqual(cfg.tts.model, DEFAULT_GEMINI.model);
+  assert.strictEqual(DEFAULT_GEMINI.voice, "ja-jp-advisor-3");
+  const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
+  assert.strictEqual(s.provider, "gemini");
+  assert.strictEqual(s.voice, cfg.tts.voice);
+  assert.strictEqual(s.model, cfg.tts.model);
+});
+
+test("gemini-tts: 台本の〔 〕・ElevenLabs の台本は 1 回も呼ばずに止まる・{{credit}} を読みに置き換える", { skip }, async () => {
+  const { jobsFromScript, UsageError, cacheKey } = await load("gemini-tts.ts");
+  const d = tmpDir("gemini-jobs");
+  assert.throws(() => jobsFromScript(GEMINI_SCRIPT, "みほん"), UsageError, "〔 〕の仮の原稿");
+  assert.throws(() => jobsFromScript(path.join(SKILL, "templates", "narration.script.example.json"), "みほん"), /Gemini 用ではありません/);
+  const f = filledGeminiScript(d);
+  const { jobs, outDir } = jobsFromScript(f, "みほんこうぼう");
+  assert.strictEqual(jobs.length, 6);
+  assert.strictEqual(outDir, d);
+  assert.strictEqual(jobs[5].text, "よやくる。せいさく、みほんこうぼう。");
+  assert.strictEqual(jobs[0].out, path.join(d, "s1-hook.wav"), "置き場と名前は eleven-tts.ts と同じ <outDir>/<id>.wav");
+  assert.strictEqual(jobs[0].spec.voice, "ja-jp-advisor-3");
+  assert.throws(() => jobsFromScript(f, null), UsageError, "{{credit}} があるのに読みが無い");
+  const other = { ...jobs[0], spec: { ...jobs[0].spec, voice: "ja-jp-tutor-9" } };
+  assert.notStrictEqual(cacheKey(jobs[0]), cacheKey(other), "声が変われば作り直す");
+});
+
+test("gemini-tts --dry-run: キーなしでも本数・文字数・見込みを出し、無料枠の注意を出す（API は呼ばない）", { skip }, () => {
+  const d = tmpDir("gemini-dry");
+  const f = filledGeminiScript(d);
+  const cfg = path.join(d, "showcase.config.json");
+  fs.writeFileSync(cfg, JSON.stringify({ credit: { display: "見本工房", kana: "みほんこうぼう" } }));
+  // 呼んだら必ず失敗する宛先にしておく（dry-run は呼ばないので関係ない）
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: path.join(d, "none.env"), SHOWCASE_GEMINI_API_BASE: "http://127.0.0.1:9" });
+  const r = runTs("gemini-tts.ts", ["--script", f, "--config", cfg, "--dry-run"], env);
+  assert.strictEqual(r.status, 0, r.out);
+  assert.match(r.out, /生成 6 本（呼び出し 6 回/);
+  assert.match(r.out, /送る文字数 \d+/);
+  assert.match(r.out, /見込みの長さ/);
+  assert.match(r.out, /品質改善/);
+  assert.ok(!fs.existsSync(path.join(d, "s1-hook.wav")), "何も作らない");
+});
+
+test("gemini-tts: キーが無ければ呼ぶ前に止まる（終了コード 5・保存の案内）", { skip }, () => {
+  const d = tmpDir("gemini-nokey");
+  const f = filledGeminiScript(d);
+  const cfg = path.join(d, "showcase.config.json");
+  fs.writeFileSync(cfg, JSON.stringify({ credit: { display: "見本工房", kana: "みほんこうぼう" } }));
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: path.join(d, "none.env"), SHOWCASE_GEMINI_API_BASE: "http://127.0.0.1:9" });
+  const r = runTs("gemini-tts.ts", ["--script", f, "--config", cfg], env);
+  assert.strictEqual(r.status, 5, r.out);
+  assert.match(r.out, /Gemini のキーがありません/);
+  assert.match(r.out, /save-key|保存用コマンド/);
+});
+
+test("gemini-tts: 429 の分け方（1 日の上限は待たずに止めて 2 択・分単位は短く待つ・長い Retry-After は信じない）", { skip }, async () => {
+  const { decideFailure, MAX_WAIT_MS, MAX_RETRIES } = await load("gemini-tts.ts");
+  const daily = decideFailure(429, '{"error":{"message":"Quota exceeded for metric: generate_requests_per_day"}}', null, 1);
+  assert.strictEqual(daily.kind, "stop-premise");
+  assert.match(daily.message, /明日もう一度/);
+  assert.match(daily.message, /Starter/);
+  const perDayId = decideFailure(429, '{"error":{"details":[{"violations":[{"quotaId":"GenerateRequestsPerDayPerProjectPerModel"}]}]}}', null, 1);
+  assert.strictEqual(perDayId.kind, "stop-premise");
+  assert.deepStrictEqual(decideFailure(429, "Resource exhausted per minute", "5", 1), { kind: "retry", waitMs: 5000 });
+  assert.strictEqual(decideFailure(429, "Resource exhausted", "82360", 1).kind, "stop-premise", "翌日を指す Retry-After は待たない");
+  const noHeader = decideFailure(429, "Resource exhausted", null, 2);
+  assert.strictEqual(noHeader.kind, "retry");
+  assert.ok(noHeader.waitMs <= MAX_WAIT_MS);
+  assert.strictEqual(decideFailure(429, "Resource exhausted", null, MAX_RETRIES + 1).kind, "stop-premise", "分単位でも続いたら止める");
+  const zero = decideFailure(429, "Quota exceeded ... limit: 0, model: gemini-3.8-flash-tts", null, 1);
+  assert.strictEqual(zero.kind, "stop-premise");
+  assert.match(zero.message, /無料枠/);
+  assert.strictEqual(decideFailure(400, '{"error":{"message":"API key not valid. Please pass a valid API key."}}', null, 1).kind, "stop-premise");
+  assert.strictEqual(decideFailure(403, "PERMISSION_DENIED", null, 1).kind, "stop-premise");
+  assert.strictEqual(decideFailure(503, "unavailable", null, 1).kind, "retry");
+  assert.strictEqual(decideFailure(503, "unavailable", null, MAX_RETRIES + 1).kind, "fail");
+  assert.strictEqual(decideFailure(400, "bad request", null, 1).kind, "fail");
+});
+
+/** にせの fetch。返事を順に返し、呼ばれた回数と送った見出しを覚える */
+function fakeFetch(responses) {
+  const calls = [];
+  const f = async (url, init) => {
+    calls.push({ url, init });
+    const r = responses[Math.min(calls.length - 1, responses.length - 1)];
+    return new Response(r.body, { status: r.status, headers: r.headers ?? {} });
+  };
+  return { f, calls };
+}
+function silentWav(seconds = 0.5, rate = 24000) {
+  const n = Math.round(seconds * rate);
+  const b = Buffer.alloc(44 + n * 2);
+  b.write("RIFF", 0, "ascii");
+  b.writeUInt32LE(36 + n * 2, 4);
+  b.write("WAVE", 8, "ascii");
+  b.write("fmt ", 12, "ascii");
+  b.writeUInt32LE(16, 16);
+  b.writeUInt16LE(1, 20);
+  b.writeUInt16LE(1, 22);
+  b.writeUInt32LE(rate, 24);
+  b.writeUInt32LE(rate * 2, 28);
+  b.writeUInt16LE(2, 32);
+  b.writeUInt16LE(16, 34);
+  b.write("data", 36, "ascii");
+  b.writeUInt32LE(n * 2, 40);
+  return b;
+}
+
+test("gemini-tts: requestSpeech は分単位の 429 を短く待って取り直し、1 日の上限では 1 回で止まる（キーはヘッダだけ）", { skip }, async () => {
+  const { requestSpeech, GeminiStop, MIN_INTERVAL_MS, extractAudio, parseWav } = await load("gemini-tts.ts");
+  const ok = { status: 200, body: JSON.stringify({ steps: [{ type: "model_output", content: [{ type: "audio", data: silentWav().toString("base64") }] }] }) };
+  let clock = 1000;
+  const sleeps = [];
+  const deps = (f) => ({ fetch: f, sleep: async (ms) => { sleeps.push(ms); clock += ms; }, now: () => clock, log: () => {} });
+
+  const a = fakeFetch([{ status: 429, body: "per minute", headers: { "retry-after": "3" } }, ok]);
+  const resp = await requestSpeech({ base: "https://example.invalid/v1beta", key: DUMMY_GEMINI, body: { x: 1 }, timeoutMs: 1000, state: { lastCallAt: 0 } }, deps(a.f));
+  assert.strictEqual(a.calls.length, 2);
+  assert.ok(sleeps.includes(3000), `Retry-After の 3 秒だけ待つ: ${sleeps}`);
+  assert.strictEqual(a.calls[0].url, "https://example.invalid/v1beta/interactions");
+  assert.strictEqual(a.calls[0].init.headers["x-goog-api-key"], DUMMY_GEMINI);
+  assert.ok(!a.calls[0].url.includes(DUMMY_GEMINI), "URL にキーを入れない");
+  const info = parseWav(extractAudio(resp));
+  assert.strictEqual(info.sampleRate, 24000);
+  assert.ok(Math.abs(info.seconds - 0.5) < 0.001);
+
+  sleeps.length = 0;
+  const b = fakeFetch([{ status: 429, body: '{"error":{"message":"Quota exceeded: requests per day"}}', headers: { "retry-after": "82360" } }, ok]);
+  await assert.rejects(
+    requestSpeech({ base: "https://example.invalid/v1beta", key: DUMMY_GEMINI, body: {}, timeoutMs: 1000, state: { lastCallAt: 0 } }, deps(b.f)),
+    (e) => e instanceof GeminiStop && /明日もう一度/.test(e.message) && !e.message.includes(DUMMY_GEMINI),
+  );
+  assert.strictEqual(b.calls.length, 1, "1 日の上限では取り直さない");
+  assert.deepStrictEqual(sleeps, [], "長く待たない");
+
+  // 続けて呼ぶときは 6.5 秒あける
+  sleeps.length = 0;
+  const state = { lastCallAt: 0 };
+  const c = fakeFetch([ok]);
+  await requestSpeech({ base: "https://example.invalid/v1beta", key: DUMMY_GEMINI, body: {}, timeoutMs: 1000, state }, deps(c.f));
+  await requestSpeech({ base: "https://example.invalid/v1beta", key: DUMMY_GEMINI, body: {}, timeoutMs: 1000, state }, deps(c.f));
+  assert.deepStrictEqual(sleeps, [MIN_INTERVAL_MS]);
+  assert.throws(() => extractAudio({ steps: [{ type: "model_output", content: [{ type: "text" }] }] }), /音声がありません/);
+});
+
+test("voice-choice: 選んだ声の種類を設定の tts と控えに書き、制作クレジットの控えを消さない", { skip }, async () => {
+  const { applyChoice, PRESETS } = await load("voice-choice.ts");
+  const out = applyChoice({ project: { name: "x" }, tts: { $comment: "c", provider: "gemini", voice: "v", model: "m" } }, "elevenlabs");
+  assert.deepStrictEqual(out.tts, { $comment: "c", provider: "elevenlabs", voice: "EHMH9cyd1z3rXm4z0Jja", model: "eleven_v4" });
+  assert.deepStrictEqual(out.project, { name: "x" });
+  assert.strictEqual(PRESETS.gemini.voice, "ja-jp-advisor-3");
+
+  const d = tmpDir("voice-choice");
+  const cfg = path.join(d, "showcase.config.json");
+  fs.copyFileSync(path.join(SKILL, "templates", "showcase.config.example.json"), cfg);
+  const profile = path.join(d, "profile.json");
+  const env = childEnv({ SHOWCASE_PROFILE_FILE: profile });
+  assert.match(runTs("voice-choice.ts", ["show"], env).out, /まだありません/);
+  const credit = runTs("credit.ts", ["save", "--config", cfg, "--org", "見本工房", "--org-kana", "みほんこうぼう"], env);
+  assert.strictEqual(credit.status, 0, credit.out);
+  const r = runTs("voice-choice.ts", ["save", "--config", cfg, "--provider", "elevenlabs"], env);
+  assert.strictEqual(r.status, 0, r.out);
+  assert.match(r.out, /save-key\.ts elevenlabs/);
+  const saved = JSON.parse(fs.readFileSync(cfg, "utf8"));
+  assert.strictEqual(saved.tts.provider, "elevenlabs");
+  assert.strictEqual(saved.credit.display, "見本工房", "設定のほかの項目は残る");
+  const p = JSON.parse(fs.readFileSync(profile, "utf8"));
+  assert.strictEqual(p.voiceProvider, "elevenlabs");
+  assert.strictEqual(p.org, "見本工房", "制作クレジットの控えを消さない");
+  assert.match(runTs("voice-choice.ts", ["show"], env).out, /控え: 声の種類 elevenlabs/);
+  // 後から credit を保存し直しても声の控えは残る
+  runTs("credit.ts", ["save", "--config", cfg, "--org", "見本工房", "--org-kana", "みほんこうぼう"], env);
+  assert.strictEqual(JSON.parse(fs.readFileSync(profile, "utf8")).voiceProvider, "elevenlabs");
+  assert.strictEqual(runTs("voice-choice.ts", ["save", "--config", cfg, "--provider", "voicevox"], env).status, 1);
+  // 声の控えだけがあるとき、credit.ts show は「まだありません」と言う
+  const onlyVoice = path.join(d, "only-voice.json");
+  fs.writeFileSync(onlyVoice, JSON.stringify({ voiceProvider: "gemini" }));
+  assert.match(runTs("credit.ts", ["show"], childEnv({ SHOWCASE_PROFILE_FILE: onlyVoice })).out, /控えはまだありません/);
+});
+
+test("showcase-check tts: 設定が gemini なら Gemini の台本と Gemini のキーを求める（ElevenLabs の台本は NG）", { skip }, () => {
+  const d = tmpDir("check-tts-gemini");
+  const nd = path.join(d, "intro", "narration");
+  fs.mkdirSync(nd, { recursive: true });
+  const cfg = path.join(d, "showcase.config.json");
+  fs.writeFileSync(cfg, JSON.stringify({ intro: { narrationDir: "intro/narration" }, credit: { display: "見本工房", kana: "みほんこうぼう" }, tts: { provider: "gemini", voice: "ja-jp-advisor-3", model: "gemini-3.8-flash-tts" } }));
+  const cred = path.join(d, "credentials.env");
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_IMAGE_STUDIO_ENV: path.join(d, "none.env") });
+  filledGeminiScript(nd);
+  fs.writeFileSync(cred, `ELEVENLABS_API_KEY=${DUMMY_ELEVEN}\n`);
+  const nokey = runTs("showcase-check.ts", ["tts", "--config", cfg], env);
+  assert.strictEqual(nokey.status, 1, nokey.out);
+  assert.match(nokey.out, /Gemini のキー/);
+  fs.writeFileSync(cred, `GEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+  const ok = runTs("showcase-check.ts", ["tts", "--config", cfg], env);
+  assert.strictEqual(ok.status, 0, ok.out);
+  assert.ok(!ok.out.includes(DUMMY_GEMINI), "鍵の値を出さない");
+  const eleven = JSON.parse(fs.readFileSync(path.join(SKILL, "templates", "narration.script.example.json"), "utf8"));
+  eleven.items = eleven.items.map((it) => ({ ...it, text: it.id === "s6-name" ? "よやくる。せいさく、{{credit}}。" : "見本の文です。" }));
+  fs.writeFileSync(path.join(nd, "narration.script.json"), JSON.stringify(eleven));
+  const mixed = runTs("showcase-check.ts", ["tts", "--config", cfg], env);
+  assert.strictEqual(mixed.status, 1, mixed.out);
+  assert.match(mixed.out, /声の種類（elevenlabs）が設定（tts.provider gemini）と違います/);
+});
+
+test("eleven-client: 無料プランで止まったときは「Starter にする／Gemini に切り替える」の 2 択を出す", { skip }, async () => {
+  const { classify4xx } = await load("lib/eleven-client.ts");
+  for (const [status, body] of [[402, '{"detail":{"status":"free_users_not_allowed"}}'], [403, "forbidden"]]) {
+    const m = classify4xx(status, body, "EHMH9cyd1z3rXm4z0Jja").message;
+    assert.match(m, /Starter（月 6 ドル）/);
+    assert.match(m, /--provider gemini/);
+    assert.match(m, /英語なまりなので、日本語の紹介動画には使わない/);
+  }
+});
+
+test("deps: 声のキーは選んだ声の種類の方だけを見る・まだ選んでいなければ NG にしない", { skip }, () => {
+  const d = tmpDir("deps-voice");
+  const cred = path.join(d, "credentials.env");
+  fs.writeFileSync(cred, `OPENAI_API_KEY=${DUMMY_OPENAI}\nELEVENLABS_API_KEY=${DUMMY_ELEVEN}\n`);
+  const profile = path.join(d, "profile.json");
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_IMAGE_STUDIO_ENV: path.join(d, "none.env"), SHOWCASE_PROFILE_FILE: profile });
+  const run = () => {
+    const r = spawnSync(process.execPath, [path.join(SCRIPTS, "deps.mjs")], { encoding: "utf8", env, timeout: 60000 });
+    return `${r.stdout}\n${r.stderr}`;
+  };
+  const none = run();
+  assert.ok(!/\[NG\] (Gemini|ElevenLabs) のキー/.test(none), none);
+  assert.match(none, /声の種類はまだ選んでいません/);
+  fs.writeFileSync(profile, JSON.stringify({ voiceProvider: "gemini" }));
+  const gem = run();
+  assert.match(gem, /\[NG\] Gemini のキー（声）: なし/);
+  assert.ok(!/ElevenLabs のキー/.test(gem), "選ばなかった方は見ない");
+  fs.writeFileSync(profile, JSON.stringify({ voiceProvider: "elevenlabs" }));
+  assert.match(run(), /\[OK\] ElevenLabs のキー（声）: あり（共通の置き場）/);
+  assert.ok(!run().includes(DUMMY_ELEVEN), "鍵の値を出さない");
+});
+
+function toneWav(seconds = 1.2, rate = 24000) {
+  const b = silentWav(seconds, rate);
+  const n = (b.length - 44) / 2;
+  for (let i = 0; i < n; i++) b.writeInt16LE(Math.round(Math.sin((2 * Math.PI * 220 * i) / rate) * 8000), 44 + i * 2);
+  return b;
+}
+
+test("gemini-tts: にせの API から受けた WAV を、eleven-tts.ts と同じ形（24kHz mono・−16 LUFS 付近・<id>.json）で置く・2 回目は作り直さない", { skip }, async () => {
+  const http = await import("node:http");
+  const { spawn } = await import("node:child_process");
+  let hits = 0;
+  let sawKeyHeader = true;
+  const server = http.createServer((req, res) => {
+    hits++;
+    if (req.headers["x-goog-api-key"] !== DUMMY_GEMINI || req.url.includes("key=")) sawKeyHeader = false;
+    req.resume();
+    req.on("end", () => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ steps: [{ type: "model_output", content: [{ type: "audio", data: toneWav().toString("base64") }] }], usage: { total_output_tokens: 40 } }));
+    });
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const port = server.address().port;
+  const d = tmpDir("gemini-e2e");
+  const s = JSON.parse(fs.readFileSync(GEMINI_SCRIPT, "utf8"));
+  s.items = [{ id: "s1-hook", text: "見本の文です。" }];
+  const f = path.join(d, "narration.script.json");
+  fs.writeFileSync(f, JSON.stringify(s));
+  const cred = path.join(d, "credentials.env");
+  fs.writeFileSync(cred, `GEMINI_API_KEY=${DUMMY_GEMINI}\n`);
+  const env = childEnv({ SHOWCASE_CREDENTIALS_FILE: cred, SHOWCASE_GEMINI_API_BASE: `http://127.0.0.1:${port}/v1beta` });
+  const run = () =>
+    new Promise((resolve) => {
+      const p = spawn(process.execPath, [path.join(SCRIPTS, "gemini-tts.ts"), "--script", f], { env });
+      let out = "";
+      p.stdout.on("data", (c) => (out += c));
+      p.stderr.on("data", (c) => (out += c));
+      p.on("close", (code) => resolve({ status: code, out }));
+    });
+  try {
+    const r = await run();
+    assert.strictEqual(r.status, 0, r.out);
+    assert.ok(!r.out.includes(DUMMY_GEMINI), "鍵の値を出さない");
+    const meta = JSON.parse(fs.readFileSync(path.join(d, "s1-hook.json"), "utf8"));
+    assert.strictEqual(meta.provider, "gemini");
+    assert.strictEqual(meta.outputSampleRate, 24000);
+    assert.strictEqual(meta.channels, 1);
+    assert.strictEqual(typeof meta.effectiveSeconds, "number");
+    assert.ok(Math.abs(meta.seconds - 1.2) < 0.05, `長さ ${meta.seconds}`);
+    assert.ok(meta.truePeakDb <= -1, `true peak ${meta.truePeakDb}`);
+    const head = fs.readFileSync(path.join(d, "s1-hook.wav")).subarray(0, 44);
+    assert.strictEqual(head.readUInt32LE(24), 24000);
+    assert.strictEqual(head.readUInt16LE(22), 1);
+    assert.ok(sawKeyHeader, "キーは x-goog-api-key のヘッダで渡し、URL に入れない");
+    assert.strictEqual(hits, 1);
+    const again = await run();
+    assert.strictEqual(again.status, 0, again.out);
+    assert.match(again.out, /作成済み/);
+    assert.strictEqual(hits, 1, "同じ原稿・同じ声なら呼ばない");
+  } finally {
+    server.close();
+  }
+});
+
+test("gemini-tts: ffmpeg の置き場を探す（PATH が古いままでも動く）", () => {
+  const t = fs.readFileSync(path.join(SCRIPTS, "gemini-tts.ts"), "utf8");
+  assert.ok(t.includes('from "./lib/ffpath.mjs"'));
+  assert.ok(/ensureFfmpegOnPath\(\)/.test(t));
 });

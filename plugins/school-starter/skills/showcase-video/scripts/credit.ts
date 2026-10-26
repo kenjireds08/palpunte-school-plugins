@@ -124,12 +124,12 @@ function main(argv: string[]): number {
   }
   if (cmd === "show") {
     const f = profileFile();
-    if (!fs.existsSync(f)) {
+    const p = fs.existsSync(f) ? readJson(f) : {};
+    if (typeof p.org !== "string" || !p.org) {
       console.log("控えはまだありません（初めての動画です。会社名・屋号と、入れるなら名前を受講生に聞く）");
       return 0;
     }
-    const p = readJson(f);
-    console.log(`控え: ${JSON.stringify(p)}`);
+    console.log(`控え: ${JSON.stringify({ org: p.org, orgKana: p.orgKana, name: p.name, nameKana: p.nameKana })}`);
     return 0;
   }
   const cfgPath = one.get("config");
@@ -142,7 +142,9 @@ function main(argv: string[]): number {
     writeFileAtomic(abs, `${JSON.stringify(cfg, null, 2)}\n`);
     const pf = profileFile();
     fs.mkdirSync(path.dirname(pf), { recursive: true });
-    writeFileAtomic(pf, `${JSON.stringify({ org: c.org, orgKana: c.orgKana, name: c.name, nameKana: c.nameKana, savedAt: new Date().toISOString() }, null, 2)}\n`);
+    // 控えのほかの項目（voice-choice.ts の声の種類など）は残す
+    const prev = fs.existsSync(pf) ? readJson(pf) : {};
+    writeFileAtomic(pf, `${JSON.stringify({ ...prev, org: c.org, orgKana: c.orgKana, name: c.name, nameKana: c.nameKana, savedAt: new Date().toISOString() }, null, 2)}\n`);
     console.log(`[ok] 制作クレジット: 画面「制作：${c.display}」／ 読み「せいさく、${c.kana}」`);
     console.log(`     設定 ${abs} と、次の動画のための控え ${pf} に書きました`);
     return 0;

@@ -8,7 +8,7 @@
 //     このプロセスの中で使うだけで、画面・ログ・記録 JSON には出さない（出口は redact の 1 つ）
 //   - 台本の {{credit}} は、設定（showcase.config.json）の credit.kana（読み）に置き換えてから送る
 //   - 残りは ElevenLabs の API（subscription）で確かめ、足りなければ 1 字も送らずに止まる（終了コード 5）
-//   - 声が使えない（無料プランで Voice Library の声など）ときは止まって選び直しを案内する（終了コード 6）。
+//   - 声が使えない（無料プランで Voice Library の声など）ときは止まって「Starter にする／Gemini に切り替える」の 2 択を出す（終了コード 6）。
 //     別の声へ勝手に切り替えない
 
 import { createHash } from "node:crypto";
@@ -144,8 +144,8 @@ export function jobsFromScript(scriptPath: string, creditKana: string | null = n
     throw new UsageError(`台本 JSON を読めません: ${abs}\n${(e as Error).message}`);
   }
   if (!spec || typeof spec !== "object" || Array.isArray(spec)) throw new UsageError(`台本 JSON の形が違います: ${abs}`);
-  if (spec.provider !== undefined && spec.provider !== "eleven") {
-    throw new UsageError(`この台本は provider が ${JSON.stringify(spec.provider)} です。このスキルの読み上げは ElevenLabs だけです（provider は書かないか "eleven"）`);
+  if (spec.provider !== undefined && spec.provider !== "eleven" && spec.provider !== "elevenlabs") {
+    throw new UsageError(`この台本は provider が ${JSON.stringify(spec.provider)} です。このスキルの読み上げは ElevenLabs だけです（provider は書かないか "eleven"・"elevenlabs"）`);
   }
   const unknownKeys = Object.keys(spec).filter((k) => !SCRIPT_KEYS.includes(k));
   if (unknownKeys.length > 0) throw new UsageError(`台本 JSON に知らない項目があります: ${unknownKeys.join(", ")}`);
@@ -381,7 +381,7 @@ const HELP = `eleven-tts.ts — ElevenLabs で紹介動画のナレーション�
 
 文字数: 1 字 = 1 クレジットで数える。送る前に ElevenLabs の API で今月の残りを確かめ、足りなければ止まる
 キー: 環境変数 ELEVENLABS_API_KEY → 共通の置き場（~/.config/school-starter/credentials.env）。値は画面に出さない
-終了コード: 0 成功 / 1 失敗 / ${PREMISE_EXIT} 鍵・残り・上限の問題 / ${VOICE_EXIT} この声を使えない（voices.ts で選び直す）`;
+終了コード: 0 成功 / 1 失敗 / ${PREMISE_EXIT} 鍵・残り・上限の問題 / ${VOICE_EXIT} この声を使えない（Starter にするか、Gemini の声に切り替える）`;
 
 async function main(): Promise<number> {
   ensureFfmpegOnPath(); // ffmpeg を入れたあとアプリが古い PATH のままでも動くように（lib/ffpath.mjs）

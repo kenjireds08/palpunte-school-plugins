@@ -1,6 +1,6 @@
 ---
 name: showcase-video
-description: "自分で作ったアプリの紹介動画セットを、1 回の依頼で 3 点作る。①15 秒の短い動画（ナレーションなし・音を消しても伝わる）②ナレーション付きの紹介動画（アプリの画面の録画＋ElevenLabs の声＋生成した写真）③サムネイル（横長 1200×630 の OGP 画像）。声は ElevenLabs、写真は OpenAI の画像 API（1 本 30 枚まで）、組み立てと書き出しは HyperFrames。「このアプリの紹介動画を作って」「アプリの紹介動画」「紹介動画とサムネイルを作って」「PR 動画を作りたい」「ナレーション付きの動画で紹介したい」で発動。「showcase-video で」「紹介動画スキルで」と名指しされたときもこれ。途中で止めた動画の続き（「showcase-video の続きから」「promo-video の続きから」）にも使う。書き分け: 宣伝・紹介用の動画（アプリの良さを伝える PR 動画）はこのスキル。操作説明・取扱説明書・動作確認ガイドの動画は torisetsu。使わない場面: 操作マニュアル用のスクショ、アプリが無いまま動画だけ作る、他社の実在サービスの紹介動画。"
+description: "自分で作ったアプリの紹介動画セットを、1 回の依頼で 3 点作る。①15 秒の短い動画（ナレーションなし・音を消しても伝わる）②ナレーション付きの紹介動画（アプリの画面の録画＋読み上げの声＋生成した写真）③サムネイル（横長 1200×630 の OGP 画像）。声は Gemini（無料枠あり）か ElevenLabs（Starter 以上）を初回に選ぶ。写真は OpenAI の画像 API（1 本 30 枚まで）、組み立てと書き出しは HyperFrames。「このアプリの紹介動画を作って」「アプリの紹介動画」「紹介動画とサムネイルを作って」「PR 動画を作りたい」「ナレーション付きの動画で紹介したい」で発動。「showcase-video で」「紹介動画スキルで」と名指しされたときもこれ。途中で止めた動画の続き（「showcase-video の続きから」「promo-video の続きから」）にも使う。書き分け: 宣伝・紹介用の動画（アプリの良さを伝える PR 動画）はこのスキル。操作説明・取扱説明書・動作確認ガイドの動画は torisetsu。使わない場面: 操作マニュアル用のスクショ、アプリが無いまま動画だけ作る、他社の実在サービスの紹介動画。"
 ---
 
 # showcase-video（自分のアプリの紹介動画セット）
@@ -17,7 +17,7 @@ description: "自分で作ったアプリの紹介動画セットを、1 回の�
 ## 最初に宣言すること（このスキルの間はこれを優先する）
 
 0. **このスキルが動いているときは、torisetsu（操作説明・取扱説明書のスキル）を使わない。** 「誰に見せるか」「どの環境で撮るか」などを独自に聞かず、このスキルの手順で進める
-1. **止まって受講生に聞くのは 3 回だけ**: ① 初めての動画のときの「最後に出す名前（制作：〇〇）」 ② 台本・画像の一覧・費用の承認 ③ 声ができたあとの「名前の読みを聞いて確かめる」（ほかに、データが増える操作を撮るときだけ、撮る前にもう 1 回聞く → `references/capture.md`「書き込みが要る場面」）。それ以外は 1 つ終えるたびに止まらず次へ進む（ハンズオン 4 ルールの「1 メッセージ = 1 ステップ」は、この 3 か所だけで使う）。道具が NG を出して進めないときは止まって知らせる
+1. **止まって受講生に聞くのは 3 回だけ**: ① 初めての動画のときの「最後に出す名前（制作：〇〇）」と「声の種類（Gemini か ElevenLabs か）」（1 つのメッセージで聞く） ② 台本・画像の一覧・費用の承認 ③ 声ができたあとの「名前の読みを聞いて確かめる」（ほかに、データが増える操作を撮るときだけ、撮る前にもう 1 回聞く → `references/capture.md`「書き込みが要る場面」）。それ以外は 1 つ終えるたびに止まらず次へ進む（ハンズオン 4 ルールの「1 メッセージ = 1 ステップ」は、この 3 か所だけで使う）。道具が NG を出して進めないときは止まって知らせる
 2. **feature-dev・Plan Mode・実装計画のファイル作成を提案しない。** 下の STEP がそのまま計画になっている
 3. **アプリ本体のコードは書き換えない。** 作るものはすべてアプリのフォルダの中の `promo-video/` に置く
 4. **DESIGN.md・UI 禁止パターン集で動画の見た目を決め直さない。** 色はアプリの色に合わせ、形はテンプレートどおりにする
@@ -42,8 +42,9 @@ description: "自分で作ったアプリの紹介動画セットを、1 回の�
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/deps.mjs"` | 道具がそろっているかの確認（Node・ffmpeg・Chrome・npm install・キーがあるか）。足りない物の入れ方を出す |
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/save-key.ts"` | キーの保存（**受講生がターミナルで実行する。Claude は実行しない**） |
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/credit.ts"` | 最後に出す名前「制作：〇〇」と読みを、設定と HTML に入れる |
-| `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/eleven-tts.ts"` | ナレーションの声（ElevenLabs）。場面ごとの wav と長さの記録。残りの文字数を確かめてから作る |
-| `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/voices.ts"` | 声を選び直すときの一覧（課金なし・日本語で確かめ済みの公式の声だけ） |
+| `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/voice-choice.ts"` | 声の種類（Gemini か ElevenLabs か）を設定に書く。初回に 1 回だけ選び、次からは控えを使う |
+| `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gemini-tts.ts"` | ナレーションの声（Gemini・無料枠あり）。場面ごとの wav と長さの記録。1 日の上限に当たったら待たずに止まる |
+| `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/eleven-tts.ts"` | ナレーションの声（ElevenLabs の Yuma Uchida・Starter 以上）。場面ごとの wav と長さの記録。残りの文字数を確かめてから作る |
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/transcribe.ts"` | 書き起こしと語の時刻（読み間違いの確認・動きを声に合わせる・書き出した動画の確認） |
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gen-images.ts"` | 写真の生成（見積もり・費用の上限・台帳つき。1 本 30 枚まで） |
 | `"${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gen-sfx.ts"` / `gen-bgm.ts` | 効果音と BGM を計算で作る（著作権の心配なし） |
@@ -85,7 +86,7 @@ promo-video/
 
 1. `node --version` が 22.18 より古い、または `node` が無い → 止めて `references/setup.md`「道具をそろえる」の Node の入れ方を案内する（Node だけは入れたらアプリを完全に終了して開き、左の一覧から前の会話を開いて「showcase-video の続きから」と送ってもらう）
 2. `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/deps.mjs"` を実行し、`[NG]` の行の「次にやること」を 1 つずつ案内する（ffmpeg・Chrome は受講生が入れる。ffmpeg は入れたら同じ会話のまま「入れました」と返してもらい、アプリは開き直さない → `references/setup.md`「道具をそろえる」）。`deps.mjs` が `[注意]` で「コマンドの頭に付ける 1 行」を出したら控えておく（下の「Bash で ffmpeg を直接打つとき」）
-3. キーが無い → `references/setup.md`「鍵を保存する」の保存用コマンドを、**受講生がアプリの中のターミナルに貼って実行するもの**として出す（Claude は実行しない）。「保存しました」と返ってきたら 2 をもう一度
+3. キーが無い → `references/setup.md`「鍵を保存する」の保存用コマンドを、**受講生がアプリの中のターミナルに貼って実行するもの**として出す（Claude は実行しない）。「保存しました」と返ってきたら 2 をもう一度。声のキーは、選んだ声の種類の方だけ（初めての動画で声をまだ選んでいなければ `deps.mjs` は NG にせず `[注意]` で知らせる。保存は STEP 1 で声を選んだあと）
 4. `promo-video/` を作り、`templates/package.json` と `templates/showcase.config.example.json`（→ `showcase.config.json`）を写して、`promo-video` で `npm install`（1〜3 分）。`.gitignore` に `promo-video/node_modules/`・`promo-video/capture/credentials/` を足す（→ `references/setup.md`「promo-video を用意する」）
 5. 書き出しと録画に使うブラウザを入れる: `npx --yes hyperframes@0.8.77 browser ensure`（約 200MB・数分・1 回だけ。`deps.mjs` が `[注意]` で知らせる）
 6. `deps.mjs --dir <promo-video のフォルダ>` が NG 0 になったら STEP 1 へ
@@ -96,9 +97,9 @@ promo-video/
 
 | # | 何を | 誰 | OK の目印 | 詳細 |
 |---|---|---|---|---|
-| 1 | 🙋 初めての動画なら、最後に出す名前を聞く（会社名・屋号は必須・個人の名前は任意・読みも）。`credit.ts show` に控えがあれば「前と同じでよいか」だけ聞く | ◀ → ▶ | `credit.ts save` が `[ok]` | `script-and-voice.md`「最後に出す名前」 |
+| 1 | 🙋 初めての動画なら、最後に出す名前（会社名・屋号は必須・個人の名前は任意・読みも）と**声の種類**（Gemini か ElevenLabs か。2 択の表を見せる）を 1 つのメッセージで聞く。`credit.ts show`・`voice-choice.ts show` に控えがあれば「前と同じでよいか」だけ聞く。選んだ声のキーが無ければ保存用コマンドを出す | ◀ → ▶ | `credit.ts save` と `voice-choice.ts save` が `[ok]` | `script-and-voice.md`「最後に出す名前」「声を選ぶ」 |
 | 2 | アプリのコードを読んで事実確認表（`docs/facts.md`）と、画面に出る個人情報の一覧を作る | ◀ | 各行に `ファイル:行` | `script-and-voice.md`「事実確認表」・`capture.md` |
-| 3 | 台本（15 秒の文言・紹介動画の場面表）と写真の一覧（`docs/images.jobs.json`）を作り、見積もり（`gen-images.ts --dry-run`・`eleven-tts.ts --dry-run`）を出す | ◀ | 全文が事実確認表に対応 | `script-and-voice.md`・`images.md` |
+| 3 | 台本（15 秒の文言・紹介動画の場面表）と写真の一覧（`docs/images.jobs.json`）を作り、見積もり（`gen-images.ts --dry-run`・選んだ声の `gemini-tts.ts --dry-run` か `eleven-tts.ts --dry-run`）を出す | ◀ | 全文が事実確認表に対応 | `script-and-voice.md`・`images.md` |
 | 4 | 🙋 **台本・写真の一覧・費用を 1 回だけ承認してもらう** | ▶ | 「OK」 | `script-and-voice.md`「承認の出し方」 |
 | 5 | 声を作る → 書き起こして読み間違いを確かめる → 🙋 名前の読みを受講生に 1 回聞いてもらう | ◀ → ▶ | 誤読なし・読みが OK | `script-and-voice.md`「ナレーションを作る」 |
 | 6 | 写真を作る → 全枚を開いて検品（画面の向き・性別と年代・人物の国・地域がそろっているか・文字が入っていないか） | ◀ | 不合格 0 枚 | `images.md` |
@@ -109,7 +110,7 @@ promo-video/
 ## 終わったときの報告（この形で出す）
 
 - できたもの 3 点のファイルの場所（`promo-video/final/15秒.mp4`・`promo-video/final/紹介動画.mp4`・`promo-video/stills/final/thumb-ogp.png`）と動画の長さ
-- 使った費用: 画像の枚数と円（台帳の累計）・声の文字数（ElevenLabs の今月の残り）・書き起こしの円
+- 使った費用: 画像の枚数と円（台帳の累計）・声（Gemini なら呼び出しの回数、ElevenLabs なら文字数と今月の残り）・書き起こしの円
 - 受講生に見てほしい所（読みが怪しかった語・差し替えた写真など）
 - 最後に 1 行: **「事業サイトへの掲載などは、このスキルを自分で改良すれば足せます」**
 
@@ -117,8 +118,8 @@ promo-video/
 
 | 文書 | 中身 |
 |---|---|
-| `references/setup.md` | 道具をそろえる（Mac / Windows）・鍵を保存する・ElevenLabs と OpenAI のプランと料金・promo-video を用意する・Mac だけで確かめた所 |
-| `references/script-and-voice.md` | 最後に出す名前・事実確認表・長さの決め方・台本の型・読み（同じ音の言葉は漢字）・承認の出し方・ナレーション・声を選び直す |
+| `references/setup.md` | 道具をそろえる（Mac / Windows）・鍵を保存する・声の 2 択（Gemini と ElevenLabs）と OpenAI のプランと料金・promo-video を用意する・Mac だけで確かめた所 |
+| `references/script-and-voice.md` | 最後に出す名前・事実確認表・長さの決め方・台本の型・読み（同じ音の言葉は漢字）・承認の出し方・声を選ぶ（2 択）・ナレーション・ElevenLabs の無料プランで止まったとき |
 | `references/images.md` | 写真の使いどころ（生活の場面・アプリの中の写真）・プロンプトの型・検品・枚数と費用 |
 | `references/capture.md` | ダミーのデータ・録画の台本（record.mjs）・ログイン・書き込みが要る場面・本物の情報を映さない |
 | `references/compose.md` | 15 秒の動画・紹介動画・サムネイル・書き出し・書き出したあとの確認 |

@@ -1,7 +1,7 @@
-// API キーを探す（ElevenLabs・OpenAI）。値はこのプロセスの中で使うだけで、画面・ログ・ファイルに出さない。
+// API キーを探す（Gemini・ElevenLabs・OpenAI）。値はこのプロセスの中で使うだけで、画面・ログ・ファイルに出さない。
 //
 // 探す順番（見つかった最初の 1 つを使う）:
-//   1. 環境変数（ELEVENLABS_API_KEY / OPENAI_API_KEY）
+//   1. 環境変数（GEMINI_API_KEY / ELEVENLABS_API_KEY / OPENAI_API_KEY）
 //   2. ホームの共通の置き場 ~/.config/school-starter/credentials.env（どのプロジェクトからでも使えるように 1 回だけ保存する）
 //   3. OPENAI_API_KEY だけ: 補講2 の作業フォルダ ~/claude-code-projects/image-studio/.env.local
 //
@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-export type KeyName = "ELEVENLABS_API_KEY" | "OPENAI_API_KEY";
+export type KeyName = "GEMINI_API_KEY" | "ELEVENLABS_API_KEY" | "OPENAI_API_KEY";
 export type KeySource = "環境変数" | "共通の置き場" | "image-studio";
 
 /** 共通の置き場（~/.config/school-starter/credentials.env） */
@@ -73,7 +73,7 @@ export function findKey(name: KeyName): { value: string; source: KeySource; file
 
 export type KeyShape = "ok" | "missing" | "bad-prefix" | "bad-char";
 
-/** 鍵の形だけを確かめる（値は返さない）。OpenAI は sk- で始まる。どちらも空白・改行・引用符を含まない */
+/** 鍵の形だけを確かめる（値は返さない）。OpenAI は sk- で始まる。Gemini・ElevenLabs は始まりを決めない（確かめていない形を強制しない）。どれも空白・改行・引用符を含まない */
 export function keyShape(name: KeyName, value: string | null | undefined): KeyShape {
   if (!value) return "missing";
   if (/[\s"'`]/.test(value)) return "bad-char";
@@ -92,11 +92,16 @@ export function keyStatus(name: KeyName): { found: boolean; source: KeySource | 
 export function redactKeys(s: unknown, extra: Array<string | null | undefined> = []): string {
   let t = String(s);
   for (const k of extra) if (k && k.length >= 8) t = t.split(k).join("***");
-  return t.replace(/sk-[A-Za-z0-9_-]{8,}/g, "***").replace(/sk_[A-Za-z0-9]{16,}/g, "***");
+  return t
+    .replace(/sk-[A-Za-z0-9_-]{8,}/g, "***")
+    .replace(/sk_[A-Za-z0-9]{16,}/g, "***")
+    .replace(/AIza[A-Za-z0-9_-]{20,}/g, "***");
 }
 
 /** 保存するコマンドで案内する「どこに・どの名前で」（値は含まない） */
 export const SAVE_HINT: Record<KeyName, string> = {
+  GEMINI_API_KEY:
+    "Gemini のキーがありません。スキルの references/setup.md「鍵を保存する」の Gemini の保存用コマンドを、アプリの中のターミナルに貼ってキーを入力してください（チャットには貼りません）",
   ELEVENLABS_API_KEY:
     "ElevenLabs のキーがありません。スキルの references/setup.md「鍵を保存する」の保存用コマンドを、アプリの中のターミナルに貼ってキーを入力してください（チャットには貼りません）",
   OPENAI_API_KEY:

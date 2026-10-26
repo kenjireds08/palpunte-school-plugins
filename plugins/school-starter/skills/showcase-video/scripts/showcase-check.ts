@@ -1,6 +1,6 @@
 // showcase-video の検査（読み取り専用。どのファイルも書き換えない）。
 //
-//   tts      : 声の設定と台本がそろっているか・ElevenLabs の鍵があるか（値は見ない）。声を作る前に回す
+//   tts      : 声の設定と台本がそろっているか・声の種類（tts.provider）に合う鍵（Gemini か ElevenLabs）があるか（値は見ない）。声を作る前に回す
 //   template : テンプレートの埋め残し（〔 〕・REPLACE の印）・色が設定と同じか・素材がそろっているか・制作クレジットが入っているか。書き出しの前に回す
 //   timing   : ナレーションの話している長さ（正本）と HTML・書き出した mp4 の突き合わせ
 //   thumb    : サムネイル（final/thumb-ogp.png）が 1200x630 か・配置の検査に合格しているか・その後に元ファイルを直していないか
@@ -16,6 +16,7 @@ import { measureSpeech, probeSeconds, round, AudioMeasureError } from "./lib/aud
 import { ensureFfmpegOnPath } from "./lib/ffpath.mjs";
 import { keyStatus } from "./lib/keys.ts";
 import { DEFAULT_VOICE } from "./lib/eleven-client.ts";
+import { DEFAULT_GEMINI } from "./gemini-tts.ts";
 
 export class CheckError extends Error {}
 
@@ -206,9 +207,18 @@ function cmdTts(a: Args): number {
   const cfgPath = a.single.get("config");
   if (!cfgPath) throw new CheckError("tts には --config <showcase.config.json> が必要です");
   const { cfg, base } = loadConfig(cfgPath);
-  const voice = (get(cfg, "tts.voice") as string | undefined) ?? DEFAULT_VOICE.id;
-  const model = (get(cfg, "tts.model") as string | undefined) ?? DEFAULT_VOICE.model;
-  console.log(`[info] 設定の声: voice ${voice}・model ${model}${voice === DEFAULT_VOICE.id ? `（既定の ${DEFAULT_VOICE.name}）` : ""}`);
+  // 声の種類。tts.provider が無い設定（1.29.2 まで）は ElevenLabs とみなす
+  const rawProvider = get(cfg, "tts.provider");
+  if (rawProvider !== undefined && rawProvider !== "gemini" && rawProvider !== "elevenlabs") {
+    rep.ng("設定 tts.provider", `gemini か elevenlabs です（今 ${JSON.stringify(rawProvider)}）。voice-choice.ts save で書き直す`);
+  }
+  const provider: "gemini" | "elevenlabs" = rawProvider === "gemini" ? "gemini" : "elevenlabs";
+  const defaults = provider === "gemini" ? { id: DEFAULT_GEMINI.voice, model: DEFAULT_GEMINI.model } : { id: DEFAULT_VOICE.id, model: DEFAULT_VOICE.model };
+  const voice = (get(cfg, "tts.voice") as string | undefined) ?? defaults.id;
+  const model = (get(cfg, "tts.model") as string | undefined) ?? defaults.model;
+  const label = provider === "gemini" ? "Gemini" : "ElevenLabs";
+  const isDefault = provider === "elevenlabs" ? voice === DEFAULT_VOICE.id : voice === DEFAULT_GEMINI.voice;
+  console.log(`[info] 設定の声: ${label}・voice ${voice}・model ${model}${isDefault ? `（既定の声${provider === "elevenlabs" ? ` ${DEFAULT_VOICE.name}` : ""}）` : ""}`);
   let scripts: string[] = [];
   const one = a.single.get("script");
   if (one) scripts = [path.resolve(one)];
@@ -231,6 +241,13 @@ function cmdTts(a: Args): number {
       rep.ng(where, `台本 JSON を読めません: ${(e as Error).message}`);
       continue;
     }
+    const sp = spec.provider;
+    const scriptProvider = sp === "gemini" ? "gemini" : sp === undefined || sp === "eleven" || sp === "elevenlabs" ? "elevenlabs" : null;
+    if (scriptProvider === null) rep.ng(where, `台本の provider が分かりません（${JSON.stringify(sp)}）。Gemini なら "gemini"、ElevenLabs なら書かない`);
+    else if (scriptProvider !== provider) {
+      const tpl = provider === "gemini" ? "narration.script.gemini.example.json" : "narration.script.example.json";
+      rep.ng(where, `台本の声の種類（${scriptProvider}）が設定（tts.provider ${provider}）と違います。templates/${tpl} の形で書き直す`);
+    }
     const voices = new Set<string>();
     if (typeof spec.voice === "string") voices.add(spec.voice);
     const items = Array.isArray(spec.items) ? (spec.items as Json[]) : [];
@@ -247,9 +264,9 @@ function cmdTts(a: Args): number {
     const chars = items.reduce((n, it) => n + (typeof it?.text === "string" ? [...(it.text as string)].length : 0), 0);
     if (rep.items.filter((i) => i.where === where && i.level === "NG").length === 0) console.log(`[OK] ${where}: ${items.length} 場面・約 ${chars} 字`);
   }
-  const k = keyStatus("ELEVENLABS_API_KEY");
-  if (k.found) console.log(`[OK] ElevenLabs のキー: ${k.source}にある（値は見ない）`);
-  else rep.ng("ElevenLabs のキー", "見つかりません。references/setup.md「鍵を保存する」の保存用コマンドを、受講生がアプリの中のターミナルで実行する");
+  const k = keyStatus(provider === "gemini" ? "GEMINI_API_KEY" : "ELEVENLABS_API_KEY");
+  if (k.found) console.log(`[OK] ${label} のキー: ${k.source}にある（値は見ない）`);
+  else rep.ng(`${label} のキー`, `見つかりません。references/setup.md「鍵を保存する」の ${label} の保存用コマンドを、受講生がアプリの中のターミナルで実行する`);
   rep.print("tts");
   return rep.ngCount > 0 ? 1 : 0;
 }
@@ -481,7 +498,7 @@ function cmdThumb(a: Args): number {
 const HELP = `showcase-check.ts — showcase-video の検査（読み取り専用。ファイルを書き換えない）
 
   node showcase-check.ts tts --config <showcase.config.json> [--script <台本.json>]
-      声を作る前に回す。NG: 台本の voice・model が設定と違う／{{credit}} があるのに credit.kana が無い／ElevenLabs のキーが無い（値は見ない）
+      声を作る前に回す。NG: 台本の声の種類・voice・model が設定と違う／{{credit}} があるのに credit.kana が無い／声の種類（tts.provider）に合うキーが無い（値は見ない）
 
   node showcase-check.ts template --config <showcase.config.json> [--dir <フォルダ> ...]
       書き出しの前に回す。NG: 設定の〔 〕／REPLACE の印／本文の〔 〕／色が設定と違う／

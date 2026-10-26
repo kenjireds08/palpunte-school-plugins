@@ -14,8 +14,10 @@
     "--ink": "〔動画の文字色 #rrggbb〕"
   },
   "tts": {
-    "voice": "EHMH9cyd1z3rXm4z0Jja",
-    "model": "eleven_v4"
+    "$comment": "声の種類。STEP 1 で受講生に選んでもらい voice-choice.ts save が書き換える（手で書かない）。gemini＝無料枠あり（既定）／elevenlabs＝Yuma Uchida（Starter 以上）。既定の Gemini の声 ja-jp-advisor-3 は、日本語（ja-JP）の声の一覧で標準語（Tokyo Japanese）・男性・低めの声・説明が confident and clear（落ち着いてはっきり）のもの。紹介動画のナレーションで聞き取りやすさを優先した",
+    "provider": "gemini",
+    "voice": "ja-jp-advisor-3",
+    "model": "gemini-3.8-flash-tts"
   },
   "cm": {
     "dir": "cm",

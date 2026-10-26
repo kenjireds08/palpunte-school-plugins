@@ -17,7 +17,7 @@
   **スマホだけのアプリ**: S3・S4 を消し、S2 のブロックを機能の数だけ写す。
 
   ■ 時刻の決め方（音が先・映像が後）
-    1. 場面ごとの wav（eleven-tts.ts）の「話している長さ」（<id>.json の effectiveSeconds）で場面の長さを決める
+    1. 場面ごとの wav（gemini-tts.ts か eleven-tts.ts）の「話している長さ」（<id>.json の effectiveSeconds）で場面の長さを決める
        （場面 = 話している長さ ＋ 前後の間 0.3〜0.6 秒）
     2. <audio id="vo-sN"> の data-start = 場面の開始 + 0.3、data-duration = effectiveSeconds（2 桁）
     3. 文字や画面の動きは、transcribe.ts の語の時刻（<id>.words.json の tokens[].at）に合わせる

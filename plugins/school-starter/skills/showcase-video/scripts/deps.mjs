@@ -5,7 +5,7 @@
 //   node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/deps.mjs" [--dir <promo-video のフォルダ>]
 //
 // 見るもの: Node（22.18 以上）・ffmpeg・ffprobe・npx・Google Chrome・promo-video の npm install・
-//           ElevenLabs と OpenAI のキーが「あるか」と「どこにあるか」（値は読まない・出さない）
+//           声のキー（選んだ声の種類に応じて Gemini か ElevenLabs のどちらか）と OpenAI のキーが「あるか」と「どこにあるか」（値は読まない・出さない）
 // 終了コード: 0 = 全部そろっている / 1 = 足りないものがある（表の「次にやること」を 1 つずつ）
 
 import { spawnSync } from "node:child_process";
@@ -133,8 +133,30 @@ function where(name, alsoStudio) {
   if (alsoStudio && lineIn(studioFile, name)) return "補講2 の image-studio";
   return null;
 }
-const el = where("ELEVENLABS_API_KEY", false);
-add("ElevenLabs のキー", Boolean(el), el ? `あり（${el}）` : "なし", el ? "" : "references/setup.md「鍵を保存する」の ElevenLabs の保存用コマンドを、アプリの中のターミナルで実行（チャットに貼らない）");
+// 声のキーは、選んだ声の種類（voice-choice.ts が控えに書く voiceProvider）の方だけを見る。
+// まだ選んでいなければ NG にしない（声は STEP 1 で選ぶ）
+const VOICE_KEYS = {
+  gemini: { name: "GEMINI_API_KEY", label: "Gemini" },
+  elevenlabs: { name: "ELEVENLABS_API_KEY", label: "ElevenLabs" },
+};
+function chosenVoice() {
+  const pf = process.env.SHOWCASE_PROFILE_FILE || path.join(os.homedir(), ".config", "school-starter", "showcase-profile.json");
+  try {
+    const v = JSON.parse(fs.readFileSync(pf, "utf8")).voiceProvider;
+    return v === "gemini" || v === "elevenlabs" ? v : null;
+  } catch {
+    return null;
+  }
+}
+const voice = chosenVoice();
+if (voice) {
+  const k = VOICE_KEYS[voice];
+  const w = where(k.name, false);
+  add(`${k.label} のキー（声）`, Boolean(w), w ? `あり（${w}）` : "なし", w ? "" : `references/setup.md「鍵を保存する」の ${k.label} の保存用コマンドを、アプリの中のターミナルで実行（チャットに貼らない）`);
+} else {
+  const st = Object.values(VOICE_KEYS).map((k) => `${k.label} ${where(k.name, false) ? "あり" : "なし"}`).join("・");
+  notes.push(`声の種類はまだ選んでいません（STEP 1 で Gemini か ElevenLabs かを選び、選んだ方のキーだけを保存する）。いまのキー: ${st}`);
+}
 const oa = where("OPENAI_API_KEY", true);
 add("OpenAI のキー", Boolean(oa), oa ? `あり（${oa}）` : "なし", oa ? "" : "references/setup.md「鍵を保存する」の OpenAI の保存用コマンドを、アプリの中のターミナルで実行（チャットに貼らない）");
 

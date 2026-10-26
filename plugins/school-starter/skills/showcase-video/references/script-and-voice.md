@@ -17,8 +17,31 @@
    node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/credit.ts" save --config promo-video/showcase.config.json --org "<会社名・屋号>" --org-kana "<読み>" [--name "<名前>" --name-kana "<読み>"]
    ```
    画面は「制作：<会社名>　<名前>」、読みは「せいさく、<読み>、<名前の読み>」になる。次の動画のための控え（`~/.config/school-starter/showcase-profile.json`）にも書く
-3. HTML への差し込みは組み立てのときに `credit.ts apply`（→ `compose.md`）。台本は最後の場面に `{{credit}}` と書けば、`eleven-tts.ts --config` が読みに置き換える
+3. HTML への差し込みは組み立てのときに `credit.ts apply`（→ `compose.md`）。台本は最後の場面に `{{credit}}` と書けば、`gemini-tts.ts --config`（または `eleven-tts.ts --config`）が読みに置き換える
 4. 声ができたら、**受講生に最後の場面の wav を 1 回聞いてもらう**（STEP 5）。社名は読み違いが起きやすい（実際に社名が 1 音違いで読まれて作り直した）
+
+---
+
+## 声を選ぶ（STEP 1・名前と同じメッセージで 1 回だけ）
+
+1. 控えがあるかを見る: `node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/voice-choice.ts" show`
+   - 控えがある → 名前の確認と一緒に「声も前と同じ（Gemini / ElevenLabs）でよいですか」とだけ聞く
+   - 「まだありません」→ 名前を聞くメッセージに、次の 2 択の表を付けて聞く（AskUserQuestion ではなく、ふつうの質問で）
+
+   | | ① Gemini（おすすめ・無料枠あり） | ② ElevenLabs |
+   |---|---|---|
+   | 声 | 落ち着いた男性の日本語の声 | 見本の動画と同じ Yuma Uchida |
+   | 料金 | 無料枠あり（1 日の回数に上限） | Starter（月 6 ドル）以上が必要。無料プランでは日本人の声は使えない |
+   | 気をつけること | 無料枠では送った原稿が Google の品質改善に使われる（お客様の実名や秘密は台本に入れない）。商用の条件は `setup.md`「確かめた所」 | — |
+
+   「見本の動画の声は、ElevenLabs の有料プラン（Starter 以上）でないと使えません」と 1 行添える
+2. 選んだ方を設定に書く（受講生に設定ファイルを開かせない）:
+   ```
+   node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/voice-choice.ts" save --config promo-video/showcase.config.json --provider gemini
+   ```
+   ElevenLabs なら `--provider elevenlabs`。設定の `tts`（provider・voice・model）と、次の動画のための控えに書く
+3. 選んだ方のキーが無ければ（`deps.mjs` の `[注意]` か `[NG]`）、`setup.md`「鍵を保存する」の保存用コマンド（`save-key.ts gemini` か `save-key.ts elevenlabs`）を受講生に出す
+4. 1 本の動画の中で声を混ぜない。途中で変えるなら `voice-choice.ts save` をやり直し、台本を選んだ方のひな形の形にして全場面を作り直す
 
 ---
 
@@ -98,16 +121,40 @@
 
 1. 15 秒の文言と、紹介動画の場面表（場面ごとの見込み秒と合計）
 2. 作る写真の一覧（どの場面の何の写真か・枚数）
-3. 費用の見積もり: `gen-images.ts --dry-run` の円と、`eleven-tts.ts --dry-run` の字数と今月の残り
+3. 費用の見積もり: `gen-images.ts --dry-run` の円と、声の見込み（Gemini なら `gemini-tts.ts --dry-run` の呼び出し回数と「無料枠では原稿が品質改善に使われる」の注意、ElevenLabs なら `eleven-tts.ts --dry-run` の字数と今月の残り）
 4. 最後に出す名前と読み（「制作：〇〇／せいさく、〇〇」）
 
 ---
 
 ## ナレーションを作る（STEP 5）
 
-- 声: 既定は **Yuma Uchida**（`EHMH9cyd1z3rXm4z0Jja`・`eleven_v4`・落ち着いた男性の声）。設定の `tts.voice` / `tts.model` と台本を同じにする
-- **場面ごとに wav 1 本**（場面ごとに長さを測るため）
-- 台本 JSON は `templates/narration.script.example.json` を `promo-video/intro/narration/narration.script.json` に写して書く。id は紹介動画のテンプレートの `vo-s1`〜`vo-s6` に対応する（`s1-hook` … `s6-name`）。最後の場面は「〔アプリの名前の読み〕。せいさく、{{credit}}。」
+声は STEP 1 で選んだ方（設定の `tts.provider`）で作る。道具・台本のひな形・キーは次のとおり。
+
+| 声の種類 | 道具 | 台本のひな形 | 声 | キー |
+|---|---|---|---|---|
+| `gemini` | `gemini-tts.ts` | `templates/narration.script.gemini.example.json` | `ja-jp-advisor-3`・`gemini-3.8-flash-tts` | `GEMINI_API_KEY` |
+| `elevenlabs` | `eleven-tts.ts` | `templates/narration.script.example.json` | Yuma Uchida（`EHMH9cyd1z3rXm4z0Jja`・`eleven_v4`） | `ELEVENLABS_API_KEY` |
+
+- 設定の `tts.voice` / `tts.model` と台本を同じにする（`showcase-check.ts tts` が確かめる）
+- **場面ごとに wav 1 本**（場面ごとに長さを測るため）。どちらの道具も、置き場・名前・形（`<id>.wav` と `<id>.json`）は同じ
+- 台本 JSON は、選んだ方のひな形を `promo-video/intro/narration/narration.script.json` に写して書く。id は紹介動画のテンプレートの `vo-s1`〜`vo-s6` に対応する（`s1-hook` … `s6-name`）。最後の場面は「〔アプリの名前の読み〕。せいさく、{{credit}}。」
+
+Gemini のとき:
+
+```
+# 1) 設定・台本・キーがそろっているか（読み取り専用。NG 0 で次へ）
+node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/showcase-check.ts" tts --config promo-video/showcase.config.json
+# 2) 呼ばずに、呼び出しの回数・文字数・見込みの長さを見る（キーも読まない）
+node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gemini-tts.ts" --script promo-video/intro/narration/narration.script.json --config promo-video/showcase.config.json --dry-run
+# 3) 作る（承認の後）
+node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/gemini-tts.ts" --script promo-video/intro/narration/narration.script.json --config promo-video/showcase.config.json
+```
+
+- 1 本ずつ 6.5 秒あけて呼ぶ（6 場面で 30 秒ほど）。同じ原稿・同じ声なら作り直さない（作り直すなら `--force`。1 日の回数を使う）
+- 終了コード 5: キーが無い・**1 日の上限**・無料枠で使えない（上限 0 回）・キーが無効 → 止まって理由を受講生に伝える。1 日の上限なら 2 択（明日もう一度／ElevenLabs の Starter に切り替える）。**待ち続けない・勝手に ElevenLabs に切り替えない**
+- 無料枠では送った原稿が Google の品質改善に使われる。台本にお客様の実名や秘密を入れない（ダミーの名前にする）
+
+ElevenLabs のとき:
 
 ```
 # 1) 設定・台本・キーがそろっているか（読み取り専用。NG 0 で次へ）
@@ -121,7 +168,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/eleven-tts.ts" --scrip
 - 出力: `<id>.wav`（24kHz・モノラル・音量は −16 LUFS にそろえる）と `<id>.json`（`effectiveSeconds`＝話している長さ など）。同じ原稿・同じ声なら作り直さない（作り直すなら `--force`。字数を使う）
 - 試行の記録は `intro/narration/credits-log.json`
 - 終了コード 5: キーが無い・今月の残りが足りない・上限に届く → 止まって理由を受講生に伝える（1 字も送っていない）
-- 終了コード 6: **この声を使えない**（無料プランで Voice Library の声など）→「声を選び直す」へ。**別の声に勝手に切り替えない**
+- 終了コード 6: **この声を使えない**（無料プランのまま作ろうとした）→「ElevenLabs の無料プランで止まったとき」へ。**別の声に勝手に切り替えない**
 
 ### 読み間違いの確認（書き起こし）
 
@@ -144,16 +191,12 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/transcribe.ts" --media
 - 場面の長さ = `effectiveSeconds` ＋ 前後の間（0.3〜0.6 秒）。録画を見せる場面は、見せたい操作が収まる長さにする
 - 実際の字/秒（字数 ÷ effectiveSeconds）で台本の表を引き直す
 
-### 声を選び直す（無料プランで止まったとき・別の声にしたいとき）
+### ElevenLabs の無料プランで止まったとき（終了コード 6）
 
-1. 止まった理由をそのまま伝える（例:「無料プランでは、既定の声（Voice Library の声）を API から使えません」）。選べることを伝える:
-   - **公式の声から選ぶ**（無料プランのまま使える）
-   - **プランを Starter（月 6 ドル）以上にする**（既定の声を使える・商用に使える）。どちらにするかは受講生が決める
-   - 無料プランは**商用に使えない**ことと、「ElevenLabs」の表記が要ることも添える（→ `setup.md`「プランと料金」）
-2. 公式の声の一覧（課金なし）:
-   ```
-   node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/voices.ts"
-   ```
-   日本語で確かめ済みの声だけが、使えるモデルと一緒に出る。**ID は推測で書かない。この一覧に出たものだけを使う**
-3. 受講生に選んでもらい（性別・声の感じを添える）、設定の `tts.voice` / `tts.model` と台本の `voice` / `model` を同じ値に書き換える。1 つの声だけ確かめるときは `voices.ts --check <ID>`
+1. 止まった理由をそのまま伝える（例:「無料プランでは、Yuma Uchida（Voice Library の声）を API から使えません」）
+2. 選べることを 2 つだけ伝える。どちらにするかは受講生が決める:
+   - **ElevenLabs を Starter（月 6 ドル）以上にする** → 同じコマンドをもう一度実行（Yuma Uchida のまま・商用に使える）
+   - **Gemini の声に切り替える**（無料枠あり）→ `voice-choice.ts save --config promo-video/showcase.config.json --provider gemini`、台本を `templates/narration.script.gemini.example.json` の形にして（原稿はそのまま写す）`gemini-tts.ts` で作る。キーが無ければ `save-key.ts gemini`
+3. 無料プランの公式の声（英語なまり）へは逃がさない。日本語の紹介動画には使えなかった
 4. 1 本の動画の中で声を混ぜない（途中で変えたら全場面を作り直す）
+
