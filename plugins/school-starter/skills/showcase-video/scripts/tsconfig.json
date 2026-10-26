@@ -1,0 +1,18 @@
+{
+  "$comment": "型チェック専用（出力しない）。typescript と @types/node はこのフォルダに入れない（開発用。受講生は使わない）",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["*.ts", "lib/*.ts", "../templates/thumb/tools/*.ts"]
+}

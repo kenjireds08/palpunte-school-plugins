@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280" />
+    <title>ヨヤクル 管理画面</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="admin">
+      <nav class="side">
+        <div class="bar"><div class="logo">ヨ</div><b>ヨヤクル</b></div>
+        <a class="on" href="/admin">予約一覧</a>
+        <a href="/admin">クラス</a>
+        <a href="/admin">お客さま</a>
+      </nav>
+      <main class="main">
+        <div class="head"><h1>予約一覧</h1><span class="tag">見本料理教室（架空）</span></div>
+        <div class="kpis">
+          <div class="kpi"><small>今週の予約</small><b id="k-week">0件</b></div>
+          <div class="kpi"><small>空きのあるクラス</small><b>5枠</b></div>
+          <div class="kpi"><small>新しい予約</small><b id="k-new">0件</b></div>
+        </div>
+        <div class="filters"><button class="on" data-f="all">すべて</button><button data-f="パン教室">パン</button><button data-f="和食教室">和食</button><button data-f="お菓子教室">お菓子</button></div>
+        <table class="table">
+          <thead><tr><th>日にち</th><th>時間</th><th>クラス</th><th>お名前</th><th>状態</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

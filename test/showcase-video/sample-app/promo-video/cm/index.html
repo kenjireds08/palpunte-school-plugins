@@ -1,0 +1,548 @@
+<!doctype html>
+<!--
+  ============================================================================
+  showcase-video テンプレート: 15 秒動画（ナレーションなし・BGM と効果音・1920x1080・30fps）
+
+  長さは 15 秒で固定（音を消したまま自動で流れる場所でも伝わる役割）。
+  音なしでも伝わること＝伝えたいことは全部「文字と動き」で出す。
+
+  ■ 時刻表（場面を入れ替えても、窓の長さは基本そのまま使う）
+    S1 つかみ    0.0 - 2.5   キャッチ 2 行を叩きつける（BGM の頭のキックと同時）
+    S2 世界観    2.5 - 5.5   写真（生成した生活の場面）＋見出し＋数字 2 つ
+    S3 操作      5.5 - 10.0  左: 手順 3 つ / 右: スマホの枠の中に録画（PC だけのアプリは #device を PC の枠に替える。下の DONE）
+    S4 価値      10.0 - 12.5 数字 1 つ（s4a）→ 特長 1 つ（s4b）→ リングで吸い込み（s4c）
+    S5 名前      12.5 - 15.0 アプリの名前が着地（BGM の大きいキックと同時）→ タグライン → 行動の呼びかけ
+
+  ■ 差し替える所（「REPLACE」で検索。済んだ所は印を「DONE」に書き換える。
+    showcase-check.ts template が「REPLACE」の印と〔 〕の残りを書き出しの前に止める）
+    - 色: :root の CSS 変数（アプリの色に合わせる。紹介動画 intro と同じ値）
+    - 写真: assets/img/hero.png（S2 右側。gen-images.ts で作った生活の場面）
+    - 録画: assets/video/user.mp4（record.mjs で撮ったもの）。data-media-start は録画の中で使い始める秒
+    - 文言: 〔 〕で囲った仮の文言。**コードで確かめられた機能・数字だけ**を書く
+    - #glyph-warm: 画面に出す文字を全部入れる（フォントの読み込み漏れを防ぐ）→ gen-fonts.ts --html index.html
+    - BGM: gen-bgm.ts --style cm --duration 15 --logo-at 12.5 --out assets/audio/bgm.wav
+    - 効果音: gen-sfx.ts --out assets/audio
+  ============================================================================
+-->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>15 秒動画</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      /* FONTS:BEGIN */
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-107-700-normal.woff2") format("woff2");unicode-range:U+23,U+3c,U+2192,U+4e45,U+4efb,U+4f50,U+4f8b,U+4fc2,U+5024,U+5150,U+5272,U+5370,U+53bb,U+542b,U+56db,U+56e3,U+57ce,U+5bc4,U+5bcc,U+5f71,U+60aa,U+6238,U+6280,U+629c,U+6539,U+66ff,U+670d,U+677e-677f,U+6839,U+69cb,U+6b4c,U+6bb5,U+6e96,U+6f14,U+72ec,U+7389,U+7814,U+79cb,U+79d1,U+79fb,U+7a0e,U+7d0d,U+85e4,U+8d64,U+9632,U+96e2,U+9805,U+99ac,U+ff1e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-118-700-normal.woff2") format("woff2");unicode-range:U+21-22,U+27-2a,U+2c-3b,U+3f,U+41-4d,U+4f-5d,U+61-7b,U+7d,U+ab,U+ae,U+b2-b3,U+b7,U+bb,U+c9,U+cd,U+d6,U+d8,U+dc,U+e0-e5,U+e7-ed,U+ef,U+f1-f4,U+f6,U+f8,U+fa,U+fc-fd,U+103,U+14d,U+1b0,U+300-301,U+1ebf,U+1ec7,U+2013-2014,U+201c-201d,U+2039-203a,U+203c,U+2048-2049,U+2113,U+2122,U+65e5,U+6708,U+70b9;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-119-700-normal.woff2") format("woff2");unicode-range:U+20,U+2027,U+3001-3002,U+3041-307f,U+3081-308f,U+3091-3093,U+3099-309a,U+309d-309e,U+30a1-30e1,U+30e3-30ed,U+30ef-30f0,U+30f2-30f4,U+30fb-30fe,U+ff0c,U+ff0e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-114-700-normal.woff2") format("woff2");unicode-range:U+3e,U+3005,U+4e0d,U+4e88,U+4ecb,U+4ee3,U+4ef6,U+4fdd,U+4fe1,U+500b,U+50cf,U+5186,U+5316,U+53d7,U+540c,U+544a,U+54e1,U+5728,U+58f2,U+5973,U+5b89,U+5c71,U+5e02,U+5e97,U+5f15,U+5fc3,U+5fdc,U+601d,U+611b,U+611f,U+671f,U+6728,U+6765,U+683c,U+6b21,U+6ce8,U+6d3b,U+6d77,U+7530,U+7740,U+7acb,U+7d50,U+826f,U+8f09,U+8fbc,U+9001,U+9053,U+91ce,U+9762,U+98df;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-102-700-normal.woff2") format("woff2");unicode-range:U+3d,U+5e,U+25cf,U+4e0e,U+4e5d,U+4e73,U+4e94,U+4f3c,U+5009,U+5145,U+51ac,U+5238,U+524a,U+53f3,U+547c,U+5802,U+5922,U+5a66,U+5c0e,U+5de6,U+5fd8,U+5feb,U+6797,U+685c,U+6b7b,U+6c5f-6c60,U+6cc9,U+6ce2,U+6d17,U+6e21,U+7167,U+7642,U+76db,U+8001,U+821e,U+8857,U+89d2,U+8b1b,U+8b70,U+8cb4,U+8cde,U+8f03,U+8f2a,U+968e,U+9b54,U+9e7f,U+9ebb,U+ff05,U+ff33;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-94-700-normal.woff2") format("woff2");unicode-range:U+2015,U+2190,U+4e43,U+5019,U+5247,U+52e7,U+5438,U+54b2,U+55ab,U+57f7,U+5bd2,U+5e8a,U+5ef6,U+6016,U+60b2,U+6162,U+6319,U+6551,U+6607,U+66b4,U+675f,U+67d4,U+6b20,U+6b53,U+6ce3,U+719f,U+75b2,U+770b,U+7720,U+77ac,U+79d2,U+7af9,U+7d05,U+7dca,U+8056,U+80f8,U+81f3,U+8352,U+885d,U+8a70,U+8aa4,U+8cbc,U+900f,U+9084,U+91e3,U+9451,U+96c4,U+99c6,U+9ad4,U+ff70;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-117-700-normal.woff2") format("woff2");unicode-range:U+4e,U+a0,U+3000,U+300c-300d,U+4e00,U+4e0a,U+4e2d,U+4e8b,U+4eba,U+4f1a,U+5165,U+5168,U+5185,U+51fa,U+5206,U+5229,U+524d,U+52d5,U+5408,U+554f,U+5831,U+5834,U+5927,U+5b9a,U+5e74,U+5f0f,U+60c5,U+65b0,U+65b9,U+6642,U+6700,U+672c,U+682a,U+6b63,U+6c17,U+7121,U+751f,U+7528,U+753b,U+76ee,U+793e,U+884c,U+898b,U+8a18,U+9593,U+95a2,U+ff01,U+ff08-ff09;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-112-700-normal.woff2") format("woff2");unicode-range:U+4e16,U+4e3b,U+4ea4,U+4ee4,U+4f4d,U+4f4f,U+4f55,U+4f9b,U+5317,U+5358,U+53c2,U+53e4,U+548c,U+571f,U+59cb,U+5cf6,U+5e38,U+63a2,U+63b2,U+6559,U+662d,U+679c,U+6c7a,U+72b6,U+7523,U+767d,U+770c,U+7a2e,U+7a3f,U+7a7a,U+7b2c,U+7b49,U+7d20,U+7d42,U+8003,U+8272,U+8a08,U+8aac,U+8cb7,U+8eab,U+8ee2,U+9054-9055,U+90fd,U+914d,U+91cd,U+969b,U+97f3,U+984c,U+ff06;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-113-700-normal.woff2") format("woff2");unicode-range:U+26,U+5f,U+2026,U+203b,U+4e09,U+4eac,U+4ed5,U+4fa1,U+5143,U+5199,U+5207,U+539f,U+53e3,U+53f7,U+5411,U+5473,U+5546,U+55b6,U+5929,U+597d,U+5bb9,U+5c11,U+5c4b,U+5ddd,U+5f97,U+5fc5,U+6295,U+6301,U+6307,U+671b,U+76f8,U+78ba,U+795e,U+7d30,U+7d39,U+7d9a,U+89e3,U+8a00,U+8a73,U+8a8d,U+8a9e,U+8aad,U+8abf,U+8cea,U+8eca,U+8ffd,U+904b,U+9650,U+ff11-ff12;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-105-700-normal.woff2") format("woff2");unicode-range:U+25,U+25a0,U+4e26,U+4f4e,U+5341,U+56f2,U+5bbf,U+5c45,U+5c55,U+5c5e,U+5dee,U+5e9c,U+5f7c,U+6255,U+627f,U+62bc,U+65cf,U+661f,U+666e,U+66dc,U+67fb,U+6975,U+6a4b,U+6b32,U+6df1,U+6e29,U+6fc0,U+738b,U+7686,U+7a76,U+7a81,U+7c73,U+7d75,U+7dd2,U+82e5,U+82f1,U+85ac,U+888b,U+899a,U+8a31,U+8a8c,U+8ab0,U+8b58,U+904a,U+9060,U+9280,U+95b2,U+984d,U+9ce5,U+ff18;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-111-700-normal.woff2") format("woff2");unicode-range:U+2b,U+d7,U+300e-300f,U+4e07,U+4e8c,U+512a,U+5149,U+518d,U+5236,U+52b9,U+52d9,U+5468,U+578b,U+57fa,U+5b8c,U+5ba2,U+5c02,U+5de5,U+5f37,U+5f62,U+623b,U+63d0,U+652f,U+672a,U+6848,U+6d41,U+7136,U+7537,U+754c,U+76f4,U+79c1,U+7ba1,U+7d44,U+7d4c,U+7dcf,U+7dda,U+7de8,U+82b1,U+897f,U+8ca9,U+8cfc,U+904e,U+9664,U+982d,U+9858,U+98a8,U+9a13,U+ff13,U+ff5c;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-110-700-normal.woff2") format("woff2");unicode-range:U+40,U+4e86,U+4e95,U+4f01,U+4f1d,U+4fbf,U+5099,U+5171,U+5177,U+53cb,U+53ce,U+53f0,U+5668,U+5712,U+5ba4,U+5ca1,U+5f85,U+60f3,U+653e,U+65ad,U+65e9,U+6620,U+6750,U+6761,U+6b62,U+6b74,U+6e08,U+6e80,U+7248,U+7531,U+7533,U+753a,U+77f3,U+798f,U+7f6e,U+8449,U+88fd,U+89b3,U+8a55,U+8ac7,U+8b77,U+8db3,U+8efd,U+8fd4,U+9031-9032,U+9580,U+9589,U+96d1,U+985e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-96-700-normal.woff2") format("woff2");unicode-range:U+4e03,U+4f38,U+50b7,U+5264,U+5348,U+5371,U+585a,U+58ca,U+5951,U+59b9,U+59d4,U+5b98,U+5f8b,U+6388,U+64cd,U+65e7,U+6803,U+6b6f,U+6d66,U+6e0b,U+6ecb,U+6fc3,U+72ac,U+773c,U+77e2,U+7968,U+7a74,U+7dba,U+7dd1,U+7e3e,U+808c,U+811a,U+8179,U+8239,U+8584,U+8a0e,U+8a72,U+8b66,U+8c46,U+8f29,U+90a3,U+9234,U+96f0,U+9769,U+9774,U+9aa8,U+ff26,U+ff28,U+ff9e-ff9f;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-116-700-normal.woff2") format("woff2");unicode-range:U+a9,U+3010-3011,U+30e2,U+4e0b,U+4eca,U+4ed6,U+4ed8,U+4f53,U+4f5c,U+4f7f,U+53d6,U+540d,U+54c1,U+5730,U+5916,U+5b50,U+5c0f,U+5f8c,U+624b,U+6570,U+6587,U+6599,U+691c,U+696d,U+6cd5,U+7269,U+7279,U+7406,U+767a-767b,U+77e5,U+7d04,U+7d22,U+8005,U+80fd,U+81ea,U+8868,U+8981,U+89a7,U+901a,U+9023,U+90e8,U+91d1,U+9332,U+958b,U+96c6,U+9ad8,U+ff1a,U+ff1f;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-87-700-normal.woff2") format("woff2");unicode-range:U+b0,U+226a,U+2462,U+4e39,U+4fc3,U+4fd7,U+50be,U+50da,U+5200,U+5211,U+54f2,U+5618,U+596a,U+5b22,U+5bb4,U+5d50,U+60a3,U+63fa,U+658e,U+65e8,U+6669,U+6795,U+679d,U+67a0,U+6b3a,U+6e09,U+757f,U+7cd6,U+7dbe,U+7ffb,U+83cc,U+83f1,U+840c,U+845b,U+8846,U+8972,U+8a34,U+8a50,U+8a87,U+8edf,U+8ff0,U+90a6,U+9154,U+95a3,U+9663,U+9686,U+96c7,U+ff3c,U+ff7c,U+ff8a;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-95-700-normal.woff2") format("woff2");unicode-range:U+2193,U+25b2,U+4e4b,U+516d,U+51c4,U+529f,U+52c9,U+5360,U+5442,U+5857,U+5915,U+59eb,U+5a9b,U+5c3b,U+6012,U+61b6,U+62b1,U+6311,U+6577,U+65e2,U+65ec,U+6613,U+6790,U+6cb9,U+7372,U+76ae,U+7d5e,U+7fcc,U+88ab,U+88d5,U+8caf,U+8ddd,U+8ecd,U+8f38,U+8f9e,U+8feb,U+9063,U+90f5,U+93e1,U+968a,U+968f,U+98fe,U+9ec4,U+ff1d,U+ff27,U+ff2a,U+ff36,U+ff3b,U+ff3d,U+ffe5;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-108-700-normal.woff2") format("woff2");unicode-range:U+2605-2606,U+301c,U+4e57,U+4fee,U+5065,U+52df,U+533b,U+5357,U+57df,U+58eb,U+58f0,U+591c,U+592a-592b,U+5948,U+5b85,U+5d0e,U+5ea7,U+5ff5,U+6025,U+63a1,U+63a5,U+63db,U+643a,U+65bd,U+671d,U+68ee,U+6982,U+6b73,U+6bd4,U+6d88,U+7570,U+7b11,U+7d76,U+8077,U+8217,U+8c37,U+8c61,U+8cc7,U+8d85,U+901f,U+962a,U+9802,U+9806,U+9854,U+98f2,U+9928,U+99c5,U+9ed2;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-109-700-normal.woff2") format("woff2");unicode-range:U+266a,U+4f11,U+533a,U+5343,U+534a,U+53cd,U+5404,U+56f3,U+5b57-5b58,U+5bae,U+5c4a,U+5e0c,U+5e2f,U+5eab,U+5f35,U+5f79,U+614b,U+6226,U+629e,U+65c5,U+6625,U+6751,U+6821,U+6b69,U+6b8b,U+6bce,U+6c42,U+706b,U+7c21,U+7cfb,U+805e,U+80b2,U+82b8,U+843d,U+8853,U+88c5,U+8a3c,U+8a66,U+8d8a,U+8fba,U+9069,U+91cf,U+9752,U+975e,U+9999,U+ff0f-ff10,U+ff14-ff15;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-115-700-normal.woff2") format("woff2");unicode-range:U+7c,U+3080,U+4ee5,U+5148,U+516c,U+521d,U+5225,U+529b,U+52a0,U+53ef,U+56de,U+56fd,U+5909,U+591a,U+5b66,U+5b9f,U+5bb6,U+5bfe,U+5e73,U+5e83,U+5ea6,U+5f53,U+6027,U+610f,U+6210,U+6240,U+660e,U+66f4,U+66f8,U+6709,U+6771,U+697d,U+69d8,U+6a5f,U+6c34,U+6cbb,U+73fe,U+756a,U+7684,U+771f,U+793a,U+7f8e,U+898f,U+8a2d,U+8a71,U+8fd1,U+9078,U+9577,U+96fb,U+ff5e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-98-700-normal.woff2") format("woff2");unicode-range:U+25cb,U+4e71,U+4f59,U+50d5,U+520a,U+5217,U+5230,U+523a-523b,U+541b,U+5439,U+5747,U+59c9,U+5bdf,U+5c31,U+5de8,U+5e7c,U+5f69,U+6050,U+60d1,U+63cf,U+663c,U+67c4,U+6885,U+6c38,U+6d6e,U+6db2,U+6df7,U+6e2c,U+6f5f,U+7532,U+76e3-76e4,U+7701,U+793c,U+79f0,U+7a93,U+7d00,U+7de0,U+7e54,U+8328,U+8840,U+969c,U+96e8,U+9811,U+9aea,U+9b5a,U+ff24,U+ff2e,U+ff57;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:700;font-display:block;src:url("assets/fonts/noto-sans-jp-86-700-normal.woff2") format("woff2");unicode-range:U+24,U+2022,U+2212,U+221f,U+2665,U+4ecf,U+5100,U+51cd,U+52d8,U+5378,U+53f6,U+574a,U+5982,U+5996,U+5c1a,U+5e1d,U+5f84,U+609f,U+61a7,U+61f8,U+6398,U+63ee,U+6676,U+6691,U+6eb6,U+7126,U+71e5,U+7687,U+7965,U+7d17,U+80a1,U+8107,U+8266,U+85a6,U+8987,U+8ca2,U+8cab,U+8e0a,U+9042,U+95c7,U+9810,U+9867,U+98fc,U+ff52-ff54,U+ff61,U+ff77,U+ff98-ff99;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-107-900-normal.woff2") format("woff2");unicode-range:U+23,U+3c,U+2192,U+4e45,U+4efb,U+4f50,U+4f8b,U+4fc2,U+5024,U+5150,U+5272,U+5370,U+53bb,U+542b,U+56db,U+56e3,U+57ce,U+5bc4,U+5bcc,U+5f71,U+60aa,U+6238,U+6280,U+629c,U+6539,U+66ff,U+670d,U+677e-677f,U+6839,U+69cb,U+6b4c,U+6bb5,U+6e96,U+6f14,U+72ec,U+7389,U+7814,U+79cb,U+79d1,U+79fb,U+7a0e,U+7d0d,U+85e4,U+8d64,U+9632,U+96e2,U+9805,U+99ac,U+ff1e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-118-900-normal.woff2") format("woff2");unicode-range:U+21-22,U+27-2a,U+2c-3b,U+3f,U+41-4d,U+4f-5d,U+61-7b,U+7d,U+ab,U+ae,U+b2-b3,U+b7,U+bb,U+c9,U+cd,U+d6,U+d8,U+dc,U+e0-e5,U+e7-ed,U+ef,U+f1-f4,U+f6,U+f8,U+fa,U+fc-fd,U+103,U+14d,U+1b0,U+300-301,U+1ebf,U+1ec7,U+2013-2014,U+201c-201d,U+2039-203a,U+203c,U+2048-2049,U+2113,U+2122,U+65e5,U+6708,U+70b9;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-119-900-normal.woff2") format("woff2");unicode-range:U+20,U+2027,U+3001-3002,U+3041-307f,U+3081-308f,U+3091-3093,U+3099-309a,U+309d-309e,U+30a1-30e1,U+30e3-30ed,U+30ef-30f0,U+30f2-30f4,U+30fb-30fe,U+ff0c,U+ff0e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-114-900-normal.woff2") format("woff2");unicode-range:U+3e,U+3005,U+4e0d,U+4e88,U+4ecb,U+4ee3,U+4ef6,U+4fdd,U+4fe1,U+500b,U+50cf,U+5186,U+5316,U+53d7,U+540c,U+544a,U+54e1,U+5728,U+58f2,U+5973,U+5b89,U+5c71,U+5e02,U+5e97,U+5f15,U+5fc3,U+5fdc,U+601d,U+611b,U+611f,U+671f,U+6728,U+6765,U+683c,U+6b21,U+6ce8,U+6d3b,U+6d77,U+7530,U+7740,U+7acb,U+7d50,U+826f,U+8f09,U+8fbc,U+9001,U+9053,U+91ce,U+9762,U+98df;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-102-900-normal.woff2") format("woff2");unicode-range:U+3d,U+5e,U+25cf,U+4e0e,U+4e5d,U+4e73,U+4e94,U+4f3c,U+5009,U+5145,U+51ac,U+5238,U+524a,U+53f3,U+547c,U+5802,U+5922,U+5a66,U+5c0e,U+5de6,U+5fd8,U+5feb,U+6797,U+685c,U+6b7b,U+6c5f-6c60,U+6cc9,U+6ce2,U+6d17,U+6e21,U+7167,U+7642,U+76db,U+8001,U+821e,U+8857,U+89d2,U+8b1b,U+8b70,U+8cb4,U+8cde,U+8f03,U+8f2a,U+968e,U+9b54,U+9e7f,U+9ebb,U+ff05,U+ff33;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-94-900-normal.woff2") format("woff2");unicode-range:U+2015,U+2190,U+4e43,U+5019,U+5247,U+52e7,U+5438,U+54b2,U+55ab,U+57f7,U+5bd2,U+5e8a,U+5ef6,U+6016,U+60b2,U+6162,U+6319,U+6551,U+6607,U+66b4,U+675f,U+67d4,U+6b20,U+6b53,U+6ce3,U+719f,U+75b2,U+770b,U+7720,U+77ac,U+79d2,U+7af9,U+7d05,U+7dca,U+8056,U+80f8,U+81f3,U+8352,U+885d,U+8a70,U+8aa4,U+8cbc,U+900f,U+9084,U+91e3,U+9451,U+96c4,U+99c6,U+9ad4,U+ff70;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-117-900-normal.woff2") format("woff2");unicode-range:U+4e,U+a0,U+3000,U+300c-300d,U+4e00,U+4e0a,U+4e2d,U+4e8b,U+4eba,U+4f1a,U+5165,U+5168,U+5185,U+51fa,U+5206,U+5229,U+524d,U+52d5,U+5408,U+554f,U+5831,U+5834,U+5927,U+5b9a,U+5e74,U+5f0f,U+60c5,U+65b0,U+65b9,U+6642,U+6700,U+672c,U+682a,U+6b63,U+6c17,U+7121,U+751f,U+7528,U+753b,U+76ee,U+793e,U+884c,U+898b,U+8a18,U+9593,U+95a2,U+ff01,U+ff08-ff09;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-112-900-normal.woff2") format("woff2");unicode-range:U+4e16,U+4e3b,U+4ea4,U+4ee4,U+4f4d,U+4f4f,U+4f55,U+4f9b,U+5317,U+5358,U+53c2,U+53e4,U+548c,U+571f,U+59cb,U+5cf6,U+5e38,U+63a2,U+63b2,U+6559,U+662d,U+679c,U+6c7a,U+72b6,U+7523,U+767d,U+770c,U+7a2e,U+7a3f,U+7a7a,U+7b2c,U+7b49,U+7d20,U+7d42,U+8003,U+8272,U+8a08,U+8aac,U+8cb7,U+8eab,U+8ee2,U+9054-9055,U+90fd,U+914d,U+91cd,U+969b,U+97f3,U+984c,U+ff06;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-113-900-normal.woff2") format("woff2");unicode-range:U+26,U+5f,U+2026,U+203b,U+4e09,U+4eac,U+4ed5,U+4fa1,U+5143,U+5199,U+5207,U+539f,U+53e3,U+53f7,U+5411,U+5473,U+5546,U+55b6,U+5929,U+597d,U+5bb9,U+5c11,U+5c4b,U+5ddd,U+5f97,U+5fc5,U+6295,U+6301,U+6307,U+671b,U+76f8,U+78ba,U+795e,U+7d30,U+7d39,U+7d9a,U+89e3,U+8a00,U+8a73,U+8a8d,U+8a9e,U+8aad,U+8abf,U+8cea,U+8eca,U+8ffd,U+904b,U+9650,U+ff11-ff12;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-105-900-normal.woff2") format("woff2");unicode-range:U+25,U+25a0,U+4e26,U+4f4e,U+5341,U+56f2,U+5bbf,U+5c45,U+5c55,U+5c5e,U+5dee,U+5e9c,U+5f7c,U+6255,U+627f,U+62bc,U+65cf,U+661f,U+666e,U+66dc,U+67fb,U+6975,U+6a4b,U+6b32,U+6df1,U+6e29,U+6fc0,U+738b,U+7686,U+7a76,U+7a81,U+7c73,U+7d75,U+7dd2,U+82e5,U+82f1,U+85ac,U+888b,U+899a,U+8a31,U+8a8c,U+8ab0,U+8b58,U+904a,U+9060,U+9280,U+95b2,U+984d,U+9ce5,U+ff18;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-111-900-normal.woff2") format("woff2");unicode-range:U+2b,U+d7,U+300e-300f,U+4e07,U+4e8c,U+512a,U+5149,U+518d,U+5236,U+52b9,U+52d9,U+5468,U+578b,U+57fa,U+5b8c,U+5ba2,U+5c02,U+5de5,U+5f37,U+5f62,U+623b,U+63d0,U+652f,U+672a,U+6848,U+6d41,U+7136,U+7537,U+754c,U+76f4,U+79c1,U+7ba1,U+7d44,U+7d4c,U+7dcf,U+7dda,U+7de8,U+82b1,U+897f,U+8ca9,U+8cfc,U+904e,U+9664,U+982d,U+9858,U+98a8,U+9a13,U+ff13,U+ff5c;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-110-900-normal.woff2") format("woff2");unicode-range:U+40,U+4e86,U+4e95,U+4f01,U+4f1d,U+4fbf,U+5099,U+5171,U+5177,U+53cb,U+53ce,U+53f0,U+5668,U+5712,U+5ba4,U+5ca1,U+5f85,U+60f3,U+653e,U+65ad,U+65e9,U+6620,U+6750,U+6761,U+6b62,U+6b74,U+6e08,U+6e80,U+7248,U+7531,U+7533,U+753a,U+77f3,U+798f,U+7f6e,U+8449,U+88fd,U+89b3,U+8a55,U+8ac7,U+8b77,U+8db3,U+8efd,U+8fd4,U+9031-9032,U+9580,U+9589,U+96d1,U+985e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-96-900-normal.woff2") format("woff2");unicode-range:U+4e03,U+4f38,U+50b7,U+5264,U+5348,U+5371,U+585a,U+58ca,U+5951,U+59b9,U+59d4,U+5b98,U+5f8b,U+6388,U+64cd,U+65e7,U+6803,U+6b6f,U+6d66,U+6e0b,U+6ecb,U+6fc3,U+72ac,U+773c,U+77e2,U+7968,U+7a74,U+7dba,U+7dd1,U+7e3e,U+808c,U+811a,U+8179,U+8239,U+8584,U+8a0e,U+8a72,U+8b66,U+8c46,U+8f29,U+90a3,U+9234,U+96f0,U+9769,U+9774,U+9aa8,U+ff26,U+ff28,U+ff9e-ff9f;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-116-900-normal.woff2") format("woff2");unicode-range:U+a9,U+3010-3011,U+30e2,U+4e0b,U+4eca,U+4ed6,U+4ed8,U+4f53,U+4f5c,U+4f7f,U+53d6,U+540d,U+54c1,U+5730,U+5916,U+5b50,U+5c0f,U+5f8c,U+624b,U+6570,U+6587,U+6599,U+691c,U+696d,U+6cd5,U+7269,U+7279,U+7406,U+767a-767b,U+77e5,U+7d04,U+7d22,U+8005,U+80fd,U+81ea,U+8868,U+8981,U+89a7,U+901a,U+9023,U+90e8,U+91d1,U+9332,U+958b,U+96c6,U+9ad8,U+ff1a,U+ff1f;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-87-900-normal.woff2") format("woff2");unicode-range:U+b0,U+226a,U+2462,U+4e39,U+4fc3,U+4fd7,U+50be,U+50da,U+5200,U+5211,U+54f2,U+5618,U+596a,U+5b22,U+5bb4,U+5d50,U+60a3,U+63fa,U+658e,U+65e8,U+6669,U+6795,U+679d,U+67a0,U+6b3a,U+6e09,U+757f,U+7cd6,U+7dbe,U+7ffb,U+83cc,U+83f1,U+840c,U+845b,U+8846,U+8972,U+8a34,U+8a50,U+8a87,U+8edf,U+8ff0,U+90a6,U+9154,U+95a3,U+9663,U+9686,U+96c7,U+ff3c,U+ff7c,U+ff8a;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-95-900-normal.woff2") format("woff2");unicode-range:U+2193,U+25b2,U+4e4b,U+516d,U+51c4,U+529f,U+52c9,U+5360,U+5442,U+5857,U+5915,U+59eb,U+5a9b,U+5c3b,U+6012,U+61b6,U+62b1,U+6311,U+6577,U+65e2,U+65ec,U+6613,U+6790,U+6cb9,U+7372,U+76ae,U+7d5e,U+7fcc,U+88ab,U+88d5,U+8caf,U+8ddd,U+8ecd,U+8f38,U+8f9e,U+8feb,U+9063,U+90f5,U+93e1,U+968a,U+968f,U+98fe,U+9ec4,U+ff1d,U+ff27,U+ff2a,U+ff36,U+ff3b,U+ff3d,U+ffe5;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-108-900-normal.woff2") format("woff2");unicode-range:U+2605-2606,U+301c,U+4e57,U+4fee,U+5065,U+52df,U+533b,U+5357,U+57df,U+58eb,U+58f0,U+591c,U+592a-592b,U+5948,U+5b85,U+5d0e,U+5ea7,U+5ff5,U+6025,U+63a1,U+63a5,U+63db,U+643a,U+65bd,U+671d,U+68ee,U+6982,U+6b73,U+6bd4,U+6d88,U+7570,U+7b11,U+7d76,U+8077,U+8217,U+8c37,U+8c61,U+8cc7,U+8d85,U+901f,U+962a,U+9802,U+9806,U+9854,U+98f2,U+9928,U+99c5,U+9ed2;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-109-900-normal.woff2") format("woff2");unicode-range:U+266a,U+4f11,U+533a,U+5343,U+534a,U+53cd,U+5404,U+56f3,U+5b57-5b58,U+5bae,U+5c4a,U+5e0c,U+5e2f,U+5eab,U+5f35,U+5f79,U+614b,U+6226,U+629e,U+65c5,U+6625,U+6751,U+6821,U+6b69,U+6b8b,U+6bce,U+6c42,U+706b,U+7c21,U+7cfb,U+805e,U+80b2,U+82b8,U+843d,U+8853,U+88c5,U+8a3c,U+8a66,U+8d8a,U+8fba,U+9069,U+91cf,U+9752,U+975e,U+9999,U+ff0f-ff10,U+ff14-ff15;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-115-900-normal.woff2") format("woff2");unicode-range:U+7c,U+3080,U+4ee5,U+5148,U+516c,U+521d,U+5225,U+529b,U+52a0,U+53ef,U+56de,U+56fd,U+5909,U+591a,U+5b66,U+5b9f,U+5bb6,U+5bfe,U+5e73,U+5e83,U+5ea6,U+5f53,U+6027,U+610f,U+6210,U+6240,U+660e,U+66f4,U+66f8,U+6709,U+6771,U+697d,U+69d8,U+6a5f,U+6c34,U+6cbb,U+73fe,U+756a,U+7684,U+771f,U+793a,U+7f8e,U+898f,U+8a2d,U+8a71,U+8fd1,U+9078,U+9577,U+96fb,U+ff5e;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-98-900-normal.woff2") format("woff2");unicode-range:U+25cb,U+4e71,U+4f59,U+50d5,U+520a,U+5217,U+5230,U+523a-523b,U+541b,U+5439,U+5747,U+59c9,U+5bdf,U+5c31,U+5de8,U+5e7c,U+5f69,U+6050,U+60d1,U+63cf,U+663c,U+67c4,U+6885,U+6c38,U+6d6e,U+6db2,U+6df7,U+6e2c,U+6f5f,U+7532,U+76e3-76e4,U+7701,U+793c,U+79f0,U+7a93,U+7d00,U+7de0,U+7e54,U+8328,U+8840,U+969c,U+96e8,U+9811,U+9aea,U+9b5a,U+ff24,U+ff2e,U+ff57;}
+@font-face{font-family:"Noto Sans JP";font-style:normal;font-weight:900;font-display:block;src:url("assets/fonts/noto-sans-jp-86-900-normal.woff2") format("woff2");unicode-range:U+24,U+2022,U+2212,U+221f,U+2665,U+4ecf,U+5100,U+51cd,U+52d8,U+5378,U+53f6,U+574a,U+5982,U+5996,U+5c1a,U+5e1d,U+5f84,U+609f,U+61a7,U+61f8,U+6398,U+63ee,U+6676,U+6691,U+6eb6,U+7126,U+71e5,U+7687,U+7965,U+7d17,U+80a1,U+8107,U+8266,U+85a6,U+8987,U+8ca2,U+8cab,U+8e0a,U+9042,U+95c7,U+9810,U+9867,U+98fc,U+ff52-ff54,U+ff61,U+ff77,U+ff98-ff99;}
+@font-face{font-family:"Anton";font-style:normal;font-weight:400;font-display:block;src:url("assets/fonts/anton-latin-400-normal.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+/* FONTS:END */
+
+      /* DONE: 色（アプリの色。紹介動画と同じ値にそろえる） */
+      :root {
+        --bg: #0e1f1b;
+        --surface: #16302a;
+        --border: #25443c;
+        --accent: #4cc3a0;
+        --accent-soft: #8fe0c6;
+        --accent-deep: #2e9c7c;
+        --on-accent: #0e1f1b;
+        --ink: #f4f7f6;
+        --muted: #b8c7c2;
+        --dim: #6b6b73;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg);
+        font-family: "Noto Sans JP", sans-serif; color: var(--ink); font-feature-settings: "palt" 1;
+      }
+      .scene { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+      .fill { position: absolute; inset: 0; }
+      .jp9 { font-family: "Noto Sans JP", sans-serif; font-weight: 900; line-height: 1.08; letter-spacing: 0.01em; }
+      .jp7 { font-family: "Noto Sans JP", sans-serif; font-weight: 700; }
+      .anton { font-family: "Anton", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
+      .gold { color: var(--accent); }
+      .mask { display: block; overflow: hidden; }
+      .mask > .in { display: block; }
+      .row { display: flex; align-items: baseline; }
+
+      /* ---------- S1 つかみ ---------- */
+      #s1 { z-index: 5; }
+      #s1-cam, #s1-zoom { position: absolute; inset: 0; }
+      #s1-zoom { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .hook-line { position: relative; display: block; font-size: 230px; line-height: 1.12; white-space: nowrap; }
+      .hook-ghost {
+        position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        color: color-mix(in srgb, var(--accent) 8%, transparent); -webkit-text-stroke: 3px var(--accent); z-index: -1;
+      }
+      #s1-slash { position: absolute; left: 0; top: 536px; width: 1920px; height: 8px; background: var(--accent); transform-origin: 0 50%; }
+      #s1-kicker { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font-size: 30px; letter-spacing: 0.6em; color: var(--accent-soft); }
+      #wipe-a, #wipe-b { position: absolute; top: -60px; left: 0; width: 3200px; height: 1200px; z-index: 60; clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); }
+      #wipe-a { background: var(--accent); }
+      #wipe-b { background: var(--accent-deep); }
+
+      /* ---------- S2 世界観 ---------- */
+      #s2 { z-index: 6; }
+      #s2-cam { position: absolute; inset: 0; }
+      #s2-photo { position: absolute; top: 0; left: 980px; width: 940px; height: 1080px; overflow: hidden; clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%); }
+      #s2-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+      #s2-photo-shade { position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 85%, transparent) 0%, transparent 38%), linear-gradient(0deg, color-mix(in srgb, var(--bg) 70%, transparent) 0%, transparent 30%); }
+      #s2-edge { position: absolute; top: 0; left: 980px; width: 940px; height: 1080px; clip-path: polygon(17.4% 0, 18% 0, 0.6% 100%, 0 100%); background: var(--accent); }
+      #s2-left { position: absolute; left: 140px; top: 150px; width: 820px; }
+      #s2-kicker { display: flex; align-items: center; gap: 22px; font-size: 34px; letter-spacing: 0.14em; color: var(--accent); }
+      #s2-kicker-bar { display: block; width: 72px; height: 6px; background: var(--accent); transform-origin: 0 50%; }
+      #s2-head { margin-top: 40px; font-size: 116px; }
+      #s2-nums { position: absolute; left: 140px; top: 772px; display: flex; gap: 90px; }
+      .num .nname { display: block; margin-bottom: 18px; font-size: 32px; letter-spacing: 0.2em; color: var(--accent-soft); }
+      .num .nval { font-size: 168px; line-height: 1.2; color: var(--ink); font-variant-numeric: tabular-nums; }
+      .num .nunit { font-size: 44px; margin-left: 12px; color: var(--accent); }
+      #s2-div { width: 3px; height: 190px; background: var(--border); align-self: center; }
+
+      /* ---------- S3 操作（録画） ---------- */
+      #s3 { z-index: 7; }
+      #s3-cam { position: absolute; inset: 0; }
+      #s3-bgword { position: absolute; left: -40px; top: 560px; font-size: 470px; line-height: 1; white-space: nowrap; color: color-mix(in srgb, var(--accent) 4%, transparent); -webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+      #s3-left { position: absolute; left: 140px; top: 150px; width: 900px; }
+      #s3-kicker { font-size: 32px; letter-spacing: 0.5em; color: var(--accent); }
+      #s3-head1 { margin-top: 26px; font-size: 112px; }
+      #s3-head2 { display: flex; align-items: baseline; font-size: 112px; }
+      #s3-three { font-size: 240px; line-height: 0.9; color: var(--accent); margin-right: 8px; }
+      #s3-steps { position: absolute; left: 140px; top: 690px; width: 760px; height: 250px; }
+      #s3-stepbar { position: absolute; left: 0; top: 0; width: 8px; height: 64px; background: var(--accent); }
+      .step { position: absolute; left: 40px; height: 64px; display: flex; align-items: center; gap: 26px; font-size: 44px; color: var(--dim); white-space: nowrap; }
+      .step .snum { font-size: 40px; width: 64px; letter-spacing: 0.04em; }
+      .step .schk { width: 40px; height: 40px; }
+      .step .schk polyline { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; }
+      #step1 { top: 0; }
+      #step2 { top: 90px; }
+      #step3 { top: 180px; }
+      /* スマホの枠（418x872・画面 390x844＝録画の大きさ）。PC だけのアプリは紹介動画 intro の #laptop-rig の枠と CSS を写して置き換える */
+      #device { position: absolute; left: 1240px; top: 104px; width: 418px; height: 872px; perspective: 1800px; }
+      #device-cam { position: absolute; inset: 0; }
+      #phone { position: absolute; inset: 0; border-radius: 62px; background: linear-gradient(145deg, #2c2c31 0%, #141416 60%, #232327 100%); box-shadow: 0 0 0 2px #3a3a40, 0 40px 90px rgba(0, 0, 0, 0.7), 0 0 120px color-mix(in srgb, var(--accent) 16%, transparent); }
+      #ph-screen { position: absolute; left: 14px; top: 14px; width: 390px; height: 844px; border-radius: 48px; overflow: hidden; background: #0a0a0b; }
+      .ph-media { position: absolute; left: 0; top: 0; width: 390px; height: 844px; object-fit: cover; }
+
+      /* ---------- S4 価値 ---------- */
+      #s4a { z-index: 8; }
+      #s4a-cam { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 56px; }
+      #s4a-num { font-size: 560px; line-height: 0.9; color: var(--accent); font-variant-numeric: tabular-nums; }
+      #s4a-col { display: flex; flex-direction: column; }
+      #s4a-l1 { font-size: 160px; white-space: nowrap; }
+      #s4a-l2 { font-size: 100px; white-space: nowrap; }
+      .sl { position: absolute; left: 0; height: 3px; background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 70%, transparent) 100%); }
+      #s4b { z-index: 9; background: var(--accent); }
+      #s4b-cam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--on-accent); }
+      #s4b-l1 { font-size: 112px; white-space: nowrap; }
+      #s4b-l2 { font-size: 230px; line-height: 1.1; white-space: nowrap; }
+      #s4c { z-index: 10; }
+      #s4c-ring { position: absolute; left: 460px; top: 40px; width: 1000px; height: 1000px; border-radius: 500px; border: 6px solid var(--accent); }
+      #s4c-ring2 { position: absolute; left: 660px; top: 240px; width: 600px; height: 600px; border-radius: 300px; border: 2px solid var(--accent-soft); }
+
+      /* ---------- S5 名前 ---------- */
+      #s5 { z-index: 11; }
+      #s5-cam, #s5-zoom { position: absolute; inset: 0; }
+      #s5-shock { position: absolute; left: 810px; top: 190px; width: 300px; height: 300px; border-radius: 150px; border: 8px solid var(--accent); opacity: 0; }
+      #s5-name-wrap { position: absolute; left: 0; right: 0; top: 230px; display: flex; justify-content: center; }
+      #s5-name { font-size: 170px; line-height: 1.15; white-space: nowrap; }
+      #s5-rule-l, #s5-rule-r { position: absolute; top: 640px; width: 380px; height: 2px; background: var(--accent); }
+      #s5-rule-l { left: 180px; transform-origin: 100% 50%; }
+      #s5-rule-r { left: 1360px; transform-origin: 0 50%; }
+      #s5-tag { position: absolute; left: 0; right: 0; top: 608px; text-align: center; font-size: 50px; letter-spacing: 0.3em; }
+      #s5-cta-wrap { position: absolute; left: 0; right: 0; top: 760px; display: flex; flex-direction: column; align-items: center; }
+      #s5-cta { position: relative; overflow: hidden; display: flex; align-items: center; gap: 22px; padding: 26px 64px; border-radius: 24px; border: 3px solid var(--accent); font-size: 44px; color: var(--accent); }
+      #s5-cta-fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: var(--accent); transform-origin: 0 50%; }
+      #s5-cta-txt, #s5-cta-arrow { position: relative; }
+      #s5-sub { margin-top: 26px; font-size: 26px; letter-spacing: 0.22em; color: var(--muted); }
+
+      /* ---------- 全体の飾り ---------- */
+      #chrome { position: absolute; inset: 0; z-index: 70; pointer-events: none; }
+      .brk { position: absolute; width: 44px; height: 44px; border-color: color-mix(in srgb, var(--accent-soft) 55%, transparent); border-style: solid; border-width: 0; }
+      #brk-tl { left: 48px; top: 48px; border-left-width: 3px; border-top-width: 3px; }
+      #brk-tr { right: 48px; top: 48px; border-right-width: 3px; border-top-width: 3px; }
+      #brk-bl { left: 48px; bottom: 48px; border-left-width: 3px; border-bottom-width: 3px; }
+      #brk-br { right: 48px; bottom: 48px; border-right-width: 3px; border-bottom-width: 3px; }
+      #vignette { position: absolute; inset: 0; z-index: 80; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.5) 100%); }
+      #flash { position: absolute; inset: 0; z-index: 85; pointer-events: none; background: #fff4d6; opacity: 0; }
+      @keyframes hf-grain-noise {
+        0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); }
+        30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); }
+        60% { transform: translate(15%, 0); } 70% { transform: translate(0, 10%); } 80% { transform: translate(-15%, 0); } 90% { transform: translate(10%, 5%); }
+      }
+      #grain-overlay .grain-texture {
+        position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        opacity: 0.06; animation: hf-grain-noise 0.5s steps(1) infinite;
+      }
+      /* 画面に出す文字を全部、画面の外で 1 回描いて、フォントの部品を最初のコマより前に読ませる */
+      #glyph-warm { position: absolute; left: -4000px; top: 0; width: 3000px; display: flex; flex-direction: column; font-size: 20px; }
+      #glyph-warm > span { display: block; white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <!-- ===================== S1 つかみ 0.0-2.5 ===================== -->
+      <div id="s1" class="scene">
+        <div id="s1-slash"></div>
+        <div id="s1-kicker" class="anton">YOYAKURU</div><!-- DONE: 英字の小見出し（アプリの名前や分野。20 字まで） -->
+        <div id="s1-cam">
+          <div id="s1-zoom">
+            <!-- DONE: キャッチ 2 行（1 行 4〜6 字。ghost の中も同じ文字） -->
+            <div id="h1" class="hook-line jp9">予約、<span id="h1g" class="hook-ghost" data-layout-ignore>予約、</span></div>
+            <div id="h2" class="hook-line jp9 gold">スマホで。<span id="h2g" class="hook-ghost" data-layout-ignore>スマホで。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== S2 世界観 2.5-5.5 ===================== -->
+      <div id="s2" class="scene" style="opacity: 0">
+        <div id="s2-cam" class="fill">
+          <div id="s2-photo">
+            <img id="s2-img" src="assets/img/hero.png" alt="" /><!-- DONE: 生成した生活の場面（アプリを使う人がいる場面） -->
+            <div id="s2-photo-shade"></div>
+          </div>
+          <div id="s2-edge"></div>
+          <div id="s2-left">
+            <div id="s2-kicker" class="jp7"><span id="s2-kicker-bar"></span><span id="s2-kicker-t">料理教室の予約アプリ</span></div>
+            <div id="s2-head" class="jp9">
+              <!-- DONE: 見出し 3 行 -->
+              <span class="mask"><span id="s2-l1" class="in">教室を選んで、</span></span>
+              <span class="mask"><span id="s2-l2" class="in">日にちを選び、</span></span>
+              <span class="mask"><span id="s2-l3" class="in gold">名前で完了。</span></span>
+            </div>
+          </div>
+          <!-- DONE: 数字 2 つ（コードで確かめた数字だけ。英字の名前と単位）。下の JS の NUM1 / NUM2 も同じ数字に -->
+          <div id="s2-nums">
+            <div id="num1" class="num">
+              <span class="nname anton">CLASS</span>
+              <div class="row"><span id="nval1" class="nval anton">0</span><span class="nunit anton">TYPES</span></div>
+            </div>
+            <div id="s2-div"></div>
+            <div id="num2" class="num">
+              <span class="nname anton">OPEN DAYS</span>
+              <div class="row"><span id="nval2" class="nval anton">0</span><span class="nunit anton">DAYS</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== S3 操作 5.5-10.0 ===================== -->
+      <div id="s3" class="scene" style="opacity: 0">
+        <div id="s3-cam" class="fill">
+          <div id="s3-bgword" class="anton" data-layout-ignore>RESERVE</div><!-- DONE: 背景の大きな英単語（例: RESERVE） -->
+          <div id="s3-left">
+            <div id="s3-kicker" class="anton">RESERVATION</div><!-- DONE: 英字の小見出し（例: RESERVATION） -->
+            <div id="s3-head1" class="jp9"><span class="mask"><span id="s3-h1" class="in">予約は、</span></span></div>
+            <div class="mask"><div id="s3-h2" class="in"><div id="s3-head2" class="jp9"><span id="s3-three" class="anton">3</span><span>ステップ。</span></div></div></div>
+          </div>
+          <div id="s3-steps">
+            <div id="s3-stepbar"></div>
+            <!-- DONE: 手順 3 つ（録画の操作の順。1 つ 8 字まで） -->
+            <div id="step1" class="step jp7"><span class="snum anton">01</span><span>教室を選ぶ</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk1" points="8,21 17,30 33,11" /></svg></div>
+            <div id="step2" class="step jp7"><span class="snum anton">02</span><span>日にちを選ぶ</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk2" points="8,21 17,30 33,11" /></svg></div>
+            <div id="step3" class="step jp7"><span class="snum anton">03</span><span>名前を入れる</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk3" points="8,21 17,30 33,11" /></svg></div>
+          </div>
+          <div id="device">
+            <div id="device-cam">
+              <div id="phone">
+                <div id="ph-screen">
+                  <!-- DONE: data-media-start = 録画の中で使い始める秒（record.mjs の takes/<場面>.json の marks を見て、操作が始まる少し前） -->
+                  <video id="ph-rec" class="clip ph-media" src="assets/video/user.mp4" data-start="5.5" data-duration="4.5" data-media-start="1.6" data-playback-rate="2.6" data-track-index="2" muted playsinline></video>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== S4 価値 10.0-12.5 ===================== -->
+      <div id="s4a" class="scene" style="opacity: 0">
+        <div id="s4a-lines" class="fill"></div>
+        <div id="s4a-cam">
+          <div id="s4a-num" class="anton">0</div>
+          <div id="s4a-col">
+            <!-- DONE: 数字 1 つで価値を言う（JS の S4A_NUMBER）。数字は出どころの文脈まで確かめ、コードで確かめたものだけ -->
+            <span class="mask"><span id="s4a-l1" class="in jp9">ステップで、</span></span>
+            <span class="mask"><span id="s4a-l2" class="in jp9">予約が完了。</span></span>
+          </div>
+        </div>
+      </div>
+      <div id="s4b" class="scene" style="opacity: 0">
+        <div id="s4b-cam">
+          <!-- DONE: 特長をもう 1 つ（コードで確かめたもの） -->
+          <div id="s4b-l1" class="jp9">新しい予約は、</div>
+          <div id="s4b-l2" class="jp9">色で分かる。</div>
+        </div>
+      </div>
+      <div id="s4c" class="scene" style="opacity: 0">
+        <div id="s4c-ring"></div>
+        <div id="s4c-ring2"></div>
+      </div>
+
+      <!-- ===================== S5 名前 12.5-15.0 ===================== -->
+      <div id="s5" class="scene" style="opacity: 0">
+        <div id="s5-cam">
+          <div id="s5-zoom">
+            <div id="s5-shock"></div>
+            <div id="s5-name-wrap"><div id="s5-name" class="jp9">ヨヤクル</div></div><!-- DONE -->
+            <div id="s5-rule-l"></div>
+            <div id="s5-rule-r"></div>
+            <div id="s5-tag" class="jp7">料理教室の予約を、スマホで。</div><!-- DONE -->
+            <div id="s5-cta-wrap">
+              <div id="s5-cta" class="jp9">
+                <div id="s5-cta-fill"></div>
+                <span id="s5-cta-txt">スマホで予約する</span><!-- DONE -->
+                <span id="s5-cta-arrow">→</span>
+              </div>
+              <div id="s5-sub" class="jp7">3つのクラス　／　管理画面つき</div><!-- DONE: コードで確かめた事実だけ -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== 全体の飾り ===================== -->
+      <div id="chrome">
+        <div id="brk-tl" class="brk"></div>
+        <div id="brk-tr" class="brk"></div>
+        <div id="brk-bl" class="brk"></div>
+        <div id="brk-br" class="brk"></div>
+      </div>
+      <div id="flash"></div>
+      <div id="vignette"></div>
+      <div id="grain-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 90">
+        <div class="grain-texture"></div>
+      </div>
+      <div id="wipe-a"></div>
+      <div id="wipe-b"></div>
+
+      <!-- DONE: 画面に出す文字を太さごとに全部入れる（1 文字でも漏れると最初のコマで字が化ける） -->
+      <div id="glyph-warm" data-layout-allow-overflow>
+        <span class="jp9">予約、スマホで。教室を選んで、日にちを選び、名前で完了。予約は、ステップ。ステップで、予約が完了。新しい予約は、色で分かる。ヨヤクルスマホで予約する→</span>
+        <span class="jp7">料理教室の予約アプリ教室を選ぶ日にちを選ぶ名前を入れる料理教室の予約を、スマホで。3つのクラス管理画面つき　／</span>
+        <span class="anton">YOYAKURUCLASSOPEN DAYSTYPESDAYSRESERVERESERVATION 0123456789</span>
+      </div>
+
+      <!-- ===================== 音 ===================== -->
+      <!-- BGM は gen-bgm.ts --style cm、効果音は gen-sfx.ts で作る（どちらも計算で作った音なので、著作権の心配が無い） -->
+      <audio id="a-bgm" src="assets/audio/bgm.wav" data-start="0" data-duration="15" data-track-index="10" data-volume="0.55"></audio>
+      <audio id="a-w0" src="assets/audio/whoosh-short.wav" data-start="0" data-duration="0.4" data-track-index="11" data-volume="0.4"></audio>
+      <audio id="a-hit1" src="assets/audio/impact.wav" data-start="0.5" data-duration="1" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="a-hit2" src="assets/audio/impact.wav" data-start="1.5" data-duration="1" data-track-index="13" data-volume="0.5"></audio>
+      <audio id="a-wipe" src="assets/audio/whoosh-cinematic.wav" data-start="2.0" data-duration="1.3" data-track-index="14" data-volume="0.4"></audio>
+      <audio id="a-pop1" src="assets/audio/pop.wav" data-start="4" data-duration="0.5" data-track-index="15" data-volume="0.35"></audio>
+      <audio id="a-pop2" src="assets/audio/pop.wav" data-start="4.5" data-duration="0.5" data-track-index="16" data-volume="0.35"></audio>
+      <audio id="a-whip" src="assets/audio/whoosh.wav" data-start="5.2" data-duration="0.57" data-track-index="17" data-volume="0.5"></audio>
+      <audio id="a-tick1" src="assets/audio/click.wav" data-start="6.6" data-duration="0.37" data-track-index="18" data-volume="0.5"></audio>
+      <audio id="a-tick2" src="assets/audio/click.wav" data-start="7.6" data-duration="0.37" data-track-index="19" data-volume="0.5"></audio>
+      <audio id="a-tick3" src="assets/audio/click.wav" data-start="8.6" data-duration="0.37" data-track-index="20" data-volume="0.5"></audio>
+      <audio id="a-done" src="assets/audio/chime.wav" data-start="8.95" data-duration="1.4" data-track-index="21" data-volume="0.35"></audio>
+      <audio id="a-hit3" src="assets/audio/impact.wav" data-start="10" data-duration="1" data-track-index="22" data-volume="0.55"></audio>
+      <audio id="a-w1" src="assets/audio/whoosh-short.wav" data-start="10.95" data-duration="0.4" data-track-index="23" data-volume="0.4"></audio>
+      <audio id="a-hit4" src="assets/audio/impact.wav" data-start="11.5" data-duration="0.55" data-track-index="24" data-volume="0.4"></audio>
+      <audio id="a-logo" src="assets/audio/impact.wav" data-start="12.5" data-duration="1" data-track-index="25" data-volume="0.75"></audio>
+      <audio id="a-cta" src="assets/audio/pop.wav" data-start="14" data-duration="0.5" data-track-index="26" data-volume="0.4"></audio>
+    </div>
+
+    <script>
+      // ---------- 動きで使う決まった DOM（速度の線） ----------
+      (function buildStatic() {
+        const lines = document.getElementById("s4a-lines");
+        for (let i = 0; i < 14; i++) {
+          const el = document.createElement("div");
+          el.className = "sl";
+          el.id = "sl" + i;
+          el.style.top = 70 + ((i * 373) % 940) + "px";
+          el.style.width = 300 + ((i * 211) % 600) + "px";
+          lines.appendChild(el);
+        }
+      })();
+
+      const tl = gsap.timeline({ paused: true });
+      const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      const F = 1 / 30;
+      // 決まった揺れ（毎回同じ動きにする。乱数を使わない）
+      function shake(sel, t0, dur, amp) {
+        const steps = Math.max(2, Math.round(dur / F));
+        let px = 0;
+        let py = 0;
+        for (let i = 1; i <= steps; i++) {
+          const k = 1 - i / steps;
+          const a = amp * k * k;
+          const nx = i === steps ? 0 : a * Math.sin(i * 2.7 + t0 * 13.1);
+          const ny = i === steps ? 0 : a * Math.cos(i * 3.9 + t0 * 7.3);
+          tl.fromTo(sel, { x: px, y: py }, { x: nx, y: ny, duration: F, ease: "none", immediateRender: false }, t0 + (i - 1) * F);
+          px = nx;
+          py = ny;
+        }
+      }
+      function flash(t, peak) {
+        tl.fromTo("#flash", { opacity: peak }, { opacity: 0, duration: 0.22, ease: "power2.out", immediateRender: false }, t);
+      }
+      function sceneSwap(outSel, inSel, t) {
+        if (outSel) tl.set(outSel, { opacity: 0 }, t);
+        if (inSel) tl.set(inSel, { opacity: 1 }, t);
+      }
+      function countUp(id, to, t, dur) {
+        const o = { v: 0 };
+        const el = document.getElementById(id);
+        tl.fromTo(o, { v: 0 }, { v: to, duration: dur, ease: "power3.out", onUpdate: () => { el.textContent = String(Math.round(o.v)); } }, t);
+      }
+
+      // ================= S1 つかみ (0.0 - 2.5) =================
+      tl.fromTo("#s1-slash", { scaleX: 0, x: 0 }, { scaleX: 1, duration: 0.22, ease: "expo.out" }, 0.0);
+      tl.to("#s1-slash", { x: 1920, duration: 0.22, ease: "expo.in" }, 0.24);
+      tl.fromTo("#s1-kicker", { opacity: 0, y: -24, scale: 1.08 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 0.08);
+      tl.fromTo("#h1", { opacity: 0, scale: 1.7, filter: "blur(22px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.26, ease: "expo.out" }, 0.4);
+      tl.fromTo("#h1g", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 1.45, duration: 0.55, ease: "power2.out" }, 0.5);
+      tl.fromTo("#h2", { opacity: 0, scale: 1.7, filter: "blur(22px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.26, ease: "expo.out" }, 1.4);
+      tl.fromTo("#h2g", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 1.45, duration: 0.55, ease: "power2.out" }, 1.5);
+      tl.fromTo("#s1-zoom", { scale: 1 }, { scale: 1.12, duration: 1.95, ease: "power1.in" }, 0.5);
+      shake("#s1-cam", 0.5, 0.36, 22);
+      shake("#s1-cam", 1.5, 0.36, 26);
+      flash(0.5, 0.12);
+      flash(1.5, 0.12);
+      tl.fromTo("#wipe-a", { x: -3400 }, { x: 2100, duration: 0.7, ease: "power3.inOut" }, 2.15);
+      tl.fromTo("#wipe-b", { x: -3400 }, { x: 2100, duration: 0.7, ease: "power3.inOut" }, 2.1);
+      sceneSwap("#s1", "#s2", 2.5);
+
+      // ================= S2 世界観 (2.5 - 5.5) =================
+      const NUM1 = 3; // DONE: 数字一（コードで確かめた数字）
+      const NUM2 = 6; // DONE: 数字二
+      tl.fromTo("#s2-img", { scale: 1.32, x: 40 }, { scale: 1.08, x: 0, duration: 3.0, ease: "power2.out" }, 2.5);
+      tl.fromTo("#s2-photo", { x: 260 }, { x: 0, duration: 0.7, ease: "expo.out" }, 2.5);
+      tl.fromTo("#s2-edge", { x: 260, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 2.55);
+      tl.fromTo("#s2-kicker-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "expo.out" }, 2.6);
+      tl.fromTo("#s2-kicker-t", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, 2.66);
+      tl.fromTo("#s2-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 2.6);
+      tl.fromTo("#s2-l2", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 2.7);
+      tl.fromTo("#s2-l3", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 3.45);
+      shake("#s2-left", 3.55, 0.25, 10);
+      tl.fromTo("#num1", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.35, ease: "expo.out" }, 4.0);
+      countUp("nval1", NUM1, 4.0, 0.45);
+      tl.fromTo("#s2-div", { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "expo.out" }, 4.3);
+      tl.fromTo("#num2", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.35, ease: "expo.out" }, 4.5);
+      countUp("nval2", NUM2, 4.5, 0.45);
+      tl.fromTo("#s2-cam", { x: 0, filter: "blur(0px)" }, { x: -900, filter: "blur(28px)", duration: 0.3, ease: "power3.in", immediateRender: false }, 5.2);
+
+      // ================= S3 操作 (5.5 - 10.0) =================
+      sceneSwap("#s2", "#s3", 5.5);
+      tl.fromTo("#s3-cam", { x: 900, filter: "blur(28px)" }, { x: 0, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 5.5);
+      tl.fromTo("#s3-bgword", { x: 0 }, { x: -260, duration: 4.5, ease: "none" }, 5.5);
+      tl.fromTo("#s3-kicker", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.5, ease: "expo.out" }, 5.6);
+      tl.fromTo("#s3-h1", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 5.6);
+      tl.fromTo("#s3-h2", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 5.7);
+      tl.fromTo("#s3-three", { scale: 1.8, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2.2)" }, 5.75);
+      tl.fromTo(".step", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, 6.0);
+      tl.fromTo("#s3-stepbar", { scaleY: 0, y: 0 }, { scaleY: 1, duration: 0.3, ease: "expo.out" }, 6.2);
+      tl.fromTo("#phone", { y: 980, rotationY: -30, rotationZ: 8 }, { y: 0, rotationY: -12, rotationZ: -2, duration: 0.75, ease: "expo.out" }, 5.55);
+      tl.to("#phone", { rotationY: -4, rotationZ: 0, duration: 3.2, ease: "sine.inOut" }, 6.3);
+      function stepActive(i, t) {
+        tl.fromTo("#step" + i, { color: "#6b6b73" }, { color: "#f5f5f4", duration: 0.15, immediateRender: false }, t);
+      }
+      function stepDone(i, t) {
+        tl.to("#step" + i, { color: css("--muted"), duration: 0.2 }, t);
+        tl.fromTo("#chk" + i, { strokeDashoffset: 60 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+      }
+      // DONE: 手順の切り替えの時刻を、録画の操作（takes/<場面>.json の marks − data-media-start + 5.5）に合わせる
+      stepActive(1, 5.6);
+      stepDone(1, 6.5);
+      tl.to("#s3-stepbar", { y: 90, duration: 0.3, ease: "power3.inOut" }, 6.6);
+      stepActive(2, 6.84);
+      stepDone(2, 7.5);
+      tl.to("#s3-stepbar", { y: 180, duration: 0.3, ease: "power3.inOut" }, 7.5);
+      stepActive(3, 7.76);
+      stepDone(3, 9.0);
+      tl.to("#device-cam", { scale: 1.08, x: -40, duration: 0.5, ease: "power3.out" }, 9.15);
+      tl.to(["#s3-left", "#s3-steps"], { opacity: 0.35, duration: 0.4 }, 9.2);
+      tl.to("#device-cam", { scale: 3.2, x: -500, filter: "blur(18px)", duration: 0.32, ease: "power3.in" }, 9.68);
+
+      // ================= S4 価値 (10.0 - 12.5) =================
+      sceneSwap("#s3", "#s4a", 10.0);
+      const S4A_NUMBER = 3; // DONE: S4 の数字（コードで確かめたものだけ）
+      tl.fromTo("#s4a-num", { scale: 1.6, opacity: 0, filter: "blur(20px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 10.0);
+      countUp("s4a-num", S4A_NUMBER, 10.0, 0.3);
+      tl.fromTo("#s4a-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 10.12);
+      tl.fromTo("#s4a-l2", { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out" }, 10.5);
+      tl.fromTo("#s4a-cam", { scale: 1 }, { scale: 1.07, duration: 1.0, ease: "power1.in" }, 10.0);
+      shake("#s4a-lines", 10.0, 0.3, 14);
+      flash(10.0, 0.22);
+      for (let i = 0; i < 14; i++) {
+        const d = 0.35 + ((i * 7) % 5) * 0.08;
+        const st = 10.0 + ((i * 3) % 7) * 0.08;
+        tl.fromTo("#sl" + i, { x: 2100 }, { x: -1000, duration: d, ease: "none" }, st);
+      }
+      sceneSwap("#s4a", "#s4b", 11.0);
+      tl.fromTo("#s4b-l1", { x: 700, skewX: -18, opacity: 0 }, { x: 0, skewX: 0, opacity: 1, duration: 0.3, ease: "expo.out" }, 11.0);
+      tl.fromTo("#s4b-l2", { scale: 1.8, opacity: 0, filter: "blur(18px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.26, ease: "expo.out" }, 11.5);
+      shake("#s4b-cam", 11.5, 0.3, 20);
+      sceneSwap("#s4b", "#s4c", 12.0);
+      tl.fromTo("#s4c-ring", { scale: 1.25, opacity: 1 }, { scale: 0.02, opacity: 1, duration: 0.45, ease: "power3.in" }, 12.0);
+      tl.fromTo("#s4c-ring2", { scale: 1.9, opacity: 0.8 }, { scale: 0.02, opacity: 0.8, duration: 0.42, ease: "power3.in" }, 12.0);
+
+      // ================= S5 名前 (12.5 - 15.0) =================
+      sceneSwap("#s4c", "#s5", 12.5);
+      tl.fromTo("#s5-name", { scale: 1.9, opacity: 0, filter: "blur(24px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "expo.out" }, 12.5);
+      tl.fromTo("#s5-shock", { scale: 0.6, opacity: 1 }, { scale: 4.2, opacity: 0, duration: 0.7, ease: "expo.out" }, 12.52);
+      flash(12.5, 0.4);
+      shake("#s5-cam", 12.5, 0.4, 26);
+      tl.fromTo("#s5-rule-l", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 13.2);
+      tl.fromTo("#s5-rule-r", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 13.2);
+      tl.fromTo("#s5-tag", { opacity: 0, y: 26, scale: 1.06 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, 13.2);
+      tl.fromTo("#s5-cta", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2.4)" }, 13.95);
+      tl.fromTo("#s5-cta-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power3.inOut" }, 14.05);
+      tl.fromTo("#s5-cta", { color: accentHex() }, { color: getComputedStyle(document.documentElement).getPropertyValue("--on-accent").trim(), duration: 0.2, immediateRender: false }, 14.2);
+      tl.fromTo("#s5-cta-arrow", { x: 0 }, { x: 12, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1 }, 14.4);
+      tl.fromTo("#s5-sub", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 14.1);
+      tl.fromTo("#s5-zoom", { scale: 1.0 }, { scale: 1.035, duration: 2.5, ease: "none" }, 12.5);
+      function accentHex() {
+        return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      }
+
+      tl.fromTo(".brk", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out", stagger: 0.04 }, 0.05);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

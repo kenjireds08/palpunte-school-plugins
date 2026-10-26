@@ -1,0 +1,102 @@
+{
+  "renderedAt": "2026-10-25T05:35:42.028Z",
+  "size": [
+    1200,
+    630
+  ],
+  "sources": {
+    "thumb.html": "3db7342e616bb349b8c734c13cd348c7c33d54debc59a08d1be055ae4bcf0faf",
+    "thumb.css": "90fb982d58d5b4fc91d2995b36c34a91fe5d09da12c07f9d35e2b8407c72c73d",
+    "thumb.js": "317c04507582730aad01c6f8fec8ce1070f433e93198e911ab7c8a32b60539fc"
+  },
+  "layout": {
+    "stage": [
+      1200,
+      630
+    ],
+    "devices": [
+      {
+        "name": "pc",
+        "box": [
+          664,
+          170,
+          532,
+          319
+        ]
+      },
+      {
+        "name": "phone",
+        "box": [
+          524,
+          262,
+          167,
+          349
+        ]
+      }
+    ],
+    "slots": [
+      {
+        "name": "brand",
+        "box": [
+          72,
+          56,
+          105,
+          32
+        ]
+      },
+      {
+        "name": "system",
+        "box": [
+          120,
+          118,
+          253,
+          36
+        ]
+      },
+      {
+        "name": "catch",
+        "box": [
+          68,
+          150,
+          338,
+          204
+        ]
+      },
+      {
+        "name": "features",
+        "box": [
+          72,
+          452,
+          452,
+          150
+        ]
+      }
+    ],
+    "keeps": [
+      {
+        "name": "pc の .keep[0]",
+        "box": [
+          785,
+          187,
+          368,
+          123
+        ],
+        "samples": 5043,
+        "hidden": 0
+      },
+      {
+        "name": "phone の .keep[1]",
+        "box": [
+          534,
+          272,
+          148,
+          330
+        ],
+        "samples": 5390,
+        "hidden": 0
+      }
+    ],
+    "issues": [],
+    "pass": true
+  }
+}

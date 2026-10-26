@@ -1,0 +1,29 @@
+{
+  "cacheKey": "3ed1cbc79b372dc43665ce81ddea2368c1ce705372a0e6ba5d3c175aff936460",
+  "provider": "eleven",
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "text": "その予約は、お店の管理画面へ。",
+  "textChars": 15,
+  "outputSampleRate": 24000,
+  "channels": 1,
+  "seconds": 2.64,
+  "speechStart": 0,
+  "speechEnd": 2.487,
+  "effectiveSeconds": 2.49,
+  "effectiveBasis": "silencedetect noise=-45dB d=0.15s の末尾の無音の始まり（その後ろの 0.25 秒以下・ピーク -30dB 以下の音は雑音として無視）",
+  "ignoredTailNoise": [],
+  "credits": 15,
+  "generatedAt": "2026-10-25T05:25:47.996Z",
+  "elapsedMs": 1395,
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "apiFormat": "mp3_44100_128",
+  "loudnessI": -16.19,
+  "samplePeakDb": -2.5,
+  "truePeakDb": -2.49
+}

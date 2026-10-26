@@ -1,0 +1,37 @@
+{
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "outDir": ".",
+  "items": [
+    {
+      "id": "s1-hook",
+      "text": "電話とメモで、バラバラに届く予約。"
+    },
+    {
+      "id": "s2-phone",
+      "text": "ヨヤクルなら、お客さまはスマホで、教室と日にちを選んで、名前を入れるだけ。"
+    },
+    {
+      "id": "s3-line",
+      "text": "その予約は、お店の管理画面へ。"
+    },
+    {
+      "id": "s4-admin",
+      "text": "お店は、予約を一覧で確かめて、クラスごとに絞り込めます。"
+    },
+    {
+      "id": "s5-features",
+      "text": "予約は、スリーステップ。新しい予約は、色で分かります。"
+    },
+    {
+      "id": "s6-name",
+      "text": "ヨヤクル。せいさく、{{credit}}。"
+    }
+  ]
+}

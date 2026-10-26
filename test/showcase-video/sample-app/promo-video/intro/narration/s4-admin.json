@@ -1,0 +1,29 @@
+{
+  "cacheKey": "cbc4465d3f00122e9529b4694af5dbf456abbbc3505d5c2c8578c79ab0e5f162",
+  "provider": "eleven",
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "text": "お店は、予約を一覧で確かめて、クラスごとに絞り込めます。",
+  "textChars": 28,
+  "outputSampleRate": 24000,
+  "channels": 1,
+  "seconds": 4.56,
+  "speechStart": 0,
+  "speechEnd": 4.397,
+  "effectiveSeconds": 4.4,
+  "effectiveBasis": "silencedetect noise=-45dB d=0.15s の末尾の無音の始まり（その後ろの 0.25 秒以下・ピーク -30dB 以下の音は雑音として無視）",
+  "ignoredTailNoise": [],
+  "credits": 28,
+  "generatedAt": "2026-10-25T05:25:50.023Z",
+  "elapsedMs": 1992,
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "apiFormat": "mp3_44100_128",
+  "loudnessI": -16.18,
+  "samplePeakDb": -2.5,
+  "truePeakDb": -2.49
+}

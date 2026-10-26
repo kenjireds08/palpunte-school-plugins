@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ヨヤクル | 料理教室の予約</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="bar"><div class="logo">ヨ</div><b>ヨヤクル</b></div>
+      <div class="steps"><span class="on" data-step="1"></span><span data-step="2"></span><span data-step="3"></span></div>
+
+      <section class="view" id="v-class">
+        <h1>教室をえらぶ</h1>
+        <p class="lead">見本料理教室（架空）の 3 つのクラス</p>
+        <button class="cls" data-class="パン教室" data-price="3,500円"><img src="img/class-bread.png" alt="" /><span><b>パン教室</b><small>こねて焼く 2 時間・3,500円</small></span></button>
+        <button class="cls" data-class="和食教室" data-price="4,000円"><img src="img/class-washoku.png" alt="" /><span><b>和食教室</b><small>季節の献立 2 時間・4,000円</small></span></button>
+        <button class="cls" data-class="お菓子教室" data-price="3,800円"><img src="img/class-sweets.png" alt="" /><span><b>お菓子教室</b><small>焼き菓子 2 時間・3,800円</small></span></button>
+        <button class="cta" id="to-date" disabled>日にちをえらぶ</button>
+      </section>
+
+      <section class="view" id="v-date" hidden>
+        <h1>日にちと時間</h1>
+        <p class="lead" id="date-lead"></p>
+        <div class="days" id="days"></div>
+        <div class="times" id="times">
+          <button class="time">10:00</button><button class="time">13:30</button><button class="time">18:00</button>
+        </div>
+        <button class="cta" id="to-confirm" disabled>入力へすすむ</button>
+      </section>
+
+      <section class="view" id="v-confirm" hidden>
+        <h1>お名前と確認</h1>
+        <label for="name">お名前</label>
+        <input class="field" id="name" autocomplete="off" placeholder="例: 見本 花子" />
+        <div class="summary" id="summary"></div>
+        <button class="cta" id="submit" disabled>予約する</button>
+      </section>
+
+      <section class="view done" id="v-done" hidden>
+        <div class="check">✓</div>
+        <h1>予約が完了しました</h1>
+        <p class="lead" id="done-text"></p>
+        <div class="code" id="code"></div>
+      </section>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

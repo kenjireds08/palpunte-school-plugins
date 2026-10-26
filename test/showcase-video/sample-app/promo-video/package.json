@@ -1,0 +1,15 @@
+{
+  "name": "promo-video",
+  "private": true,
+  "type": "module",
+  "description": "紹介動画づくりの道具（showcase-video スキル）。このフォルダで npm install を 1 回だけ実行する（録画に要る Playwright の小さな ffmpeg も自動で入る）",
+  "scripts": {
+    "postinstall": "playwright install ffmpeg"
+  },
+  "devDependencies": {
+    "@fontsource/anton": "5.3.0",
+    "@fontsource/noto-sans-jp": "5.3.0",
+    "gsap": "3.15.0",
+    "playwright": "1.61.1"
+  }
+}

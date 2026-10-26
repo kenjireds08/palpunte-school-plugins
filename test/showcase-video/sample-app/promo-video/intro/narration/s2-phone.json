@@ -1,0 +1,29 @@
+{
+  "cacheKey": "77ecaa316d47d8f99acd22f23d5bb89ac5ad9523c37d9aa9ced465e23f24359f",
+  "provider": "eleven",
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "text": "ヨヤクルなら、お客さまはスマホで、教室と日にちを選んで、名前を入れるだけ。",
+  "textChars": 37,
+  "outputSampleRate": 24000,
+  "channels": 1,
+  "seconds": 5.68,
+  "speechStart": 0,
+  "speechEnd": 5.463,
+  "effectiveSeconds": 5.46,
+  "effectiveBasis": "silencedetect noise=-45dB d=0.15s の末尾の無音の始まり（その後ろの 0.25 秒以下・ピーク -30dB 以下の音は雑音として無視）",
+  "ignoredTailNoise": [],
+  "credits": 37,
+  "generatedAt": "2026-10-25T05:25:46.565Z",
+  "elapsedMs": 2347,
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "apiFormat": "mp3_44100_128",
+  "loudnessI": -16.12,
+  "samplePeakDb": -2.49,
+  "truePeakDb": -2.48
+}

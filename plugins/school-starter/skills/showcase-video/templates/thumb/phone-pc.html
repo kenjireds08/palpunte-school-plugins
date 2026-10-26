@@ -1,0 +1,71 @@
+<!doctype html>
+<!--
+  showcase-video サムネイル「スマホ＋PC 型」（OGP 版 1200x630）。お客さんはスマホ・お店や管理者は PC で使うアプリの既定。
+  右に PC を台座まで全体表示し、スマホを PC の左手前に置く。スマホが重なってよいのは PC の左のベゼルと台座だけ（画面の中身には掛けない）。
+  左上と右下に角の飾り（カギ括弧）。上の余白は取らない。
+
+  使い方: promo-video/stills/thumb.html に写し、thumb.css と thumb.js も stills/ 直下に写す（references/compose.md「サムネイル」）。
+  素材（stills/assets/img/）: phone-hold.png（390x844・スマホの見せ場の画面）/ admin-hold.png（1280x800・管理画面）。どちらもカーソルの無い静止画
+  「REPLACE」を上から埋め、済んだ印を DONE に書き換える。〔 〕が残っていると render.ts が止まる。
+-->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>サムネイル スマホ＋PC 型（OGP）</title>
+    <script src="thumb.js"></script>
+    <link rel="stylesheet" href="thumb.css" />
+    <style>
+      /* FONTS:BEGIN */
+/* gen-fonts.ts rewrites this block */
+/* FONTS:END */
+
+      /* 端末の位置と倍率（--x --y はステージ座標・--s は倍率）。この値で、スマホの左端 524 ＝ 左の機能の列の右端、
+         スマホの右端 ≦ PC の画面の左端、PC の台座の右端 1196 ≦ 1200 になる。文字が長くて重なるときは文字を短くする */
+      .laptop { --x: 690px; --y: 170px; --s: 0.44; }
+      .phone { --x: 524px; --y: 262px; --s: 0.4; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="glow" data-decor></div>
+
+      <!-- REPLACE: 左の文字（事実だけ。英字の小見出しは 20 字まで・システムの種類・キャッチ 2 行（1 行 6 字前後）・機能 3 つ（1 行 15 字まで）） -->
+      <div class="brand abs" data-slot="brand"><span>〔ENGLISH TITLE〕</span></div>
+      <div class="kind abs" data-slot="system">〔システムの種類（例: 料理教室の予約アプリ）〕</div>
+      <h1 class="head abs" data-slot="catch">〔キャッチ一行目〕<br /><em>〔強調の二行目〕</em></h1>
+      <ul class="feats abs" data-slot="features">
+        <!-- アイコンは線のみ 24 グリッド。ほかの候補（path をそのまま差し替え）:
+             カレンダー <rect x="3" y="4.5" width="18" height="16" rx="2" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+             ベル <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5h4" />
+             グラフ <path d="M3 3.5v17h17.5" /><path d="M7 15l4-4 3 3 5-6" />
+             人 <circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a5.5 5.5 0 0 1 3.5 5.5" />
+             虫めがね <circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" />
+             箱 <path d="m3 7.5 9-4.5 9 4.5v9l-9 4.5-9-4.5z" /><path d="m3 7.5 9 4.5 9-4.5M12 12v9" /> -->
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" /><path d="M11 18h2" /></svg>〔機能一〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" /><path d="m3 6.5 9 6.5 9-6.5" /></svg>〔機能二〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="19" height="13" rx="2" /><path d="M8 20.5h8M12 16.5v4M6.5 8h7M6.5 11.5h4" /><circle cx="16.5" cy="10.5" r="2" /></svg>〔機能三〕</li>
+      </ul>
+
+      <div class="laptop" data-device="pc">
+        <div class="lid"></div><div class="base"></div><div class="notch"></div>
+        <div class="pc-screen"><div class="pc-scale">
+          <img src="assets/img/admin-hold.png" alt="" />
+          <!-- REPLACE: 隠してはいけない範囲（1280x800 の画面座標）。見出し・数字・一覧の行など、見せたい文字を囲む -->
+          <i class="keep" style="left: 0px; top: 0px; width: 1280px; height: 800px"></i>
+        </div></div>
+      </div>
+
+      <div class="phone" data-device="phone">
+        <div class="body"></div>
+        <div class="screen">
+          <img src="assets/img/phone-hold.png" alt="" />
+          <!-- REPLACE: 隠してはいけない範囲（390x844 の画面座標） -->
+          <i class="keep" style="left: 10px; top: 10px; width: 370px; height: 824px"></i>
+        </div>
+      </div>
+
+      <div class="brk tl" data-decor></div><div class="brk br" data-decor></div>
+      <div class="grain" data-decor></div>
+    </div>
+  </body>
+</html>

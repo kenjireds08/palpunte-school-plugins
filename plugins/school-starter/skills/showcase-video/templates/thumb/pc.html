@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  showcase-video サムネイル「PC 型」（OGP 版 1200x630）。PC だけで使うアプリ（スマホの画面が無い業務システム）の既定。
+  PC 1 台を大きく置き、見せたい数字や表は画面の中で寄せる（--view-x --view-y --view-w）。左上と右下に角の飾り。
+
+  使い方: promo-video/stills/thumb.html に写し、thumb.css と thumb.js も stills/ 直下に写す（references/compose.md「サムネイル」）。
+  素材（stills/assets/img/）: admin-hold.png（1280x800・カーソルの無い管理画面）
+-->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>サムネイル PC 型（OGP）</title>
+    <script src="thumb.js"></script>
+    <link rel="stylesheet" href="thumb.css" />
+    <style>
+      /* FONTS:BEGIN */
+/* gen-fonts.ts rewrites this block */
+/* FONTS:END */
+
+      /* REPLACE: PC の位置と倍率（台座まで枠の中・左の文字に重ならない範囲でいちばん大きく）と、画面の寄せ
+         （--view-x --view-y は 1280x800 の画面座標で見せる範囲の左上・--view-w は見せる幅。高さは --view-w x 0.6248。--view-w 1280 で寄せない） */
+      .laptop { --x: 585px; --y: 130px; --s: 0.51; --view-x: 256; --view-y: 0; --view-w: 1024; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="glow" data-decor></div>
+
+      <!-- REPLACE: 左の文字（事実だけ。英字の小見出しは 20 字まで・システムの種類・キャッチ 2 行・機能 3 つ（1 行 15 字まで）） -->
+      <div class="brand abs" data-slot="brand"><span>〔ENGLISH TITLE〕</span></div>
+      <div class="kind abs" data-slot="system">〔システムの種類（例: 在庫管理システム）〕</div>
+      <h1 class="head abs" data-slot="catch">〔キャッチ一行目〕<br /><em>〔強調の二行目〕</em></h1>
+      <ul class="feats abs" data-slot="features">
+        <!-- アイコンの候補は phone-pc.html のコメントにある（線のみ 24 グリッド） -->
+        <li><svg class="ico" viewBox="0 0 24 24"><path d="M3 3.5v17h17.5" /><path d="M7 15l4-4 3 3 5-6" /></svg>〔機能一〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>〔機能二〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="19" height="13" rx="2" /><path d="M8 20.5h8M12 16.5v4M6.5 8h7M6.5 11.5h4" /><circle cx="16.5" cy="10.5" r="2" /></svg>〔機能三〕</li>
+      </ul>
+
+      <div class="laptop" data-device="pc">
+        <div class="lid"></div><div class="base"></div><div class="notch"></div>
+        <div class="pc-screen"><div class="pc-scale">
+          <img src="assets/img/admin-hold.png" alt="" />
+          <!-- REPLACE: 隠してはいけない範囲（1280x800 の画面座標）。寄せた範囲に見えている見出し・数字・行を囲む（寄せた範囲の外に掛かると検査で止まる） -->
+          <i class="keep" style="left: 280px; top: 20px; width: 960px; height: 560px"></i>
+        </div></div>
+      </div>
+
+      <div class="brk tl" data-decor></div><div class="brk br" data-decor></div>
+      <div class="grain" data-decor></div>
+    </div>
+  </body>
+</html>

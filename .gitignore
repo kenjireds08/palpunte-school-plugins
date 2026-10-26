@@ -1,1 +1,14 @@
 .claude/
+
+# showcase-video の見本アプリ（test/showcase-video/sample-app）で作る重いもの
+**/promo-video/node_modules/
+**/promo-video/capture/credentials/
+**/promo-video/capture/takes/
+**/promo-video/assets/raw/
+**/promo-video/final/
+**/promo-video/**/assets/fonts/
+**/promo-video/**/assets/vendor/
+**/promo-video/**/assets/video/
+**/promo-video/**/assets/audio/
+**/promo-video/**/renders/
+**/.hyperframes/

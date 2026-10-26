@@ -1,0 +1,58 @@
+[
+ {
+  "name": "class-bread",
+  "kind": "photo",
+  "size": "1024x1024",
+  "prompt": "Photorealistic food photo seen from above: freshly baked round bread rolls and a small loaf on a floured wooden board in a home cooking class, warm soft daylight. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/class-bread.png"
+ },
+ {
+  "name": "class-washoku",
+  "kind": "photo",
+  "size": "1024x1024",
+  "prompt": "Photorealistic food photo seen from slightly above: a simple Japanese home-style set meal with grilled fish, miso soup, rice and seasonal vegetables on a plain wooden table, soft daylight. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/class-washoku.png"
+ },
+ {
+  "name": "class-sweets",
+  "kind": "photo",
+  "size": "1024x1024",
+  "prompt": "Photorealistic food photo seen from above: homemade baked cookies and small madeleines on parchment paper on a light table, soft daylight. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/class-sweets.png"
+ },
+ {
+  "name": "s1-a",
+  "kind": "photo",
+  "size": "1536x1024",
+  "prompt": "Photorealistic lifestyle photo, natural soft daylight, calm natural colors with a hint of deep green, shallow depth of field. A Japanese woman in her 40s, an owner of a small cooking class, standing in a bright kitchen studio holding a landline phone receiver to her ear while flipping through a paper notebook, looking busy and slightly troubled. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/s1-a.png"
+ },
+ {
+  "name": "s1-b",
+  "kind": "photo",
+  "size": "1536x1024",
+  "prompt": "Photorealistic lifestyle photo, natural soft daylight, calm natural colors with a hint of deep green, shallow depth of field. The same kind of small home cooking studio: a Japanese woman in her 40s at a counter looking at her smartphone with a tired expression, many sticky notes on the counter. The phone screen faces her, we only see the back of the phone. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/s1-b.png"
+ },
+ {
+  "name": "s1-c",
+  "kind": "photo",
+  "size": "1536x1024",
+  "prompt": "Photorealistic lifestyle photo, natural soft daylight, calm natural colors with a hint of deep green, shallow depth of field. A Japanese man in his 30s on a sofa at home in the evening, holding a smartphone and waiting with a slightly annoyed face, as if his message has not been answered. The phone screen faces him, we only see the back of the phone. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/s1-c.png"
+ },
+ {
+  "name": "s5-bg",
+  "kind": "photo",
+  "size": "1536x1024",
+  "prompt": "Photorealistic lifestyle photo, natural soft daylight, calm natural colors with a hint of deep green, shallow depth of field. A small group of three Japanese adults (two women in their 30s and 40s and one man in his 30s) happily kneading bread dough together at a wooden table in a bright cooking class, smiling, aprons, flour on the table, seen from a slight distance. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/s5-bg.png"
+ },
+ {
+  "name": "hero",
+  "kind": "photo",
+  "size": "1536x1024",
+  "prompt": "Photorealistic lifestyle photo, natural soft daylight, calm natural colors with a hint of deep green, shallow depth of field. Close-up of hands of a Japanese woman in her 30s placing freshly baked bread on a cooling rack in a bright kitchen, warm and inviting mood. No text, no letters, no logos, no signage, no readable writing anywhere. Not resembling any real person, real shop or real place.",
+  "out": "assets/raw/hero.png"
+ }
+]

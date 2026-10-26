@@ -1,0 +1,19 @@
+time	name	event	size	quality	sec	tokens	yen	note
+2026-10-25T05:21:41.968Z	class-bread	pending	1024x1024	medium			4.41	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:21:59.649Z	class-bread	ok	1024x1024	medium	18	509	2.09	assets/raw/class-bread.png
+2026-10-25T05:21:59.651Z	class-washoku	pending	1024x1024	medium			4.53	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:21:59.651Z	class-sweets	pending	1024x1024	medium			4.3	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:13.612Z	class-washoku	ok	1024x1024	medium	14	513	2.09	assets/raw/class-washoku.png
+2026-10-25T05:22:13.613Z	s1-a	pending	1536x1024	medium			4.6	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:15.978Z	class-sweets	ok	1024x1024	medium	16	503	2.08	assets/raw/class-sweets.png
+2026-10-25T05:22:15.979Z	s1-b	pending	1536x1024	medium			4.65	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:29.827Z	s1-a	ok	1536x1024	medium	16	449	1.67	assets/raw/s1-a.png
+2026-10-25T05:22:29.828Z	s1-c	pending	1536x1024	medium			4.62	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:31.903Z	s1-b	ok	1536x1024	medium	16	455	1.68	assets/raw/s1-b.png
+2026-10-25T05:22:31.904Z	s5-bg	pending	1536x1024	medium			4.4	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:43.398Z	s1-c	ok	1536x1024	medium	14	456	1.68	assets/raw/s1-c.png
+2026-10-25T05:22:43.399Z	hero	pending	1536x1024	medium			4.22	送信前（yen はこの 1 枚の予約額）
+2026-10-25T05:22:46.599Z	s5-bg	ok	1536x1024	medium	15	442	1.67	assets/raw/s5-bg.png
+2026-10-25T05:22:56.965Z	hero	ok	1536x1024	medium	14	435	1.66	assets/raw/hero.png
+2026-10-25T06:54:51.547Z	s5-bg-v2	pending	1536x1024	medium			4.7	送信前（yen はこの 1 枚の予約額）
+2026-10-25T06:55:07.350Z	s5-bg-v2	ok	1536x1024	medium	16	464	1.68	assets/raw/s5-bg-v2.png

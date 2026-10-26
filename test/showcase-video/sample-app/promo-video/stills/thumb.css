@@ -1,0 +1,103 @@
+/*
+  showcase-video サムネイル（横長 1200x630 の OGP 版）の共通の見た目。3 つの型（phone-pc / pc / phone）で共有する。
+  型の選び方・文言の決まりは references/compose.md「サムネイル」。
+
+  差し替えるのは :root の色だけ（設定 showcase.config.json の stills.brand と同じ値。showcase-check.ts template が突き合わせる）。
+  既定はオフホワイト×深い金。暗い地にしたいときは <html lang="ja" data-theme="dark"> にして、下の html[data-theme="dark"] の色を設定の brand と同じにする。
+*/
+:root {
+  /* DONE: 静止画の色（--bg 地 / --accent 強調 / --ink 文字）。設定の stills.brand と同じ値。強調色と地のコントラスト比は 4.5 以上 */
+  --bg: #f4f7f6;
+  --accent: #1f6f5c;
+  --accent-soft: #1f6f5c;
+  --ink: #1b1f27;
+  --sub: #4b5261;
+  --rim: #c9c6bc;
+  --dev-shadow: 0 34px 70px rgba(27, 31, 39, 0.28), 0 0 0 1px rgba(27, 31, 39, 0.1);
+  --grain: 0.035;
+  --glow-mix: 10%;
+  --rule: color-mix(in srgb, var(--ink) 16%, transparent);
+}
+/* 暗い地（<html data-theme="dark"> のときだけ）。色は設定の brand（動画と同じ色）にそろえる */
+html[data-theme="dark"] {
+  --bg: #0b0b0d;
+  --accent: #c8a04a;
+  --accent-soft: #e4c77a;
+  --ink: #f5f5f4;
+  --sub: #c9c9c4;
+  --rim: #3a3a40;
+  --dev-shadow: 0 40px 90px rgba(0, 0, 0, 0.7);
+  --grain: 0.07;
+  --glow-mix: 16%;
+  --rule: color-mix(in srgb, var(--accent-soft) 22%, transparent);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--bg); }
+.stage {
+  position: relative; overflow: hidden; width: 1200px; height: 630px;
+  background: var(--bg); color: var(--ink); font-family: "Noto Sans JP", sans-serif; font-feature-settings: "palt" 1;
+}
+.abs { position: absolute; }
+
+/* ---------- 飾り（data-decor: 配置の検査の対象外） ---------- */
+.glow { position: absolute; inset: 0; background: radial-gradient(ellipse 620px 420px at 72% 50%, color-mix(in srgb, var(--accent) var(--glow-mix), transparent) 0%, transparent 70%); }
+/* 角の飾り（カギ括弧）は左上と右下の 2 つ */
+.brk { position: absolute; width: 30px; height: 30px; border: 0 solid color-mix(in srgb, var(--accent-soft) 50%, transparent); }
+.brk.tl { left: 28px; top: 28px; border-left-width: 3px; border-top-width: 3px; }
+.brk.br { right: 28px; bottom: 28px; border-right-width: 3px; border-bottom-width: 3px; }
+.grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 70; opacity: var(--grain);
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ---------- 左: 文字の柱（英字の小見出し → システムの種類 → キャッチ → 機能 3 つ）。3 つの型で共通 ---------- */
+.brand { left: 72px; top: 56px; display: flex; align-items: center; gap: 12px; }
+.brand span { font-family: "Anton", sans-serif; font-size: 21px; letter-spacing: 0.16em; color: var(--accent-soft); white-space: nowrap; }
+.kind { left: 72px; top: 118px; display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 25px; color: var(--sub); letter-spacing: 0.04em; white-space: nowrap; }
+.kind::before { content: ""; width: 34px; height: 2px; background: var(--accent); }
+.head { left: 68px; top: 164px; font-weight: 900; font-size: 80px; line-height: 1.1; letter-spacing: 0.01em; white-space: nowrap; }
+.head em { font-style: normal; color: var(--accent); }
+.feats { left: 72px; top: 452px; width: 452px; list-style: none; }
+.feats li { display: flex; align-items: center; gap: 16px; height: 50px; border-top: 1px solid var(--rule); font-weight: 700; font-size: 24px; white-space: nowrap; }
+.feats li:last-child { border-bottom: 1px solid var(--rule); }
+.feats svg { width: 28px; height: 28px; color: var(--accent); flex: none; }
+/* 機能アイコン（24 グリッド・線のみ。3 つとも同じ太さ・同じ色） */
+.ico { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 端末（data-device。位置と倍率は --x --y --s を渡すだけ） ----------
+   スマホ: 418x872 の枠に 390x844 の画面（録画の画面の大きさ）。
+   ノート PC: 1090x726 の枠（台座は左右に 60px はみ出す）に 1280x800 のページを縮小。紹介動画の端末枠と同じ寸法 */
+.phone, .laptop { position: absolute; left: var(--x, 0); top: var(--y, 0); transform-origin: 0 0; transform: scale(var(--s, 1)); }
+.phone { width: 418px; height: 872px; }
+.phone .body {
+  position: absolute; inset: 0; border-radius: 62px;
+  background: linear-gradient(145deg, #2c2c31 0%, #141416 60%, #232327 100%);
+  box-shadow: 0 0 0 2px var(--rim), var(--dev-shadow);
+}
+.phone .screen { position: absolute; left: 14px; top: 14px; width: 390px; height: 844px; border-radius: 48px; overflow: hidden; background: #0a0a0b; }
+.phone .screen > img { position: absolute; left: 0; top: 0; width: 390px; height: 844px; }
+
+.laptop { width: 1090px; height: 726px; }
+.laptop .lid {
+  position: absolute; left: 0; top: 0; width: 1090px; height: 700px; border-radius: 26px;
+  background: linear-gradient(160deg, #2c2c31 0%, #151517 70%);
+  box-shadow: 0 0 0 2px var(--rim), var(--dev-shadow);
+}
+.laptop .base { position: absolute; left: -60px; top: 700px; width: 1210px; height: 26px; border-radius: 0 0 26px 26px; background: linear-gradient(180deg, #3a3a40 0%, #1d1d20 100%); }
+.laptop .notch { position: absolute; left: 485px; top: 700px; width: 120px; height: 8px; border-radius: 0 0 8px 8px; background: #111113; }
+.laptop .pc-screen { position: absolute; left: 20px; top: 22px; width: 1050px; height: 656px; overflow: hidden; border-radius: 6px; background: #f8f9fb; }
+/* 画面の寄せ（PC 型）: 1280x800 の画面のうち、左上 (--view-x, --view-y) から幅 --view-w の範囲を PC の画面いっぱいに見せる。
+   高さは幅から決まる（--view-w x 0.6248）。既定（--view-w 1280）は画面全体 */
+.laptop .pc-scale {
+  position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0;
+  transform: scale(calc(1050 / var(--view-w, 1280))) translate(calc(var(--view-x, 0) * -1px), calc(var(--view-y, 0) * -1px));
+}
+.laptop .pc-scale > img { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; }
+
+/* 検査用の見えない印（画面の座標で置く）: .keep = 隠してはいけない範囲 */
+.keep { position: absolute; display: block; pointer-events: none; }
+
+/* 配置の検査（thumb.js の __thumbLayout）の間だけ付く。飾りと見えない印は当たり判定から外す */
+html.thumb-hit * { pointer-events: auto !important; }
+html.thumb-hit [data-decor], html.thumb-hit [data-decor] *, html.thumb-hit .keep { pointer-events: none !important; }

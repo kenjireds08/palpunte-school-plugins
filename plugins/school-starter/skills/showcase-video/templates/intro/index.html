@@ -1,0 +1,581 @@
+<!doctype html>
+<!--
+  ============================================================================
+  showcase-video テンプレート: ナレーション付き紹介動画（1920x1080・30fps）
+
+  見た目は 15 秒動画（cm-15s）とそろえ、テンポだけ落とす。長さはナレーションで決まる（数字で決めない）。
+  骨格（お客さんはスマホ・お店や管理者は PC で使うアプリの場合）:
+    S1 困りごと      写真 3 枚（生成した生活の場面）が散らばって入る → 見出し 3 行 → 写真が中央へ吸い込まれてワイプ
+    S2 お客さんの操作 左: 見出し＋手順 3 つ → 結果 2 つ / 右: スマホの枠の中に録画（#phone-rig）
+    S3 つなぐ線       スマホの枠が左へ縮み、PC の枠が入り、光の線で結ぶ（演出。「すぐに」とは言わない）
+    S4 管理側         左: 見出し＋できること 3 行 / 右: PC の枠の中に録画（#laptop-rig）
+    S5 特長           文字 2 枚（s5a は生活の場面の写真を背景に / s5b）→ リングで吸い込み（s5c）
+    S6 名前・制作     アプリの名前が着地 → タグライン → 制作クレジット（設定の credit.display を credit.ts apply が入れる）
+  機能を足すときは S2（スマホ）か S4（PC）のブロックを写して場面を 1 つ増やし、
+  **後ろの場面の時刻を全部ずらす**（JS の tl の時刻・<video>/<img>/<audio> の data-start の両方。#root の data-duration も）。
+  **PC だけのアプリ**: S2・S3 を消し、S4 の PC 枠のブロックを機能の数だけ写して「困りごと → 機能 N → 特長 → 名前・制作」に組み直す。
+  **スマホだけのアプリ**: S3・S4 を消し、S2 のブロックを機能の数だけ写す。
+
+  ■ 時刻の決め方（音が先・映像が後）
+    1. 場面ごとの wav（eleven-tts.ts）の「話している長さ」（<id>.json の effectiveSeconds）で場面の長さを決める
+       （場面 = 話している長さ ＋ 前後の間 0.3〜0.6 秒）
+    2. <audio id="vo-sN"> の data-start = 場面の開始 + 0.3、data-duration = effectiveSeconds（2 桁）
+    3. 文字や画面の動きは、transcribe.ts の語の時刻（<id>.words.json の tokens[].at）に合わせる
+    4. 録画 <video> は data-media-start で使い始める秒を決める。途中を切り出して並べてよい
+    5. 録画の前後は静止画（record.mjs が書き出す <場面>-first.png / -last.png）で埋める
+    書き出しの前に showcase-check.ts timing で HTML と wav を突き合わせる
+
+  ■ 差し替える所（「REPLACE」で検索。済んだ所は印を「DONE」に書き換える。showcase-check.ts template が残りを止める）
+    - 色: :root（15 秒動画と同じ値）／写真: assets/img/s1-a.png・s1-b.png・s1-c.png・s5-bg.png（gen-images.ts）
+    - 文言: 〔 〕の仮の文言。**コードで確かめた機能だけ**。ナレーションと画面の文字を合わせる
+    - 録画: assets/video/user.mp4（スマホ 390x844）/ admin.mp4（PC 1280x800）と、前後の静止画
+    - 声: assets/audio/s1-hook.wav … s6-name.wav（場面の数だけ）
+    - 制作クレジット: 手で書かない。node "${CLAUDE_PLUGIN_ROOT}/skills/showcase-video/scripts/credit.ts" apply --config <設定> --html index.html
+    - BGM: gen-bgm.ts --style narrated --duration <合計秒> --logo-at <S6 開始秒> --out assets/audio/bgm.wav ／ 効果音: gen-sfx.ts
+    - #glyph-warm に画面の文字を全部 → gen-fonts.ts --html index.html（credit.ts apply の後に回す）
+  ============================================================================
+-->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>紹介動画（ナレーション付き）</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      /* FONTS:BEGIN */
+/* ここは gen-fonts.ts が書き換える（手で書かない） */
+/* FONTS:END */
+
+      /* REPLACE: 色（15 秒動画と同じ値にそろえる） */
+      :root {
+        --bg: #0b0b0d;
+        --surface: #18181b;
+        --border: #2a2a2e;
+        --accent: #c8a04a;
+        --accent-soft: #e4c77a;
+        --accent-deep: #b08d3c;
+        --on-accent: #0b0b0d;
+        --ink: #f5f5f4;
+        --muted: #a1a1aa;
+        --dim: #6b6b73;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg);
+        font-family: "Noto Sans JP", sans-serif; color: var(--ink); font-feature-settings: "palt" 1;
+      }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .jp9 { font-family: "Noto Sans JP", sans-serif; font-weight: 900; line-height: 1.1; letter-spacing: 0.01em; }
+      .jp7 { font-family: "Noto Sans JP", sans-serif; font-weight: 700; }
+      .anton { font-family: "Anton", sans-serif; font-weight: 400; letter-spacing: 0.01em; }
+      .gold { color: var(--accent); }
+      .mask { display: block; overflow: hidden; }
+      .mask > .in { display: block; white-space: nowrap; }
+      .kicker { display: flex; align-items: center; gap: 20px; font-size: 30px; letter-spacing: 0.32em; color: var(--accent); }
+      .kicker-bar { display: block; width: 64px; height: 5px; background: var(--accent); transform-origin: 0 50%; }
+      svg.ico { display: block; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+      /* ---------- S1 困りごと（写真 3 枚） ---------- */
+      #s1 { z-index: 5; }
+      #s1-cam { position: absolute; inset: 0; }
+      .photo { position: absolute; overflow: hidden; border-radius: 18px; border: 6px solid color-mix(in srgb, var(--ink) 90%, transparent); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55); background: var(--surface); }
+      .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      #p1 { left: 70px; top: 90px; width: 720px; height: 480px; }
+      #p2 { left: 1140px; top: 70px; width: 700px; height: 466px; }
+      #p3 { left: 560px; top: 560px; width: 760px; height: 506px; }
+      #s1-shade { position: absolute; inset: 0; background: radial-gradient(ellipse 900px 520px at 50% 52%, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 60%, color-mix(in srgb, var(--bg) 30%, transparent) 100%); }
+      #s1-head { position: absolute; left: 0; right: 0; top: 300px; display: flex; flex-direction: column; align-items: center; }
+      #s1-head .in { text-shadow: 0 0 18px color-mix(in srgb, var(--bg) 95%, transparent), 0 0 42px color-mix(in srgb, var(--bg) 90%, transparent); }
+      #s1-l1 { font-size: 100px; }
+      #s1-l2 { font-size: 136px; }
+      #s1-l3 { font-size: 164px; color: var(--accent); }
+      #wipe-a, #wipe-b { position: absolute; top: -60px; left: 0; width: 3200px; height: 1200px; z-index: 60; clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); }
+      #wipe-a { background: var(--accent); }
+      #wipe-b { background: var(--accent-deep); }
+
+      /* ---------- S2 お客さんの操作（左の列） ---------- */
+      #s2 { z-index: 6; }
+      #s2-left { position: absolute; left: 140px; top: 170px; width: 1000px; }
+      #s2-head { margin-top: 36px; font-size: 108px; }
+      #s2-steps { position: absolute; left: 140px; top: 610px; width: 900px; height: 260px; }
+      #s2-stepbar { position: absolute; left: 0; top: 0; width: 8px; height: 64px; background: var(--accent); }
+      .step { position: absolute; left: 40px; height: 64px; display: flex; align-items: center; gap: 26px; font-size: 46px; color: var(--dim); white-space: nowrap; }
+      .step .snum { font-size: 40px; width: 64px; letter-spacing: 0.04em; }
+      .step .schk { width: 40px; height: 40px; }
+      .step .schk polyline { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; }
+      #step1 { top: 0; }
+      #step2 { top: 90px; }
+      #step3 { top: 180px; }
+      #s2-results { position: absolute; left: 140px; top: 610px; width: 900px; }
+      .res { display: flex; align-items: center; gap: 24px; height: 96px; padding: 0 30px; margin-bottom: 22px; border-radius: 20px; border: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 44px; white-space: nowrap; }
+      .res-ico { width: 48px; height: 48px; color: var(--accent); }
+
+      /* ---------- スマホの枠（S2 → S3） ---------- */
+      #phone-rig { position: absolute; left: 1270px; top: 104px; width: 418px; height: 872px; z-index: 20; }
+      #phone { position: absolute; inset: 0; border-radius: 62px; background: linear-gradient(145deg, #2c2c31 0%, #141416 60%, #232327 100%); box-shadow: 0 0 0 2px #3a3a40, 0 40px 90px rgba(0, 0, 0, 0.7), 0 0 120px color-mix(in srgb, var(--accent) 16%, transparent); }
+      #ph-screen { position: absolute; left: 14px; top: 14px; width: 390px; height: 844px; border-radius: 48px; overflow: hidden; background: #0a0a0b; }
+      #ph-cam { position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform-origin: 0 0; }
+      .ph-media { position: absolute; left: 0; top: 0; width: 390px; height: 844px; object-fit: cover; }
+
+      /* ---------- S3 つなぐ線 ---------- */
+      #s3 { z-index: 25; pointer-events: none; }
+      #link-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      #link-path { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
+      #link-glow { fill: none; stroke: color-mix(in srgb, var(--accent-soft) 35%, transparent); stroke-width: 18; stroke-linecap: round; }
+      #link-dot { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 14px; background: #fff4d6; box-shadow: 0 0 24px 10px color-mix(in srgb, var(--accent-soft) 80%, transparent); }
+      #link-start { position: absolute; left: 541px; top: 628px; width: 36px; height: 36px; border-radius: 18px; border: 4px solid var(--accent); }
+      .dev-label { position: absolute; top: 924px; font-size: 30px; letter-spacing: 0.12em; color: var(--muted); text-align: center; white-space: nowrap; }
+      #lab-phone { left: 230px; width: 400px; }
+      #lab-pc { left: 985px; width: 600px; }
+
+      /* ---------- PC の枠（S3 → S4） ---------- */
+      #laptop-rig { position: absolute; left: 740px; top: 150px; width: 1090px; height: 700px; z-index: 19; }
+      #laptop { position: absolute; left: 0; top: 0; width: 1090px; height: 700px; border-radius: 26px; background: linear-gradient(160deg, #2c2c31 0%, #151517 70%); box-shadow: 0 0 0 2px #3a3a40, 0 40px 90px rgba(0, 0, 0, 0.7), 0 0 120px color-mix(in srgb, var(--accent) 12%, transparent); }
+      #laptop-base { position: absolute; left: -60px; top: 700px; width: 1210px; height: 26px; border-radius: 0 0 26px 26px; background: linear-gradient(180deg, #3a3a40 0%, #1d1d20 100%); }
+      #laptop-notch { position: absolute; left: 485px; top: 700px; width: 120px; height: 8px; border-radius: 0 0 8px 8px; background: #111113; }
+      #pc-screen { position: absolute; left: 20px; top: 22px; width: 1050px; height: 656px; overflow: hidden; border-radius: 6px; background: #f8f9fb; }
+      #pc-scale { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform: scale(0.8203125); transform-origin: 0 0; }
+      #pc-cam { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0; }
+      .pc-media { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; object-fit: cover; }
+      #row-hl { position: absolute; left: 40px; top: 200px; width: 1200px; height: 90px; border-radius: 12px; border: 4px solid var(--accent); opacity: 0; }
+
+      /* ---------- S4 管理側（左の列） ---------- */
+      #s4 { z-index: 21; }
+      #s4-left { position: absolute; left: 120px; top: 150px; width: 600px; }
+      #s4-head { margin-top: 30px; font-size: 92px; }
+      #s4-rows { position: absolute; left: 120px; top: 620px; width: 600px; }
+      .frow { display: flex; align-items: center; gap: 20px; height: 70px; margin-bottom: 20px; font-size: 34px; color: var(--dim); white-space: nowrap; }
+      .frow-ico { flex: 0 0 56px; width: 56px; height: 56px; border-radius: 28px; border: 2px solid var(--border); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+
+      /* ---------- S5 特長 ---------- */
+      #s5a { z-index: 40; background: var(--bg); }
+      #s5a-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.32; }
+      #s5a-cam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      #s5a-kick { font-size: 34px; letter-spacing: 0.4em; color: var(--accent-soft); margin-bottom: 40px; }
+      #s5a-l1 { font-size: 140px; white-space: nowrap; text-shadow: 0 0 40px color-mix(in srgb, var(--bg) 90%, transparent); }
+      #s5a-l2 { font-size: 160px; white-space: nowrap; text-shadow: 0 0 40px color-mix(in srgb, var(--bg) 90%, transparent); }
+      #s5b { z-index: 41; background: var(--accent); }
+      #s5b-cam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--on-accent); }
+      #s5b-l1 { font-size: 112px; white-space: nowrap; }
+      #s5b-l2 { font-size: 230px; line-height: 1.12; white-space: nowrap; }
+      #s5c { z-index: 42; background: var(--bg); }
+      #s5c-ring { position: absolute; left: 460px; top: 40px; width: 1000px; height: 1000px; border-radius: 500px; border: 6px solid var(--accent); }
+      #s5c-ring2 { position: absolute; left: 660px; top: 240px; width: 600px; height: 600px; border-radius: 300px; border: 2px solid var(--accent-soft); }
+
+      /* ---------- S6 名前・制作 ---------- */
+      #s6 { z-index: 43; background: var(--bg); }
+      #s6-cam, #s6-zoom { position: absolute; inset: 0; }
+      #s6-shock { position: absolute; left: 810px; top: 190px; width: 300px; height: 300px; border-radius: 150px; border: 8px solid var(--accent); opacity: 0; }
+      #s6-name-wrap { position: absolute; left: 0; right: 0; top: 230px; display: flex; justify-content: center; }
+      #s6-name { font-size: 170px; line-height: 1.15; white-space: nowrap; }
+      #s6-rule-l, #s6-rule-r { position: absolute; top: 640px; width: 380px; height: 2px; background: var(--accent); }
+      #s6-rule-l { left: 180px; transform-origin: 100% 50%; }
+      #s6-rule-r { left: 1360px; transform-origin: 0 50%; }
+      #s6-tag { position: absolute; left: 0; right: 0; top: 608px; text-align: center; font-size: 50px; letter-spacing: 0.3em; }
+      #s6-credit-wrap { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; }
+      #s6-credit { display: flex; align-items: baseline; gap: 18px; padding: 22px 56px; border-radius: 24px; border: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); font-size: 44px; white-space: nowrap; }
+      #s6-credit-k { color: var(--accent); }
+      #s6-fade { position: absolute; inset: 0; z-index: 88; background: var(--bg); opacity: 0; pointer-events: none; }
+
+      /* ---------- 全体の飾り ---------- */
+      #chrome { position: absolute; inset: 0; z-index: 70; pointer-events: none; }
+      .brk { position: absolute; width: 44px; height: 44px; border-color: color-mix(in srgb, var(--accent-soft) 55%, transparent); border-style: solid; border-width: 0; }
+      #brk-tl { left: 48px; top: 48px; border-left-width: 3px; border-top-width: 3px; }
+      #brk-tr { right: 48px; top: 48px; border-right-width: 3px; border-top-width: 3px; }
+      #brk-bl { left: 48px; bottom: 48px; border-left-width: 3px; border-bottom-width: 3px; }
+      #brk-br { right: 48px; bottom: 48px; border-right-width: 3px; border-bottom-width: 3px; }
+      #vignette { position: absolute; inset: 0; z-index: 80; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.5) 100%); }
+      #flash { position: absolute; inset: 0; z-index: 85; pointer-events: none; background: #fff4d6; opacity: 0; }
+      @keyframes hf-grain-noise {
+        0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -5%); } 20% { transform: translate(-10%, 5%); }
+        30% { transform: translate(5%, -10%); } 40% { transform: translate(-5%, 15%); } 50% { transform: translate(-10%, 5%); }
+        60% { transform: translate(15%, 0); } 70% { transform: translate(0, 10%); } 80% { transform: translate(-15%, 0); } 90% { transform: translate(10%, 5%); }
+      }
+      #grain-overlay .grain-texture {
+        position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        opacity: 0.05; animation: hf-grain-noise 0.5s steps(1) infinite;
+      }
+      #glyph-warm { position: absolute; left: -4000px; top: 0; width: 3000px; display: flex; flex-direction: column; font-size: 20px; }
+      #glyph-warm > span { display: block; white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <!-- REPLACE: data-duration = 合計秒（最後の場面の終わり。ナレーションの長さから決める） -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="42" data-width="1920" data-height="1080">
+      <svg width="0" height="0" style="position: absolute">
+        <defs>
+          <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.8 2.8L16.5 9.5" /></symbol>
+          <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 6h18v12H3z" /><path d="M3 7l9 6 9-6" /></symbol>
+          <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13" /><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></symbol>
+          <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></symbol>
+          <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /></symbol>
+        </defs>
+      </svg>
+
+      <!-- ===================== S1 困りごと 0.0-4.0 ===================== -->
+      <div id="s1" class="scene">
+        <div id="s1-cam">
+          <!-- REPLACE: 困りごとの生活の場面の写真 3 枚（gen-images.ts。文字は入れない） -->
+          <div id="p1" class="photo" data-layout-allow-overlap><img src="assets/img/s1-a.png" alt="" /></div>
+          <div id="p2" class="photo" data-layout-allow-overlap><img src="assets/img/s1-b.png" alt="" /></div>
+          <div id="p3" class="photo" data-layout-allow-overlap><img src="assets/img/s1-c.png" alt="" /></div>
+          <div id="s1-shade"></div>
+          <div id="s1-head">
+            <!-- REPLACE: 困りごとの一言（ナレーション S1 と同じ文） -->
+            <span class="mask"><span id="s1-l1" class="in jp9">〔困りごと一〕</span></span>
+            <span class="mask"><span id="s1-l2" class="in jp9">〔困りごと二〕</span></span>
+            <span class="mask"><span id="s1-l3" class="in jp9">〔困りごと三〕</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== S2 お客さんの操作 4.0-14.0 ===================== -->
+      <div id="s2" class="scene" style="opacity: 0">
+        <div id="s2-left">
+          <div class="kicker anton"><span id="s2-kbar" class="kicker-bar"></span><span id="s2-ktxt">〔FOR CUSTOMERS〕</span></div>
+          <div id="s2-head" class="jp9">
+            <!-- REPLACE: お客さん側の見出し・手順・結果（ナレーション S2 と対応させる） -->
+            <span class="mask"><span id="s2-h1" class="in">〔見出し一〕</span></span>
+            <span class="mask"><span id="s2-h2" class="in gold">〔見出し二〕</span></span>
+          </div>
+        </div>
+        <div id="s2-steps">
+          <div id="s2-stepbar"></div>
+          <div id="step1" class="step jp7"><span class="snum anton">01</span><span>〔手順一〕</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk1" points="8,21 17,30 33,11" /></svg></div>
+          <div id="step2" class="step jp7"><span class="snum anton">02</span><span>〔手順二〕</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk2" points="8,21 17,30 33,11" /></svg></div>
+          <div id="step3" class="step jp7"><span class="snum anton">03</span><span>〔手順三〕</span><svg class="schk" viewBox="0 0 40 40"><polyline id="chk3" points="8,21 17,30 33,11" /></svg></div>
+        </div>
+        <div id="s2-results">
+          <div id="res1" class="res jp7" style="opacity: 0"><svg class="ico res-ico" viewBox="0 0 24 24"><use href="#i-check" /></svg><span>〔結果一〕</span></div>
+          <div id="res2" class="res jp7" style="opacity: 0"><svg class="ico res-ico" viewBox="0 0 24 24"><use href="#i-mail" /></svg><span>〔結果二〕</span></div>
+        </div>
+      </div>
+
+      <!-- ===================== スマホの枠 ===================== -->
+      <div id="phone-rig" style="opacity: 0">
+        <div id="phone">
+          <div id="ph-screen">
+            <!-- REPLACE: お客さん側の録画（record.mjs の takes/user.mp4 を assets/video/ に写したもの）と前後の静止画。
+                 data-media-start = 録画の中で使い始める秒。途中を切り出すなら <video> を増やして並べる -->
+            <div id="ph-cam" data-layout-allow-overflow>
+              <img id="ph-hold-a" class="clip ph-media" src="assets/img/user-first.png" alt="" data-start="4" data-duration="0.6" data-track-index="1" />
+              <video id="ph-a" class="clip ph-media" src="assets/video/user.mp4" data-start="4.6" data-duration="9.4" data-media-start="0.3" data-track-index="2" muted playsinline></video>
+              <img id="ph-hold-e" class="clip ph-media" src="assets/img/user-last.png" alt="" data-start="14" data-duration="3.8" data-track-index="1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== PC の枠 ===================== -->
+      <div id="laptop-rig" style="opacity: 0">
+        <div id="laptop"></div>
+        <div id="laptop-base"></div>
+        <div id="laptop-notch"></div>
+        <div id="pc-screen">
+          <div id="pc-scale">
+            <!-- REPLACE: 管理側の録画（1280x800 を 0.8203125 倍で PC の枠 1050x656 に収めている）。#row-hl は S3 の線の着地点（対象の行） -->
+            <div id="pc-cam" data-layout-allow-overflow>
+              <img id="pc-hold" class="clip pc-media" src="assets/img/admin-first.png" alt="" data-start="14" data-duration="5" data-track-index="3" />
+              <video id="pc-a" class="clip pc-media" src="assets/video/admin.mp4" data-start="19" data-duration="10.4" data-media-start="0.3" data-track-index="4" muted playsinline></video>
+              <div id="row-hl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== S3 つなぐ線 14.0-17.2 ===================== -->
+      <div id="s3" class="scene" style="opacity: 0">
+        <svg id="link-svg" viewBox="0 0 1920 1080">
+          <path id="link-glow" d="M 559 646 C 740 646, 800 497, 992 497" />
+          <path id="link-path" d="M 559 646 C 740 646, 800 497, 992 497" />
+        </svg>
+        <div id="link-start"></div>
+        <div id="link-dot"></div>
+      </div>
+      <div id="labels" class="scene" style="opacity: 0; z-index: 22">
+        <div id="lab-phone" class="dev-label jp7">〔お客さんの端末〕</div><!-- REPLACE -->
+        <div id="lab-pc" class="dev-label jp7">〔管理側の端末〕</div>
+      </div>
+
+      <!-- ===================== S4 管理側 17.2-29.4 ===================== -->
+      <div id="s4" class="scene" style="opacity: 0">
+        <div id="s4-left">
+          <div class="kicker anton"><span id="s4-kbar" class="kicker-bar"></span><span id="s4-ktxt">〔FOR OWNER〕</span></div>
+          <div id="s4-head" class="jp9">
+            <!-- REPLACE: 管理側の見出し・できること 3 行（ナレーション S4 と対応させる） -->
+            <span class="mask"><span id="s4-h1" class="in">〔見出し一〕</span></span>
+            <span class="mask"><span id="s4-h2" class="in">〔見出し二〕</span></span>
+            <span class="mask"><span id="s4-h3" class="in gold">〔見出し三〕</span></span>
+          </div>
+        </div>
+        <div id="s4-rows">
+          <div id="frow1" class="frow jp7"><span class="frow-ico"><svg class="ico" width="30" height="30" viewBox="0 0 24 24"><use href="#i-calendar" /></svg></span><span>〔できること一〕</span></div>
+          <div id="frow2" class="frow jp7"><span class="frow-ico"><svg class="ico" width="30" height="30" viewBox="0 0 24 24"><use href="#i-list" /></svg></span><span>〔できること二〕</span></div>
+          <div id="frow3" class="frow jp7"><span class="frow-ico"><svg class="ico" width="30" height="30" viewBox="0 0 24 24"><use href="#i-search" /></svg></span><span>〔できること三〕</span></div>
+        </div>
+      </div>
+
+      <!-- ===================== S5 特長 29.4-34.6 ===================== -->
+      <div id="s5a" class="scene" style="opacity: 0">
+        <img id="s5a-bg" src="assets/img/s5-bg.png" alt="" /><!-- REPLACE: 使ったあとの生活の場面の写真（gen-images.ts） -->
+        <div id="s5a-cam" data-layout-allow-overflow>
+          <!-- REPLACE: 特長 2 つ（コードで確かめたものだけ。「リアルタイム」「すぐに」「自動で」はコードで確かめた場合だけ） -->
+          <div id="s5a-kick" class="anton">FEATURE</div>
+          <div id="s5a-l1" class="jp9">〔特長一の前半〕</div>
+          <div id="s5a-l2" class="jp9">〔後半〕<span class="gold">〔強調。〕</span></div>
+        </div>
+      </div>
+      <div id="s5b" class="scene" style="opacity: 0">
+        <div id="s5b-cam">
+          <div id="s5b-l1" class="jp9">〔特長二の前半、〕</div>
+          <div id="s5b-l2" class="jp9">〔後半。〕</div>
+        </div>
+      </div>
+      <div id="s5c" class="scene" style="opacity: 0">
+        <div id="s5c-ring"></div>
+        <div id="s5c-ring2"></div>
+      </div>
+
+      <!-- ===================== S6 名前・制作 34.6-42.0 ===================== -->
+      <div id="s6" class="scene" style="opacity: 0">
+        <div id="s6-cam">
+          <div id="s6-zoom">
+            <div id="s6-shock"></div>
+            <div id="s6-name-wrap"><div id="s6-name" class="jp9">〔アプリの名前〕</div></div><!-- REPLACE: 15 秒動画の S5 と同じ -->
+            <div id="s6-rule-l"></div>
+            <div id="s6-rule-r"></div>
+            <div id="s6-tag" class="jp7">〔タグライン〕</div><!-- REPLACE: 15 秒動画と同じ -->
+            <div id="s6-credit-wrap">
+              <!-- 制作クレジット: 手で書かない。credit.ts apply が設定の credit.display を data-credit-name に入れる -->
+              <div id="s6-credit" class="jp7"><span id="s6-credit-k">制作：</span><span data-credit-name>〔制作クレジット〕</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="s6-fade"></div>
+
+      <!-- ===================== 全体の飾り ===================== -->
+      <div id="chrome">
+        <div id="brk-tl" class="brk"></div>
+        <div id="brk-tr" class="brk"></div>
+        <div id="brk-bl" class="brk"></div>
+        <div id="brk-br" class="brk"></div>
+      </div>
+      <div id="flash"></div>
+      <div id="vignette"></div>
+      <div id="grain-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 90">
+        <div class="grain-texture"></div>
+      </div>
+      <div id="wipe-a"></div>
+      <div id="wipe-b"></div>
+
+      <!-- REPLACE: 画面に出す文字を太さごとに全部入れる（制作クレジットは credit.ts apply が入れる） -->
+      <div id="glyph-warm" data-layout-allow-overflow>
+        <span class="jp9">〔困りごと一〕〔困りごと二〕〔困りごと三〕〔見出し一〕〔見出し二〕〔見出し三〕〔特長一の前半〕〔後半〕〔強調。〕〔特長二の前半、〕〔後半。〕〔アプリの名前〕</span>
+        <span class="jp7">〔手順一〕〔手順二〕〔手順三〕〔結果一〕〔結果二〕〔お客さんの端末〕〔管理側の端末〕〔できること一〕〔できること二〕〔できること三〕〔タグライン〕制作：</span>
+        <span class="jp7" data-credit-name>〔制作クレジット〕</span>
+        <span class="anton">〔FOR CUSTOMERS〕〔FOR OWNER〕 FEATURE 01 02 03</span>
+      </div>
+
+      <!-- ===================== 音 ===================== -->
+      <!-- REPLACE: ナレーション（場面ごとに wav 1 本）。data-start = 場面の開始 + 0.3、data-duration = <id>.json の effectiveSeconds -->
+      <audio id="vo-s1" src="assets/audio/s1-hook.wav" data-start="0.3" data-duration="3.4" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s2" src="assets/audio/s2-phone.wav" data-start="4.3" data-duration="9.0" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s3" src="assets/audio/s3-line.wav" data-start="14.3" data-duration="2.6" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s4" src="assets/audio/s4-admin.wav" data-start="17.5" data-duration="11.0" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s5" src="assets/audio/s5-features.wav" data-start="29.7" data-duration="4.5" data-track-index="10" data-volume="1"></audio>
+      <audio id="vo-s6" src="assets/audio/s6-name.wav" data-start="35" data-duration="5.9" data-track-index="10" data-volume="1"></audio>
+
+      <!-- BGM（gen-bgm.ts --style narrated）。声の下で控えめに -->
+      <audio id="bgm-bed" src="assets/audio/bgm.wav" data-start="0" data-duration="42" data-track-index="11" data-volume="0.22"></audio>
+
+      <!-- 効果音（gen-sfx.ts） -->
+      <audio id="sfx-s1-in" src="assets/audio/whoosh-short.wav" data-start="0.2" data-duration="0.4" data-track-index="12" data-volume="0.25"></audio>
+      <audio id="sfx-s1-wipe" src="assets/audio/whoosh-cinematic.wav" data-start="3.4" data-duration="1.3" data-track-index="13" data-volume="0.3"></audio>
+      <audio id="sfx-done" src="assets/audio/chime.wav" data-start="10.5" data-duration="1.4" data-track-index="14" data-volume="0.2"></audio>
+      <audio id="sfx-link" src="assets/audio/whoosh.wav" data-start="15.0" data-duration="0.57" data-track-index="15" data-volume="0.28"></audio>
+      <audio id="sfx-arrive" src="assets/audio/ping.wav" data-start="15.8" data-duration="0.8" data-track-index="16" data-volume="0.2"></audio>
+      <audio id="sfx-s5-hit" src="assets/audio/impact.wav" data-start="29.8" data-duration="1" data-track-index="17" data-volume="0.35"></audio>
+      <audio id="sfx-s5-whoosh" src="assets/audio/whoosh.wav" data-start="31.8" data-duration="0.57" data-track-index="18" data-volume="0.3"></audio>
+      <audio id="sfx-name" src="assets/audio/impact.wav" data-start="34.6" data-duration="1" data-track-index="19" data-volume="0.5"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const F = 1 / 30;
+      function shake(sel, t0, dur, amp) {
+        const steps = Math.max(2, Math.round(dur / F));
+        let px = 0;
+        let py = 0;
+        for (let i = 1; i <= steps; i++) {
+          const k = 1 - i / steps;
+          const a = amp * k * k;
+          const nx = i === steps ? 0 : a * Math.sin(i * 2.7 + t0 * 13.1);
+          const ny = i === steps ? 0 : a * Math.cos(i * 3.9 + t0 * 7.3);
+          tl.fromTo(sel, { x: px, y: py }, { x: nx, y: ny, duration: F, ease: "none", immediateRender: false }, t0 + (i - 1) * F);
+          px = nx;
+          py = ny;
+        }
+      }
+      function flash(t, peak) {
+        tl.fromTo("#flash", { opacity: peak }, { opacity: 0, duration: 0.22, ease: "power2.out", immediateRender: false }, t);
+      }
+      function sceneSwap(outSel, inSel, t) {
+        if (outSel) tl.set(outSel, { opacity: 0 }, t);
+        if (inSel) tl.set(inSel, { opacity: 1 }, t);
+      }
+      const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+      // REPLACE: 場面の始まりの秒（ナレーションの長さから決める。下の動きはこの秒からの相対で書いてある）
+      const T = { s2: 4.0, s3: 14.0, s4: 17.2, s5: 29.4, s5b: 31.9, s5c: 34.1, s6: 34.6, end: 42.0 };
+
+      // ================= S1 困りごと =================
+      // 写真が 3 方向から少し傾いて入り、ゆっくり寄る → 見出し → 中央へ吸い込まれる
+      const PHOTOS = [["#p1", -1, -6], ["#p2", 1, 5], ["#p3", 0, -3]];
+      PHOTOS.forEach(([sel, dir, rot], i) => {
+        tl.fromTo(sel, { opacity: 0, x: dir * 260, y: dir === 0 ? 240 : -60, rotation: rot * 2, scale: 1.08 }, { opacity: 1, x: 0, y: 0, rotation: rot, scale: 1, duration: 0.8, ease: "power3.out" }, 0.1 + i * 0.22);
+        tl.fromTo(sel + " img", { scale: 1.04 }, { scale: 1.14, duration: 3.2, ease: "none" }, 0.1 + i * 0.22);
+        const el = document.querySelector(sel); // offset* は transform の影響を受けない（CSS の位置そのもの）
+        tl.to(sel, { x: 960 - (el.offsetLeft + el.offsetWidth / 2), y: 540 - (el.offsetTop + el.offsetHeight / 2), scale: 0.15, rotation: 0, opacity: 0, duration: 0.45, ease: "power3.in" }, T.s2 - 0.7 + i * 0.04);
+      });
+      tl.fromTo("#s1-l1", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 0.62);
+      tl.fromTo("#s1-l2", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, 1.6);
+      tl.fromTo("#s1-l3", { opacity: 0, scale: 1.6, filter: "blur(18px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 2.5);
+      shake("#s1-cam", 2.55, 0.3, 14);
+      flash(2.55, 0.1);
+      tl.fromTo("#wipe-a", { x: -3400 }, { x: 2100, duration: 0.7, ease: "power3.inOut" }, T.s2 - 0.35);
+      tl.fromTo("#wipe-b", { x: -3400 }, { x: 2100, duration: 0.7, ease: "power3.inOut" }, T.s2 - 0.4);
+      sceneSwap("#s1", "#s2", T.s2);
+
+      // ================= S2 お客さんの操作 =================
+      const a = T.s2;
+      tl.set("#phone-rig", { opacity: 1 }, a);
+      tl.fromTo("#phone-rig", { y: 900, rotation: 8 }, { y: 0, rotation: 0, duration: 0.8, ease: "expo.out", immediateRender: false }, a);
+      tl.fromTo("#s2-kbar", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "expo.out" }, a + 0.1);
+      tl.fromTo("#s2-ktxt", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, a + 0.15);
+      tl.fromTo("#s2-h1", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, a + 0.2);
+      tl.fromTo("#s2-h2", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out" }, a + 0.35);
+      tl.fromTo(".step", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 }, a + 0.6);
+      tl.fromTo("#s2-stepbar", { scaleY: 0, y: 0 }, { scaleY: 1, duration: 0.3, ease: "expo.out" }, a + 0.8);
+      function stepActive(i, t) {
+        tl.fromTo("#step" + i, { color: css("--dim") }, { color: css("--ink"), duration: 0.15, immediateRender: false }, t);
+      }
+      function stepDone(i, t) {
+        tl.to("#step" + i, { color: css("--muted"), duration: 0.2 }, t);
+        tl.fromTo("#chk" + i, { strokeDashoffset: 60 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+      }
+      // REPLACE: 手順の時刻を、ナレーションの語の時刻（transcribe.ts）と録画の操作に合わせる
+      const STEP = [a + 0.9, a + 2.6, a + 4.2, a + 5.6];
+      stepActive(1, STEP[0]);
+      stepDone(1, STEP[1] - 0.2);
+      tl.to("#s2-stepbar", { y: 90, duration: 0.3, ease: "power3.inOut" }, STEP[1] - 0.1);
+      stepActive(2, STEP[1]);
+      stepDone(2, STEP[2] - 0.2);
+      tl.to("#s2-stepbar", { y: 180, duration: 0.3, ease: "power3.inOut" }, STEP[2] - 0.1);
+      stepActive(3, STEP[2]);
+      stepDone(3, STEP[3] - 0.2);
+      tl.to("#s2-steps", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, STEP[3]);
+      tl.fromTo("#res1", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out", immediateRender: false }, STEP[3] + 0.2);
+      tl.fromTo("#res2", { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out", immediateRender: false }, STEP[3] + 1.4);
+      // 寄り（画面の大事な所へ 1.3 倍）。REPLACE: x / y は寄る位置（390x844 の画面座標から計算）
+      tl.fromTo("#ph-cam", { scale: 1, x: 0, y: 0 }, { scale: 1.3, x: -58, y: -120, duration: 0.5, ease: "power3.out", immediateRender: false }, STEP[3] + 0.4);
+      tl.to("#ph-cam", { scale: 1, x: 0, y: 0, duration: 0.45, ease: "power3.inOut" }, T.s3 - 0.5);
+
+      // ================= S3 つなぐ線 =================
+      const b = T.s3;
+      tl.to("#s2", { opacity: 0, x: -80, duration: 0.4, ease: "power2.in" }, b);
+      tl.to("#phone-rig", { x: -1049, y: 20, scale: 0.78, duration: 0.9, ease: "power3.inOut" }, b + 0.05);
+      tl.set("#laptop-rig", { opacity: 1 }, b + 0.3);
+      tl.fromTo("#laptop-rig", { x: 900 }, { x: 0, duration: 0.8, ease: "expo.out", immediateRender: false }, b + 0.3);
+      tl.set("#s3", { opacity: 1 }, b + 0.9);
+      tl.set("#labels", { opacity: 1 }, b + 1.1);
+      tl.fromTo("#lab-phone", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out", immediateRender: false }, b + 1.1);
+      tl.fromTo("#lab-pc", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out", immediateRender: false }, b + 1.2);
+      const LINK_LEN = 600;
+      tl.fromTo("#link-start", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)", immediateRender: false }, b + 0.95);
+      tl.fromTo(["#link-path", "#link-glow"], { strokeDasharray: LINK_LEN, strokeDashoffset: LINK_LEN }, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut", immediateRender: false }, b + 1.0);
+      const P0 = [559, 646], P1 = [740, 646], P2 = [800, 497], P3 = [992, 497];
+      const bez = (t, i) => { const u = 1 - t; return u * u * u * P0[i] + 3 * u * u * t * P1[i] + 3 * u * t * t * P2[i] + t * t * t * P3[i]; };
+      const dotState = { p: 0 };
+      const dotEl = document.getElementById("link-dot");
+      const placeDot = () => { dotEl.style.transform = "translate(" + bez(dotState.p, 0).toFixed(2) + "px," + bez(dotState.p, 1).toFixed(2) + "px)"; };
+      placeDot();
+      tl.fromTo(dotState, { p: 0 }, { p: 1, duration: 0.8, ease: "power2.inOut", onUpdate: placeDot, immediateRender: false }, b + 1.0);
+      tl.fromTo("#link-dot", { opacity: 0 }, { opacity: 1, duration: 0.1, immediateRender: false }, b + 1.0);
+      tl.to("#link-dot", { opacity: 0, scale: 2.2, duration: 0.35, ease: "power2.out" }, b + 1.8);
+      tl.fromTo("#row-hl", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, b + 1.8);
+      tl.to("#row-hl", { opacity: 0, duration: 0.5 }, b + 2.9);
+      flash(b + 1.8, 0.08);
+
+      // ================= S4 管理側 =================
+      const c = T.s4;
+      tl.to(["#s3", "#labels"], { opacity: 0, duration: 0.35 }, c);
+      tl.to("#phone-rig", { x: -1700, opacity: 0, duration: 0.5, ease: "power3.in" }, c);
+      tl.set("#s4", { opacity: 1 }, c + 0.2);
+      tl.fromTo("#s4-kbar", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "expo.out", immediateRender: false }, c + 0.25);
+      tl.fromTo("#s4-ktxt", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out", immediateRender: false }, c + 0.3);
+      tl.fromTo("#s4-h1", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, c + 0.35);
+      tl.fromTo("#s4-h2", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, c + 0.45);
+      tl.fromTo("#s4-h3", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, c + 0.55);
+      tl.fromTo(".frow", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out", stagger: 0.08, immediateRender: false }, c + 0.7);
+      function rowOn(i, t) {
+        tl.fromTo("#frow" + i, { color: css("--dim") }, { color: css("--ink"), duration: 0.2, immediateRender: false }, t);
+        tl.fromTo("#frow" + i + " .frow-ico", { borderColor: css("--border") }, { borderColor: css("--accent"), duration: 0.2, immediateRender: false }, t);
+      }
+      function rowOff(i, t) {
+        tl.to("#frow" + i, { color: css("--muted"), duration: 0.2 }, t);
+      }
+      // REPLACE: できること 1〜3 を光らせる時刻（ナレーションの語の時刻に合わせる）と、PC の画面の寄り
+      const ROW = [c + 1.6, c + 4.6, c + 7.8, T.s5 - 0.6];
+      rowOn(1, ROW[0]);
+      rowOff(1, ROW[1] - 0.2);
+      rowOn(2, ROW[1]);
+      tl.fromTo("#pc-cam", { scale: 1, x: 0, y: 0 }, { scale: 1.25, x: -160, y: -60, duration: 0.6, ease: "power3.inOut", immediateRender: false }, ROW[1]);
+      rowOff(2, ROW[2] - 0.2);
+      rowOn(3, ROW[2]);
+      tl.to("#pc-cam", { scale: 1, x: 0, y: 0, duration: 0.6, ease: "power3.inOut" }, ROW[3]);
+
+      // ================= S5 特長 =================
+      sceneSwap(null, "#s5a", T.s5);
+      tl.set(["#s4", "#laptop-rig"], { opacity: 0 }, T.s5);
+      tl.fromTo("#s5a-bg", { scale: 1.12 }, { scale: 1.0, duration: T.s5b - T.s5, ease: "none" }, T.s5);
+      tl.fromTo("#s5a-kick", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, T.s5 + 0.05);
+      tl.fromTo("#s5a-l1", { opacity: 0, scale: 1.6, filter: "blur(18px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, T.s5 + 0.4);
+      tl.fromTo("#s5a-l2", { opacity: 0, scale: 1.6, filter: "blur(18px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, T.s5 + 1.35);
+      shake("#s5a-cam", T.s5 + 1.4, 0.3, 14);
+      flash(T.s5 + 1.4, 0.08);
+      sceneSwap("#s5a", "#s5b", T.s5b);
+      tl.fromTo("#s5b-l1", { x: 700, skewX: -18, opacity: 0 }, { x: 0, skewX: 0, opacity: 1, duration: 0.35, ease: "expo.out" }, T.s5b + 0.05);
+      tl.fromTo("#s5b-l2", { scale: 1.8, opacity: 0, filter: "blur(18px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, T.s5b + 1.0);
+      shake("#s5b-cam", T.s5b + 1.0, 0.3, 16);
+      sceneSwap("#s5b", "#s5c", T.s5c);
+      tl.fromTo("#s5c-ring", { scale: 1.25, opacity: 1 }, { scale: 0.02, opacity: 1, duration: 0.45, ease: "power3.in" }, T.s5c);
+      tl.fromTo("#s5c-ring2", { scale: 1.9, opacity: 0.8 }, { scale: 0.02, opacity: 0.8, duration: 0.42, ease: "power3.in" }, T.s5c);
+
+      // ================= S6 名前・制作 =================
+      const L0 = T.s6;
+      sceneSwap("#s5c", "#s6", L0);
+      tl.fromTo("#s6-name", { scale: 1.9, opacity: 0, filter: "blur(24px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "expo.out" }, L0);
+      tl.fromTo("#s6-shock", { scale: 0.6, opacity: 1 }, { scale: 4.2, opacity: 0, duration: 0.7, ease: "expo.out" }, L0 + 0.02);
+      flash(L0, 0.35);
+      shake("#s6-cam", L0, 0.4, 22);
+      tl.fromTo("#s6-rule-l", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, L0 + 0.7);
+      tl.fromTo("#s6-rule-r", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, L0 + 0.7);
+      tl.fromTo("#s6-tag", { opacity: 0, y: 26, scale: 1.06 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, L0 + 0.7);
+      // REPLACE: 制作クレジットが出る時刻（ナレーションの「せいさく」の語の時刻に合わせる）
+      const CREDIT_AT = L0 + 2.6;
+      tl.fromTo("#s6-credit", { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out" }, CREDIT_AT);
+      tl.fromTo("#s6-zoom", { scale: 1.0 }, { scale: 1.04, duration: T.end - L0, ease: "none" }, L0);
+      tl.fromTo("#s6-fade", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.in" }, T.end - 0.5);
+
+      tl.fromTo(".brk", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out", stagger: 0.04 }, 0.05);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

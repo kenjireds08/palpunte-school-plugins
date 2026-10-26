@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  showcase-video サムネイル「スマホ型」（OGP 版 1200x630）。スマホだけで使うアプリの既定。
+  スマホ 2 台（手前＝操作する画面・奥＝結果の画面）を少しずらして置く。左上と右下に角の飾り。
+
+  使い方: promo-video/stills/thumb.html に写し、thumb.css と thumb.js も stills/ 直下に写す（references/compose.md「サムネイル」）。
+  素材（stills/assets/img/）: phone-action.png（390x844・操作する画面）/ phone-hold.png（390x844・結果の画面）
+-->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>サムネイル スマホ型（OGP）</title>
+    <script src="thumb.js"></script>
+    <link rel="stylesheet" href="thumb.css" />
+    <style>
+      /* FONTS:BEGIN */
+/* gen-fonts.ts rewrites this block */
+/* FONTS:END */
+
+      /* 端末の位置と倍率（--x --y はステージ座標・--s は倍率）。奥のスマホの左側は手前のスマホに隠れてよい（.keep を右側だけにする） */
+      .phone.front { --x: 600px; --y: 120px; --s: 0.54; }
+      .phone.back { --x: 880px; --y: 60px; --s: 0.46; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="glow" data-decor></div>
+
+      <!-- REPLACE: 左の文字（事実だけ。英字の小見出しは 20 字まで・システムの種類・キャッチ 2 行・機能 3 つ（1 行 15 字まで）） -->
+      <div class="brand abs" data-slot="brand"><span>〔ENGLISH TITLE〕</span></div>
+      <div class="kind abs" data-slot="system">〔システムの種類（例: 予約アプリ）〕</div>
+      <h1 class="head abs" data-slot="catch">〔キャッチ一行目〕<br /><em>〔強調の二行目〕</em></h1>
+      <ul class="feats abs" data-slot="features">
+        <!-- アイコンの候補は phone-pc.html のコメントにある（線のみ 24 グリッド） -->
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" /><path d="M11 18h2" /></svg>〔機能一〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2" /><path d="m3 6.5 9 6.5 9-6.5" /></svg>〔機能二〕</li>
+        <li><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /></svg>〔機能三〕</li>
+      </ul>
+
+      <!-- 奥: 結果の画面 -->
+      <div class="phone back" data-device="phone-result">
+        <div class="body"></div>
+        <div class="screen">
+          <img src="assets/img/phone-hold.png" alt="" />
+          <!-- REPLACE: 隠してはいけない範囲（390x844 の画面座標。手前のスマホに隠れない右側だけ） -->
+          <i class="keep" style="left: 180px; top: 40px; width: 200px; height: 760px"></i>
+        </div>
+      </div>
+
+      <!-- 手前: 操作する画面 -->
+      <div class="phone front" data-device="phone-action">
+        <div class="body"></div>
+        <div class="screen">
+          <img src="assets/img/phone-action.png" alt="" />
+          <!-- REPLACE: 隠してはいけない範囲（390x844 の画面座標） -->
+          <i class="keep" style="left: 10px; top: 10px; width: 370px; height: 824px"></i>
+        </div>
+      </div>
+
+      <div class="brk tl" data-decor></div><div class="brk br" data-decor></div>
+      <div class="grain" data-decor></div>
+    </div>
+  </body>
+</html>

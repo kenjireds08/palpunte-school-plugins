@@ -1,0 +1,45 @@
+{
+  "$comment": "showcase-video の設定（1 つのアプリに 1 ファイル）。promo-video/showcase.config.json に写して〔 〕を埋める。credit は手で書かず credit.ts save で入れる。鍵（API キー）はここに書かない",
+  "project": {
+    "name": "ヨヤクル",
+    "kind": "phone-pc"
+  },
+  "credit": {
+    "display": "見本キッチン工房　見本 太郎",
+    "kana": "みほんキッチンこうぼう、みほんたろう"
+  },
+  "brand": {
+    "--bg": "#0e1f1b",
+    "--accent": "#4cc3a0",
+    "--ink": "#f4f7f6"
+  },
+  "tts": {
+    "voice": "EHMH9cyd1z3rXm4z0Jja",
+    "model": "eleven_v4"
+  },
+  "cm": {
+    "dir": "cm",
+    "durationSeconds": 15
+  },
+  "intro": {
+    "dir": "intro/video",
+    "narrationDir": "intro/narration"
+  },
+  "stills": {
+    "dir": "stills",
+    "theme": "light",
+    "brand": {
+      "--bg": "#f4f7f6",
+      "--accent": "#1f6f5c",
+      "--ink": "#1b1f27"
+    }
+  },
+  "images": {
+    "budgetYen": 60,
+    "rawDir": "assets/raw",
+    "promptDir": "docs/prompts"
+  },
+  "capture": {
+    "baseUrl": "http://127.0.0.1:4173"
+  }
+}

@@ -8,7 +8,8 @@
   "scripts": {
     "test:hooks": "node --test plugins/school-starter/scripts/warn-dangerous-prompts.test.js plugins/school-starter/scripts/guard-env-access.test.js plugins/school-starter/scripts/flow-gate.test.js plugins/school-starter/scripts/warn-non-null-assertion.test.js plugins/school-starter/scripts/check-dependency-prs.test.js plugins/school-starter/scripts/check-md-creation.test.js",
     "test:comp-to-lp": "node --test test/comp-to-lp/gen.test.js test/comp-to-lp/gen-safety.test.js test/comp-to-lp/deps.test.js test/comp-to-lp/mask.test.js test/comp-to-lp/tools.test.js test/comp-to-lp/build-tools.test.js",
-    "test": "npm run test:hooks && npm run test:comp-to-lp",
+    "test:showcase-video": "node --test test/showcase-video/scripts.test.mjs",
+    "test": "npm run test:hooks && npm run test:comp-to-lp && npm run test:showcase-video",
     "build:tools": "bash scripts/build-tools-zip.sh"
   }
 }

@@ -1,0 +1,29 @@
+{
+  "cacheKey": "1546a6a853a61ebfdf05ee43f8f18190f6303ac884cf439584b59a213a216c4f",
+  "provider": "eleven",
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "text": "電話とメモで、バラバラに届く予約。",
+  "textChars": 17,
+  "outputSampleRate": 24000,
+  "channels": 1,
+  "seconds": 3.04,
+  "speechStart": 0,
+  "speechEnd": 2.829,
+  "effectiveSeconds": 2.83,
+  "effectiveBasis": "silencedetect noise=-45dB d=0.15s の末尾の無音の始まり（その後ろの 0.25 秒以下・ピーク -30dB 以下の音は雑音として無視）",
+  "ignoredTailNoise": [],
+  "credits": 17,
+  "generatedAt": "2026-10-25T05:25:44.182Z",
+  "elapsedMs": 7238,
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "apiFormat": "mp3_44100_128",
+  "loudnessI": -16.02,
+  "samplePeakDb": -2.53,
+  "truePeakDb": -2.5
+}

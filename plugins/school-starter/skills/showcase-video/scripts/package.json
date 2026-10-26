@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "showcase-video の道具（.ts は Node 22.18 以降の型ストリップでそのまま動く）。npm の依存なし"
+}

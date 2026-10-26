@@ -1,0 +1,29 @@
+{
+  "cacheKey": "9527e858904284f735bf5c6642d683fc4139eeebf39cccb8cae2766fa40c8352",
+  "provider": "eleven",
+  "model": "eleven_v4",
+  "voice": "EHMH9cyd1z3rXm4z0Jja",
+  "text": "予約は、スリーステップ。新しい予約は、色で分かります。",
+  "textChars": 27,
+  "outputSampleRate": 24000,
+  "channels": 1,
+  "seconds": 4.4,
+  "speechStart": 0,
+  "speechEnd": 4.237,
+  "effectiveSeconds": 4.24,
+  "effectiveBasis": "silencedetect noise=-45dB d=0.15s の末尾の無音の始まり（その後ろの 0.25 秒以下・ピーク -30dB 以下の音は雑音として無視）",
+  "ignoredTailNoise": [],
+  "credits": 27,
+  "generatedAt": "2026-10-25T05:25:51.934Z",
+  "elapsedMs": 1875,
+  "languageCode": "ja",
+  "textNormalization": {
+    "key": "apply_text_normalization",
+    "value": "off"
+  },
+  "voiceSettings": null,
+  "apiFormat": "mp3_44100_128",
+  "loudnessI": -16.2,
+  "samplePeakDb": -2.5,
+  "truePeakDb": -2.48
+}

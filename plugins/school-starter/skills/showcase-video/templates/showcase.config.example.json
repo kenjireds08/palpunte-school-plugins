@@ -1,0 +1,46 @@
+{
+  "$comment": "showcase-video の設定（1 つのアプリに 1 ファイル）。promo-video/showcase.config.json に写して〔 〕を埋める。credit は手で書かず credit.ts save で入れる。鍵（API キー）はここに書かない",
+  "project": {
+    "name": "〔アプリの名前（画面に出る正式な名前）〕",
+    "kind": "〔phone-pc（スマホ＋PC）か pc（PC だけ）か phone（スマホだけ）〕"
+  },
+  "credit": {
+    "display": "",
+    "kana": ""
+  },
+  "brand": {
+    "--bg": "〔動画の背景色 #rrggbb〕",
+    "--accent": "〔動画の強調色 #rrggbb〕",
+    "--ink": "〔動画の文字色 #rrggbb〕"
+  },
+  "tts": {
+    "voice": "EHMH9cyd1z3rXm4z0Jja",
+    "model": "eleven_v4"
+  },
+  "cm": {
+    "dir": "cm",
+    "durationSeconds": 15
+  },
+  "intro": {
+    "dir": "intro/video",
+    "narrationDir": "intro/narration"
+  },
+  "stills": {
+    "dir": "stills",
+    "theme": "light",
+    "brand": {
+      "--bg": "#f5f4ef",
+      "--accent": "#8c6a22",
+      "--ink": "#1b1f27"
+    }
+  },
+  "images": {
+    "budgetYen": 60,
+    "peopleRegion": "Japanese",
+    "rawDir": "assets/raw",
+    "promptDir": "docs/prompts"
+  },
+  "capture": {
+    "baseUrl": "http://localhost:3000"
+  }
+}
